@@ -1,8 +1,9 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import useDebounce from "~/hooks/useDebounce";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { players } from "~/lib/players";
 import FlashCard from "./FlashCard";
@@ -13,10 +14,14 @@ const LIMIT = 40;
 const fetchThreshold = 15;
 
 export default function Feed() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
-    queryKey: ["flashes"],
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput, 500);
+  const queryClient = useQueryClient();
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, refetch } = useInfiniteQuery({
+    queryKey: ["flashes", search],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await fetch(`/api/flashes?page=${pageParam}&limit=${LIMIT}`);
+      const res = await fetch(`/api/flashes?page=${pageParam}&limit=${LIMIT}&search=${encodeURIComponent(search)}`);
       return res.json();
     },
     getNextPageParam: (lastPage, allPages) => (lastPage.length === LIMIT ? allPages.length + 1 : undefined),
@@ -26,6 +31,13 @@ export default function Feed() {
   const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Reset pagination when search changes
+    queryClient.removeQueries({ queryKey: ["flashes", search] });
+    refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage) return;
@@ -52,8 +64,9 @@ export default function Feed() {
   return (
     <div className="h-screen w-screen bg-black flex animate-fade-in justify-center overflow-y-auto">
       <div className="flex flex-col gap-4 p-4 w-full max-w-2xl">
-        <SearchBar />
+        <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
         <SectionTitle>Recent Flashes</SectionTitle>
+        {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
         {flashes.map((flash: any, index: number) => (
           <FlashCard
             ref={index === flashes.length - fetchThreshold ? loadMoreRef : null}
