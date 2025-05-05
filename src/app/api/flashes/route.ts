@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "8", 10);
 
   const playerUsernames = players.map((player) => player.username);
-  const flashes = await new Flashes().getMany({}, page, limit);
+  const flashes = await new Flashes().getMany({ player: { $in: playerUsernames } }, page, limit);
 
   return Response.json(flashes);
 }
