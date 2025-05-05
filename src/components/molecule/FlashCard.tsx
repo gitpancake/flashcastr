@@ -1,5 +1,5 @@
 interface FlashCardProps {
-  player: string;
+  player?: string;
   city: string;
   timeAgo: string;
   flashNumber: string;

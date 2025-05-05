@@ -32,7 +32,7 @@ export default async function Feed() {
         {recents.map((flash) => (
           <FlashCard
             key={flash.flash_id.toString()}
-            player={players.find((player) => player.username === flash.player)?.fid}
+            player={players.find((player) => player.username === flash.player)?.fid.toString()}
             city={flash.city}
             timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
             flashNumber={flash.flash_id.toLocaleString()}
