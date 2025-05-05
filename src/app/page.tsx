@@ -19,7 +19,7 @@ const framePreviewMetadata = {
       url: appUrl,
       splashImageUrl,
       iconUrl,
-      splashBackgroundColor: "#f7f7f7",
+      splashBackgroundColor: "#000",
     },
   },
 };
@@ -40,5 +40,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Home() {
-  return (<App />);
+  return <App />;
 }

@@ -1,35 +1,21 @@
 "use client";
 
+import sdk, { SignIn as SignInCore } from "@farcaster/frame-sdk";
+import { getCsrfToken, signIn, signOut } from "next-auth/react";
 import { useCallback, useMemo, useState } from "react";
+import { useAccount, useChainId, useConnect, useDisconnect, useSendTransaction, useSignMessage, useSignTypedData, useSwitchChain, useWaitForTransactionReceipt } from "wagmi";
 import { Input } from "../components/ui/input";
-import { signIn, signOut, getCsrfToken } from "next-auth/react";
-import sdk, {
-  SignIn as SignInCore,
-} from "@farcaster/frame-sdk";
-import {
-  useAccount,
-  useSendTransaction,
-  useSignMessage,
-  useSignTypedData,
-  useWaitForTransactionReceipt,
-  useDisconnect,
-  useConnect,
-  useSwitchChain,
-  useChainId,
-} from "wagmi";
 
+import { useSession } from "next-auth/react";
+import { BaseError, UserRejectedRequestError } from "viem";
+import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
+import { useFrame } from "~/components/providers/FrameProvider";
 import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
-import { truncateAddress } from "~/lib/truncateAddress";
-import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
-import { BaseError, UserRejectedRequestError } from "viem";
-import { useSession } from "next-auth/react";
 import { Label } from "~/components/ui/label";
-import { useFrame } from "~/components/providers/FrameProvider";
+import { truncateAddress } from "~/lib/truncateAddress";
 
-export default function Demo(
-  { title }: { title?: string } = { title: "Frames v2 Demo" }
-) {
+export default function Demo({ title }: { title?: string } = { title: "Frames v2 Demo" }) {
   const { isSDKLoaded, context, added, notificationDetails, lastEvent, addFrame, addFrameResult } = useFrame();
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -39,34 +25,18 @@ export default function Demo(
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
-  const {
-    sendTransaction,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
+  const { sendTransaction, error: sendTxError, isError: isSendTxError, isPending: isSendTxPending } = useSendTransaction();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: txHash as `0x${string}`,
-    });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: txHash as `0x${string}`,
+  });
 
-  const {
-    signTypedData,
-    error: signTypedError,
-    isError: isSignTypedError,
-    isPending: isSignTypedPending,
-  } = useSignTypedData();
+  const { signTypedData, error: signTypedError, isError: isSignTypedError, isPending: isSignTypedPending } = useSignTypedData();
 
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
 
-  const {
-    switchChain,
-    error: switchChainError,
-    isError: isSwitchChainError,
-    isPending: isSwitchChainPending,
-  } = useSwitchChain();
+  const { switchChain, error: switchChainError, isError: isSwitchChainError, isPending: isSwitchChainPending } = useSwitchChain();
 
   const nextChain = useMemo(() => {
     if (chainId === base.id) {
@@ -184,25 +154,14 @@ export default function Demo(
 
         <div className="mb-4">
           <h2 className="font-2xl font-bold">Context</h2>
-          <button
-            onClick={toggleContext}
-            className="flex items-center gap-2 transition-colors"
-          >
-            <span
-              className={`transform transition-transform ${
-                isContextOpen ? "rotate-90" : ""
-              }`}
-            >
-              ➤
-            </span>
+          <button onClick={toggleContext} className="flex items-center gap-2 transition-colors">
+            <span className={`transform transition-transform ${isContextOpen ? "rotate-90" : ""}`}>➤</span>
             Tap to expand
           </button>
 
           {isContextOpen && (
             <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                {JSON.stringify(context, null, 2)}
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">{JSON.stringify(context, null, 2)}</pre>
             </div>
           )}
         </div>
@@ -212,45 +171,35 @@ export default function Demo(
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.signIn
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.signIn</pre>
             </div>
             <SignIn />
           </div>
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.openUrl
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.openUrl</pre>
             </div>
             <Button onClick={openUrl}>Open Link</Button>
           </div>
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.openUrl
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.openUrl</pre>
             </div>
             <Button onClick={openWarpcastUrl}>Open Warpcast Link</Button>
           </div>
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.viewProfile
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.viewProfile</pre>
             </div>
             <ViewProfile />
           </div>
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.close
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.close</pre>
             </div>
             <Button onClick={close}>Close Frame</Button>
           </div>
@@ -260,9 +209,7 @@ export default function Demo(
           <h2 className="font-2xl font-bold">Last event</h2>
 
           <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-              {lastEvent || "none"}
-            </pre>
+            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">{lastEvent || "none"}</pre>
           </div>
         </div>
 
@@ -270,34 +217,21 @@ export default function Demo(
           <h2 className="font-2xl font-bold">Add to client & notifications</h2>
 
           <div className="mt-2 mb-4 text-sm">
-            Client fid {context?.client.clientFid},
-            {added ? " frame added to client," : " frame not added to client,"}
-            {notificationDetails
-              ? " notifications enabled"
-              : " notifications disabled"}
+            Client fid {context?.client.clientFid},{added ? " frame added to client," : " frame not added to client,"}
+            {notificationDetails ? " notifications enabled" : " notifications disabled"}
           </div>
 
           <div className="mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.addFrame
-              </pre>
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">sdk.actions.addFrame</pre>
             </div>
-            {addFrameResult && (
-              <div className="mb-2 text-sm">
-                Add frame result: {addFrameResult}
-              </div>
-            )}
+            {addFrameResult && <div className="mb-2 text-sm">Add frame result: {addFrameResult}</div>}
             <Button onClick={addFrame} disabled={added}>
               Add frame to client
             </Button>
           </div>
 
-          {sendNotificationResult && (
-            <div className="mb-2 text-sm">
-              Send notification result: {sendNotificationResult}
-            </div>
-          )}
+          {sendNotificationResult && <div className="mb-2 text-sm">Send notification result: {sendNotificationResult}</div>}
           <div className="mb-4">
             <Button onClick={sendNotification} disabled={!notificationDetails}>
               Send notification
@@ -321,15 +255,7 @@ export default function Demo(
           )}
 
           <div className="mb-4">
-            <Button
-              onClick={() =>
-                isConnected
-                  ? disconnect()
-                  : connect({ connector: config.connectors[0] })
-              }
-            >
-              {isConnected ? "Disconnect" : "Connect"}
-            </Button>
+            <Button onClick={() => (isConnected ? disconnect() : connect({ connector: config.connectors[0] }))}>{isConnected ? "Disconnect" : "Connect"}</Button>
           </div>
 
           <div className="mb-4">
@@ -342,44 +268,25 @@ export default function Demo(
                 <SendEth />
               </div>
               <div className="mb-4">
-                <Button
-                  onClick={sendTx}
-                  disabled={!isConnected || isSendTxPending}
-                  isLoading={isSendTxPending}
-                >
+                <Button onClick={sendTx} disabled={!isConnected || isSendTxPending} isLoading={isSendTxPending}>
                   Send Transaction (contract)
                 </Button>
                 {isSendTxError && renderError(sendTxError)}
                 {txHash && (
                   <div className="mt-2 text-xs">
                     <div>Hash: {truncateAddress(txHash)}</div>
-                    <div>
-                      Status:{" "}
-                      {isConfirming
-                        ? "Confirming..."
-                        : isConfirmed
-                        ? "Confirmed!"
-                        : "Pending"}
-                    </div>
+                    <div>Status: {isConfirming ? "Confirming..." : isConfirmed ? "Confirmed!" : "Pending"}</div>
                   </div>
                 )}
               </div>
               <div className="mb-4">
-                <Button
-                  onClick={signTyped}
-                  disabled={!isConnected || isSignTypedPending}
-                  isLoading={isSignTypedPending}
-                >
+                <Button onClick={signTyped} disabled={!isConnected || isSignTypedPending} isLoading={isSignTypedPending}>
                   Sign Typed Data
                 </Button>
                 {isSignTypedError && renderError(signTypedError)}
               </div>
               <div className="mb-4">
-                <Button
-                  onClick={handleSwitchChain}
-                  disabled={isSwitchChainPending}
-                  isLoading={isSwitchChainPending}
-                >
+                <Button onClick={handleSwitchChain} disabled={isSwitchChainPending} isLoading={isSwitchChainPending}>
                   Switch to {nextChain.name}
                 </Button>
                 {isSwitchChainError && renderError(switchChainError)}
@@ -395,13 +302,7 @@ export default function Demo(
 function SignMessage() {
   const { isConnected } = useAccount();
   const { connectAsync } = useConnect();
-  const {
-    signMessage,
-    data: signature,
-    error: signError,
-    isError: isSignError,
-    isPending: isSignPending,
-  } = useSignMessage();
+  const { signMessage, data: signature, error: signError, isError: isSignError, isPending: isSignPending } = useSignMessage();
 
   const handleSignMessage = useCallback(async () => {
     if (!isConnected) {
@@ -416,11 +317,7 @@ function SignMessage() {
 
   return (
     <>
-      <Button
-        onClick={handleSignMessage}
-        disabled={isSignPending}
-        isLoading={isSignPending}
-      >
+      <Button onClick={handleSignMessage} disabled={isSignPending} isLoading={isSignPending}>
         Sign Message
       </Button>
       {isSignError && renderError(signError)}
@@ -435,24 +332,15 @@ function SignMessage() {
 
 function SendEth() {
   const { isConnected, chainId } = useAccount();
-  const {
-    sendTransaction,
-    data,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
+  const { sendTransaction, data, error: sendTxError, isError: isSendTxError, isPending: isSendTxPending } = useSendTransaction();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: data,
-    });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: data,
+  });
 
   const toAddr = useMemo(() => {
     // Protocol guild address
-    return chainId === base.id
-      ? "0x32e3C7fD24e175701A35c224f2238d18439C7dBC"
-      : "0xB3d8d7887693a9852734b4D25e9C0Bb35Ba8a830";
+    return chainId === base.id ? "0x32e3C7fD24e175701A35c224f2238d18439C7dBC" : "0xB3d8d7887693a9852734b4D25e9C0Bb35Ba8a830";
   }, [chainId]);
 
   const handleSend = useCallback(() => {
@@ -464,25 +352,14 @@ function SendEth() {
 
   return (
     <>
-      <Button
-        onClick={handleSend}
-        disabled={!isConnected || isSendTxPending}
-        isLoading={isSendTxPending}
-      >
+      <Button onClick={handleSend} disabled={!isConnected || isSendTxPending} isLoading={isSendTxPending}>
         Send Transaction (eth)
       </Button>
       {isSendTxError && renderError(sendTxError)}
       {data && (
         <div className="mt-2 text-xs">
           <div>Hash: {truncateAddress(data)}</div>
-          <div>
-            Status:{" "}
-            {isConfirming
-              ? "Confirming..."
-              : isConfirmed
-              ? "Confirmed!"
-              : "Pending"}
-          </div>
+          <div>Status: {isConfirming ? "Confirming..." : isConfirmed ? "Confirmed!" : "Pending"}</div>
         </div>
       )}
     </>
@@ -552,9 +429,7 @@ function SignIn() {
       {session && (
         <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
           <div className="font-semibold text-gray-500 mb-1">Session</div>
-          <div className="whitespace-pre">
-            {JSON.stringify(session, null, 2)}
-          </div>
+          <div className="whitespace-pre">{JSON.stringify(session, null, 2)}</div>
         </div>
       )}
       {signInFailure && !signingIn && (
@@ -566,9 +441,7 @@ function SignIn() {
       {signInResult && !signingIn && (
         <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
           <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
-          <div className="whitespace-pre">
-            {JSON.stringify(signInResult, null, 2)}
-          </div>
+          <div className="whitespace-pre">{JSON.stringify(signInResult, null, 2)}</div>
         </div>
       )}
     </>
@@ -581,10 +454,7 @@ function ViewProfile() {
   return (
     <>
       <div>
-        <Label
-          className="text-xs font-semibold text-gray-500 mb-1"
-          htmlFor="view-profile-fid"
-        >
+        <Label className="text-xs font-semibold text-gray-500 mb-1" htmlFor="view-profile-fid">
           Fid
         </Label>
         <Input
@@ -612,9 +482,7 @@ function ViewProfile() {
 const renderError = (error: Error | null) => {
   if (!error) return null;
   if (error instanceof BaseError) {
-    const isUserRejection = error.walk(
-      (e) => e instanceof UserRejectedRequestError
-    );
+    const isUserRejection = error.walk((e) => e instanceof UserRejectedRequestError);
 
     if (isUserRejection) {
       return <div className="text-red-500 text-xs mt-1">Rejected by user.</div>;
@@ -623,4 +491,3 @@ const renderError = (error: Error | null) => {
 
   return <div className="text-red-500 text-xs mt-1">{error.message}</div>;
 };
-

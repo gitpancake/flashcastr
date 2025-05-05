@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import sdk, { type Context, type FrameNotificationDetails, AddFrame } from "@farcaster/frame-sdk";
+import sdk, { AddFrame, type Context, type FrameNotificationDetails } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -30,9 +29,7 @@ export function useFrame() {
         setNotificationDetails(result.notificationDetails);
       }
       setAddFrameResult(
-        result.notificationDetails
-          ? `Added, got notificaton token ${result.notificationDetails.token} and url ${result.notificationDetails.url}`
-          : "Added, got no notification details"
+        result.notificationDetails ? `Added, got notificaton token ${result.notificationDetails.token} and url ${result.notificationDetails.url}` : "Added, got no notification details"
       );
     } catch (error) {
       if (error instanceof AddFrame.RejectedByUser) {
@@ -121,9 +118,5 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     return <div>Loading...</div>;
   }
 
-  return (
-    <FrameContext.Provider value={{ isSDKLoaded, context }}>
-      {children}
-    </FrameContext.Provider>
-  );
-} 
+  return <FrameContext.Provider value={{ isSDKLoaded, context }}>{children}</FrameContext.Provider>;
+}

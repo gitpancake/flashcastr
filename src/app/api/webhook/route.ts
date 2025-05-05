@@ -1,13 +1,6 @@
-import {
-  ParseWebhookEvent,
-  parseWebhookEvent,
-  verifyAppKeyWithNeynar,
-} from "@farcaster/frame-node";
+import { ParseWebhookEvent, parseWebhookEvent, verifyAppKeyWithNeynar } from "@farcaster/frame-node";
 import { NextRequest } from "next/server";
-import {
-  deleteUserNotificationDetails,
-  setUserNotificationDetails,
-} from "~/lib/kv";
+import { deleteUserNotificationDetails, setUserNotificationDetails } from "~/lib/kv";
 import { sendFrameNotification } from "~/lib/notifs";
 
 export async function POST(request: NextRequest) {
@@ -30,22 +23,13 @@ export async function POST(request: NextRequest) {
       case "VerifyJsonFarcasterSignature.InvalidDataError":
       case "VerifyJsonFarcasterSignature.InvalidEventDataError":
         // The request data is invalid
-        return Response.json(
-          { success: false, error: error.message },
-          { status: 400 }
-        );
+        return Response.json({ success: false, error: error.message }, { status: 400 });
       case "VerifyJsonFarcasterSignature.InvalidAppKeyError":
         // The app key is invalid
-        return Response.json(
-          { success: false, error: error.message },
-          { status: 401 }
-        );
+        return Response.json({ success: false, error: error.message }, { status: 401 });
       case "VerifyJsonFarcasterSignature.VerifyAppKeyError":
         // Internal error verifying the app key (caller may want to try again)
-        return Response.json(
-          { success: false, error: error.message },
-          { status: 500 }
-        );
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
   }
 

@@ -6,18 +6,18 @@ const localStore = new Map<string, FrameNotificationDetails>();
 
 // Use Redis if KV env vars are present, otherwise use in-memory
 const useRedis = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
-const redis = useRedis ? new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
-}) : null;
+const redis = useRedis
+  ? new Redis({
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
+    })
+  : null;
 
 function getUserNotificationDetailsKey(fid: number): string {
   return `${process.env.NEXT_PUBLIC_FRAME_NAME}:user:${fid}`;
 }
 
-export async function getUserNotificationDetails(
-  fid: number
-): Promise<FrameNotificationDetails | null> {
+export async function getUserNotificationDetails(fid: number): Promise<FrameNotificationDetails | null> {
   const key = getUserNotificationDetailsKey(fid);
   if (redis) {
     return await redis.get<FrameNotificationDetails>(key);
@@ -25,10 +25,7 @@ export async function getUserNotificationDetails(
   return localStore.get(key) || null;
 }
 
-export async function setUserNotificationDetails(
-  fid: number,
-  notificationDetails: FrameNotificationDetails
-): Promise<void> {
+export async function setUserNotificationDetails(fid: number, notificationDetails: FrameNotificationDetails): Promise<void> {
   const key = getUserNotificationDetailsKey(fid);
   if (redis) {
     await redis.set(key, notificationDetails);
@@ -37,9 +34,7 @@ export async function setUserNotificationDetails(
   }
 }
 
-export async function deleteUserNotificationDetails(
-  fid: number
-): Promise<void> {
+export async function deleteUserNotificationDetails(fid: number): Promise<void> {
   const key = getUserNotificationDetailsKey(fid);
   if (redis) {
     await redis.del(key);
