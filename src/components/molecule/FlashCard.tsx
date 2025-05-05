@@ -1,16 +1,19 @@
+import { Ref } from "react";
+
 interface FlashCardProps {
   player?: string;
   city: string;
   timeAgo: string;
   flashNumber: string;
   imageUrl: string;
+  ref: Ref<HTMLDivElement>;
 }
 
 const AVATAR_PLACEHOLDER = "/splash.png"; // Adjust path as needed
 
-export default function FlashCard({ player, city, timeAgo, flashNumber, imageUrl }: FlashCardProps) {
+export default function FlashCard({ player, city, timeAgo, flashNumber, imageUrl, ref }: FlashCardProps) {
   return (
-    <div className="bg-gray-900 rounded-lg p-4 flex items-center justify-between w-full max-w-xl">
+    <div className="bg-gray-900 rounded-lg p-4 flex items-center justify-between w-full max-w-xl" ref={ref}>
       <div className="flex items-start gap-3">
         <img src={AVATAR_PLACEHOLDER} alt="avatar" className="w-8 h-8 rounded-sm object-cover border border-gray-700" />
         <div className="flex flex-col">
