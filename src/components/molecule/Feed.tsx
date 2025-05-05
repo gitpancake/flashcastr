@@ -22,8 +22,6 @@ export default async function Feed() {
     },
   });
 
-  console.log({ recents });
-
   return (
     <div className="h-screen w-screen bg-black flex animate-fade-in justify-center overflow-y-auto">
       <div className="flex flex-col gap-4 p-4 w-full max-w-2xl">
