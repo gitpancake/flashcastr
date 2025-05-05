@@ -6,6 +6,7 @@ import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "~/hooks/useDebounce";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
+import { Flash } from "~/lib/mongodb/flashes/types";
 import { players } from "~/lib/players";
 import FlashCard from "./FlashCard";
 import SearchBar from "./SearchBar";
@@ -67,7 +68,7 @@ export default function Feed() {
         <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
         <SectionTitle>Recent Flashes</SectionTitle>
         {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-        {flashes.map((flash: any, index: number) => (
+        {flashes.map((flash: Flash, index: number) => (
           <FlashCard
             ref={index === flashes.length - fetchThreshold ? loadMoreRef : null}
             key={flash.flash_id.toString()}
