@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Ref } from "react";
 
 interface FlashCardProps {
@@ -15,7 +16,7 @@ export default function FlashCard({ player, city, timeAgo, flashNumber, imageUrl
   return (
     <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-xl max-h-[100px] animate-fade-in" ref={ref}>
       <div className="flex items-start gap-3">
-        <img src={AVATAR_PLACEHOLDER} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
+        <Image width={1920} height={1080} src={AVATAR_PLACEHOLDER} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
 
         <div className="flex flex-col gap-3 h-full">
           <div className="flex flex-col gap-0">
@@ -26,7 +27,7 @@ export default function FlashCard({ player, city, timeAgo, flashNumber, imageUrl
         </div>
       </div>
 
-      <img src={"https://invader-flashes.s3.amazonaws.com" + imageUrl} alt="flash" className="w-[60px] h-[60px] object-cover border border-gray-800" />
+      <Image width={1920} height={1080} src={"https://invader-flashes.s3.amazonaws.com" + imageUrl} alt="flash" className="w-[60px] h-[60px] object-cover border border-gray-800" />
     </div>
   );
 }

@@ -52,12 +52,15 @@ export default function Feed() {
       { threshold: 1 }
     );
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
+    const current = loadMoreRef.current;
+
+    if (current) {
+      observer.observe(current);
     }
+
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
+      if (current) {
+        observer.unobserve(current);
       }
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);

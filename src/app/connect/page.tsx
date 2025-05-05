@@ -17,7 +17,7 @@ export default function ConnectPage() {
         <div className="w-full text-left mb-8">
           <h2 className="text-white text-lg font-semibold mb-2">How it works</h2>
           <p className="text-white text-sm mb-3">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
-          <p className="text-white text-sm mb-3">Ensure that your Flash Invaders username is set to 'public'.</p>
+          <p className="text-white text-sm mb-3">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
           <p className="text-white text-sm mb-3">Set your username below, then sign in. Flashcastr needs permission to cast on your behalf.</p>
           <p className="text-white text-sm">Auto-cast can be toggled on/off depending on how much you would like to share</p>
         </div>
