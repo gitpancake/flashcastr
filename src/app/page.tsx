@@ -5,7 +5,7 @@ const appUrl = process.env.NEXT_PUBLIC_URL;
 
 // frame preview metadata
 const appName = process.env.NEXT_PUBLIC_FRAME_NAME;
-const splashImageUrl = `${appUrl}/splash.png`;
+const splashImageUrl = `${appUrl}/splash.gif`;
 const iconUrl = `${appUrl}/icon.png`;
 
 const framePreviewMetadata = {
