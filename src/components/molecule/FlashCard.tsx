@@ -13,7 +13,7 @@ const AVATAR_PLACEHOLDER = "/splash.png"; // Adjust path as needed
 
 export default function FlashCard({ player, city, timeAgo, flashNumber, imageUrl, ref }: FlashCardProps) {
   return (
-    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-xl max-h-[100px]" ref={ref}>
+    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-xl max-h-[100px] animate-fade-in" ref={ref}>
       <div className="flex items-start gap-3">
         <img src={AVATAR_PLACEHOLDER} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
 

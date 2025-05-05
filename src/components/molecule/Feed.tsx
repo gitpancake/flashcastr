@@ -1,6 +1,7 @@
 "use client";
 
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "~/hooks/useDebounce";
@@ -16,13 +17,19 @@ const fetchThreshold = 15;
 export default function Feed() {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput, 500);
-  const queryClient = useQueryClient();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, refetch } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery({
     queryKey: ["flashes", search],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await fetch(`/api/flashes?page=${pageParam}&limit=${LIMIT}&search=${encodeURIComponent(search)}`);
-      return res.json();
+      let url = `/api/flashes?page=${pageParam}&limit=${LIMIT}`;
+
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+
+      const res = await axios.get(url);
+
+      return res.data;
     },
     getNextPageParam: (lastPage, allPages) => (lastPage.length === LIMIT ? allPages.length + 1 : undefined),
     initialPageParam: 1,
@@ -31,13 +38,6 @@ export default function Feed() {
   const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    // Reset pagination when search changes
-    queryClient.removeQueries({ queryKey: ["flashes", search] });
-    refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
 
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage) return;
@@ -62,8 +62,8 @@ export default function Feed() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div className="h-screen w-screen bg-black flex animate-fade-in justify-center overflow-y-auto">
-      <div className="flex flex-col gap-4 p-4 w-full max-w-2xl">
+    <div className="h-screen w-screen bg-black flex justify-center overflow-y-auto">
+      <div className="flex flex-col gap-4 p-4 w-full max-w-2xl animate-fade-in">
         <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
         <SectionTitle>Recent Flashes</SectionTitle>
         {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}

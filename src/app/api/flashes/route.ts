@@ -1,5 +1,7 @@
+import { Filter } from "mongodb";
 import { NextRequest } from "next/server";
 import { Flashes } from "~/lib/mongodb/flashes";
+import { Flash } from "~/lib/mongodb/flashes/types";
 import { players } from "~/lib/players";
 
 export async function GET(request: NextRequest) {
@@ -10,7 +12,8 @@ export async function GET(request: NextRequest) {
 
   const playerUsernames = players.map((player) => player.username);
 
-  let filter: any = { player: { $in: playerUsernames } };
+  let filter: Filter<Flash> = { player: { $in: playerUsernames } };
+
   if (search) {
     filter = {
       $and: [
