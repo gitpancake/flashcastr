@@ -1,4 +1,4 @@
-import { Collection, UpdateFilter } from "mongodb";
+import { Collection, UpdateFilter, WithId } from "mongodb";
 import { Mongo } from "../connector";
 import { User, UserWithoutSigner } from "./types";
 
@@ -14,7 +14,7 @@ export class Users extends Mongo<User> {
     await this.collection.createIndex({ fid: -1 });
   }
 
-  public async getExcludingSigner(filter: Partial<User>): Promise<UserWithoutSigner | null> {
+  public async getExcludingSigner(filter: Partial<User>): Promise<WithId<UserWithoutSigner> | null> {
     return this.execute(async (collection) => await collection.findOne(filter, { projection: { signer_uuid: 0 } }));
   }
 

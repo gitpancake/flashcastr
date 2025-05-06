@@ -13,7 +13,7 @@ export function serializeFlashcastr(doc: WithId<Flashcastr>) {
   };
 }
 
-export function serializeUser(doc: WithId<User | UserWithoutSigner>) {
+export function serializeUser(doc: WithId<User> | WithId<UserWithoutSigner>) {
   return {
     ...doc,
     _id: doc._id?.toString(), // convert ObjectId to string
