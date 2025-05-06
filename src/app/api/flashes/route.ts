@@ -1,8 +1,7 @@
 import { Filter } from "mongodb";
 import { NextRequest } from "next/server";
-import { Flashes } from "~/lib/mongodb/flashes";
-import { Flash } from "~/lib/mongodb/flashes/types";
-import { players } from "~/lib/players";
+import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
+import { Flashcastr } from "~/lib/mongodb/flashcastr/types";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -10,22 +9,15 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "8", 10);
   const search = searchParams.get("search")?.trim() || "";
 
-  const playerUsernames = players.map((player) => player.username);
-
-  let filter: Filter<Flash> = { player: { $in: playerUsernames } };
+  let filter: Filter<Flashcastr> = {};
 
   if (search) {
     filter = {
-      $and: [
-        { player: { $in: playerUsernames } },
-        {
-          $or: [{ player: { $regex: search, $options: "i" } }, { city: { $regex: search, $options: "i" } }],
-        },
-      ],
+      $or: [{ user: { username: { $regex: search, $options: "i" } } }, { flash: { city: { $regex: search, $options: "i" } } }],
     };
   }
 
-  const flashes = await new Flashes().getMany(filter, page, limit);
+  const flashes = await new FlashcastrFlashesDb().getMany(filter, page, limit);
 
   return Response.json(flashes);
 }

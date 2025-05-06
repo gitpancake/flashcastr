@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -18,9 +19,11 @@ type FarcasterUser = {
 };
 
 export default function Setup() {
-  const [loading, setLoading] = useState(false);
+  const [toastId, setToastId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
+
+  const router = useRouter();
 
   const { mutateAsync: createAndStoreSigner } = useCreateAndStoreSigner((signer) => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(signer));
@@ -35,6 +38,13 @@ export default function Setup() {
     username,
     (user) => {
       setFarcasterUser(user);
+
+      if (toastId) {
+        toast.dismiss(toastId);
+        setToastId(null);
+      }
+
+      router.refresh();
     },
     farcasterUser
   );
@@ -92,33 +102,33 @@ export default function Setup() {
           <></>
         )}
 
-        <button
-          onClick={async () => {
-            const toastId = toast.loading("Saving username...");
+        {farcasterUser?.status !== "approved" && (
+          <button
+            onClick={async () => {
+              const toastId = toast.loading("Saving user...");
 
-            setLoading(true);
+              setToastId(toastId);
 
-            try {
-              await createAndStoreSigner();
-              toast.loading("Waiting for signer approval...", { id: toastId });
-            } catch (err) {
-              toast.error("An error occurred", { id: toastId });
-            } finally {
-              setLoading(false);
-            }
-          }}
-          className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
-          disabled={!username}
-        >
-          SAVE
-        </button>
+              try {
+                await createAndStoreSigner();
+                toast.loading("Waiting for signer approval...", { id: toastId });
+              } catch (err) {
+                toast.error("An error occurred", { id: toastId });
+              }
+            }}
+            className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
+            disabled={!username}
+          >
+            SAVE
+          </button>
+        )}
 
         <button
           onClick={async () => {
             localStorage.clear();
+            router.push("/");
           }}
           className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
-          disabled={!username}
         >
           RESET
         </button>

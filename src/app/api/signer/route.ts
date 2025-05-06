@@ -27,21 +27,21 @@ export async function GET(req: Request) {
     const signer = await neynarClient.lookupSigner({ signerUuid: signer_uuid });
 
     if (signer.status === "approved" && signer.fid && username) {
-      await new Users().insert({
-        fid: signer.fid,
-        signer_uuid: signer.signer_uuid,
-        username,
-        auto_cast: false,
-      });
+      const existingUser = await new Users().getExcludingSigner({ fid: signer.fid });
+
+      if (!existingUser) {
+        await new Users().insert({
+          fid: signer.fid,
+          signer_uuid: signer.signer_uuid,
+          username,
+          auto_cast: false,
+        });
+      } else {
+        await new Users().updateDocument({ fid: signer.fid }, { $set: { signer_uuid: signer.signer_uuid } });
+      }
     }
 
-    return NextResponse.json(
-      {
-        fid: signer.fid,
-        username,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(signer, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
   }

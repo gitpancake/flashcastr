@@ -7,14 +7,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "~/hooks/useDebounce";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
-import { Flash } from "~/lib/mongodb/flashes/types";
-import { players } from "~/lib/players";
+import { Flashcastr } from "~/lib/mongodb/flashcastr/types";
 import FlashCard from "./FlashCard";
 import SearchBar from "./SearchBar";
 import SectionTitle from "./SectionTitle";
 
 type Props = {
-  initialFlashes: Flash[];
+  initialFlashes: Flashcastr[];
 };
 
 export default function Feed({ initialFlashes }: Props) {
@@ -77,11 +76,12 @@ export default function Feed({ initialFlashes }: Props) {
       <SectionTitle>Recent Flashes</SectionTitle>
 
       {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-      {flashes.map((flash: Flash, index: number) => (
+      {flashes.map(({ user, flash }: Flashcastr, index: number) => (
         <FlashCard
           ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
           key={flash.flash_id.toString()}
-          player={players.find((player) => player.username === flash.player)?.fid.toString() ?? flash.player}
+          avatar={user.pfp_url ?? "/splash.png"}
+          player={user.username ?? flash.player}
           city={flash.city}
           timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
           flashNumber={flash.flash_id.toLocaleString()}
