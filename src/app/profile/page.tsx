@@ -34,6 +34,8 @@ export default async function ProfilePage() {
 
     const flashCount = await new FlashcastrFlashesDb().count({ "user.fid": session?.user.fid });
 
+    const cities = await new FlashcastrFlashesDb().getDistinctCities({ "user.fid": session?.user.fid });
+
     return (
       <div className="flex flex-col justify-center w-full h-full bg-black">
         <div className="flex flex-col items-center gap-2">
@@ -41,6 +43,9 @@ export default async function ProfilePage() {
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
             {flashCount} {flashCount > 0 ? "Flashes" : "Flash"}
+          </p>
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {cities.length} {cities.length > 0 ? "Cities" : "City"}
           </p>
           <ToggleAutoCast auto_cast={user.auto_cast} />
         </div>

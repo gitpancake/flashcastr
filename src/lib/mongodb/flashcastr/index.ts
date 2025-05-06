@@ -29,6 +29,10 @@ export class FlashcastrFlashesDb extends Mongo<Flashcastr> {
     return this.execute(async (collection) => await collection.countDocuments(filter));
   }
 
+  public async getDistinctCities(filter: Filter<Flashcastr>): Promise<string[]> {
+    return this.execute(async (collection) => await collection.distinct("flash.city", filter));
+  }
+
   public async insertMany(flashes: Flashcastr[]): Promise<number> {
     return this.execute(async (collection) => {
       try {
