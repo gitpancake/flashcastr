@@ -1,21 +1,13 @@
-import { WithId } from "mongodb";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getSession } from "~/auth";
 import Feed from "~/components/molecule/Feed";
 import Setup from "~/components/organism/Setup";
 import { FETCH } from "~/lib/constants";
+import { serializeDoc } from "~/lib/help/serialize";
 import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
-import { Flashcastr } from "~/lib/mongodb/flashcastr/types";
 import { Users } from "~/lib/mongodb/users";
 import neynarClient from "~/lib/neynar/client";
-
-function serializeDoc(doc: WithId<Flashcastr>) {
-  return {
-    ...doc,
-    _id: doc._id?.toString(), // convert ObjectId to string
-  };
-}
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -33,18 +25,20 @@ export default async function ProfilePage() {
 
     const flashes = await new FlashcastrFlashesDb().getMany(
       {
-        user: { fid: session?.user.fid },
+        "user.fid": session?.user.fid,
       },
       FETCH.INITIAL_PAGE,
       FETCH.LIMIT
     );
+
+    const flashCount = await new FlashcastrFlashesDb().count({ "user.fid": session?.user.fid });
 
     return (
       <div className="flex flex-col justify-center w-full h-full bg-black">
         <div className="flex flex-col items-center gap-2">
           <Image src={neynarUser.pfp_url ?? `/splash.png`} width={64} height={64} alt="Profile" />
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
-          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">{flashes.length} Flashes</p>
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">{flashCount} Flashes</p>
         </div>
         <Feed initialFlashes={flashes.map(serializeDoc)} />
       </div>

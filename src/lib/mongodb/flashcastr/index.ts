@@ -11,8 +11,8 @@ export class FlashcastrFlashesDb extends Mongo<Flashcastr> {
   }
 
   public async onConnect(): Promise<void> {
-    await this.collection.createIndex({ timestamp: -1 });
-    await this.collection.createIndex({ flash_id: 1 }, { unique: true });
+    await this.collection.createIndex({ "user.fid": -1 });
+    await this.collection.createIndex({ "flash.flash_id": 1 }, { unique: true });
   }
 
   public async get(filter: Partial<Flashcastr>): Promise<Flashcastr | null> {
@@ -22,7 +22,11 @@ export class FlashcastrFlashesDb extends Mongo<Flashcastr> {
   public async getMany(filter: Filter<Flashcastr>, page: number = 1, limit: number = 10): Promise<WithId<Flashcastr>[]> {
     const skip = (page - 1) * limit;
 
-    return this.execute(async (collection) => await collection.find(filter).sort({ timestamp: -1 }).skip(skip).limit(limit).toArray());
+    return this.execute(async (collection) => await collection.find(filter).sort({ "flash.timestamp": -1 }).skip(skip).limit(limit).toArray());
+  }
+
+  public async count(filter: Filter<Flashcastr>): Promise<number> {
+    return this.execute(async (collection) => await collection.countDocuments(filter));
   }
 
   public async insertMany(flashes: Flashcastr[]): Promise<number> {
