@@ -38,7 +38,9 @@ export default async function ProfilePage() {
         <div className="flex flex-col items-center gap-2">
           <Image src={neynarUser.pfp_url ?? `/splash.png`} width={64} height={64} alt="Profile" />
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
-          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">{flashCount} Flashes</p>
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {flashCount} {flashCount > 0 ? "Flashes" : "Flash"}
+          </p>
         </div>
         <Feed initialFlashes={flashes.map(serializeDoc)} />
       </div>
