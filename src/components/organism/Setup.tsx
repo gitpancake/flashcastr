@@ -66,6 +66,7 @@ export default function Setup() {
                 <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
                 <p className="text-white text-sm">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
                 <p className="text-white text-sm">Set your username below, then sign in. Flashcastr needs permission to cast on your behalf.</p>
+                <p className="text-white text-sm">After setup, your historic sync will begin. This can take up to 10 minutes.</p>
                 <p className="text-white text-sm">Auto-cast can be toggled on/off depending on how much you would like to share</p>
               </div>
             </div>
