@@ -42,10 +42,10 @@ export default async function ProfilePage() {
           <Image src={neynarUser.pfp_url ?? `/splash.png`} width={64} height={64} alt="Profile" />
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-            {flashCount} {flashCount > 0 ? "Flashes" : "Flash"}
+            {flashCount} {flashCount === 1 ? "Flashes" : "Flash"}
           </p>
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-            {cities.length} {cities.length > 0 ? "Cities" : "City"}
+            {cities.length} {cities.length === 1 ? "Cities" : "City"}
           </p>
           <ToggleAutoCast auto_cast={user.auto_cast} />
         </div>

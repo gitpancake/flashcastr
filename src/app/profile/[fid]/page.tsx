@@ -31,13 +31,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ fid: s
     );
 
     const flashCount = await new FlashcastrFlashesDb().count({ "user.fid": Number(fid) });
+    const cities = await new FlashcastrFlashesDb().getDistinctCities({ "user.fid": Number(fid) });
 
     return (
       <div className="flex flex-col justify-center w-full h-full bg-black">
         <div className="flex flex-col items-center gap-2">
           <Image src={neynarUser.pfp_url ?? `/splash.png`} width={64} height={64} alt="Profile" />
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
-          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">{flashCount} Flashes</p>
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {flashCount} {flashCount === 1 ? "Flashes" : "Flash"}
+          </p>
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {cities.length} {cities.length === 1 ? "Cities" : "City"}
+          </p>
         </div>
         <Feed initialFlashes={flashes.map(serializeDoc)} fid={Number(fid)} />
       </div>
