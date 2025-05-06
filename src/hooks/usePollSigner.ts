@@ -59,5 +59,5 @@ export const usePollSigner = (username: string, callback: (user: FarcasterUser) 
         clearInterval(intervalId);
       };
     }
-  }, [farcasterUser]);
+  }, [callback, farcasterUser, username]);
 };

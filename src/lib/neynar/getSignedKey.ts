@@ -1,5 +1,5 @@
 import { ViemLocalEip712Signer } from "@farcaster/hub-nodejs";
-import { bytesToHex, hexToBytes } from "viem";
+import { LocalAccount, bytesToHex, hexToBytes } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import neynarClient from "./client";
 import { getFid } from "./getFid";
@@ -36,7 +36,7 @@ const generate_signature = async function (public_key: string) {
   const FID = await getFid();
 
   const account = mnemonicToAccount(FARCASTER_DEVELOPER_MNEMONIC);
-  const appAccountKey = new ViemLocalEip712Signer(account as any);
+  const appAccountKey = new ViemLocalEip712Signer(account as LocalAccount);
 
   // Generates an expiration date for the signature (24 hours from now).
   const deadline = Math.floor(Date.now() / 1000) + 86400;

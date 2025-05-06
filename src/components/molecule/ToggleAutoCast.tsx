@@ -24,7 +24,7 @@ export const ToggleAutoCast = ({ auto_cast }: { auto_cast: boolean }) => {
             setAutoCast((prev) => !prev);
 
             toast.success("Auto cast updated");
-          } catch (error) {
+          } catch {
             toast.error("Failed to update auto cast");
           }
         }}

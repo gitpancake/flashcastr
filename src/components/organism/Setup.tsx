@@ -112,7 +112,7 @@ export default function Setup() {
               try {
                 await createAndStoreSigner();
                 toast.loading("Waiting for signer approval...", { id: toastId });
-              } catch (err) {
+              } catch {
                 toast.error("An error occurred", { id: toastId });
               }
             }}

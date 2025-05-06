@@ -16,5 +16,5 @@ export const useCheckStoredFarcasterUser = (callback: (user: FarcasterUser) => v
       const user: FarcasterUser = JSON.parse(storedData);
       callback(user);
     }
-  }, []);
+  }, [callback]);
 };
