@@ -1,10 +1,9 @@
-"use client";
+import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
 import Link from "next/link";
-import { useFrame } from "../providers/FrameProvider";
 
-export const Header = () => {
-  const { context } = useFrame();
+export const Header = async () => {
+  const context = await sdk.context;
 
   return (
     <div className="flex w-full justify-between items-center bg-black px-4">
