@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Feed from "~/components/molecule/Feed";
 import Setup from "~/components/organism/Setup";
 import { FETCH } from "~/lib/constants";
-import { serializeDoc } from "~/lib/help/serialize";
+import { serializeFlashcastr } from "~/lib/help/serialize";
 import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
 import { Users } from "~/lib/mongodb/users";
 import neynarClient from "~/lib/neynar/client";
@@ -39,13 +39,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ fid: s
           <Image src={neynarUser.pfp_url ?? `/splash.png`} width={64} height={64} alt="Profile" />
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{neynarUser.username}</p>
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-            {flashCount} {flashCount === 1 ? "Flashes" : "Flash"}
+            {flashCount} {flashCount === 1 ? "Flash" : "Flashes"}
           </p>
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-            {cities.length} {cities.length === 1 ? "Cities" : "City"}
+            {cities.length} {cities.length === 1 ? "City" : "Cities"}
           </p>
         </div>
-        <Feed initialFlashes={flashes.map(serializeDoc)} fid={Number(fid)} />
+        <Feed initialFlashes={flashes.map(serializeFlashcastr)} fid={Number(fid)} />
       </div>
     );
   }

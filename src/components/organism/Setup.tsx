@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useCheckStoredFarcasterUser } from "~/hooks/useCheckStoredFarcasterUser";
 import { useCreateAndStoreSigner } from "~/hooks/useCreateAndStoreSigner";
 import { usePollSigner } from "~/hooks/usePollSigner";
 import { LOCAL_STORAGE_KEYS } from "~/lib/constants";
@@ -19,32 +17,18 @@ type FarcasterUser = {
 };
 
 export default function Setup() {
-  const [toastId, setToastId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
-
-  const router = useRouter();
 
   const { mutateAsync: createAndStoreSigner } = useCreateAndStoreSigner((signer) => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(signer));
     setFarcasterUser(signer);
   });
 
-  useCheckStoredFarcasterUser((user) => {
-    setFarcasterUser(user);
-  });
-
   usePollSigner(
     username,
     (user) => {
       setFarcasterUser(user);
-
-      if (toastId) {
-        toast.dismiss(toastId);
-        setToastId(null);
-      }
-
-      router.refresh();
     },
     farcasterUser
   );
@@ -97,6 +81,9 @@ export default function Setup() {
                 <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
                 <p className="text-white text-sm">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
               </div>
+              <Link href={`/profile`} target="_blank" rel="noopener noreferrer" className="text-[#8A63D2] underline text-sm text-center">
+                View my profile
+              </Link>
             </div>
           </>
         ) : (
@@ -108,13 +95,13 @@ export default function Setup() {
             onClick={async () => {
               const toastId = toast.loading("Saving user...");
 
-              setToastId(toastId);
-
               try {
                 await createAndStoreSigner();
                 toast.loading("Waiting for signer approval...", { id: toastId });
               } catch {
                 toast.error("An error occurred", { id: toastId });
+              } finally {
+                toast.dismiss(toastId);
               }
             }}
             className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
@@ -123,16 +110,6 @@ export default function Setup() {
             SAVE
           </button>
         )}
-
-        <button
-          onClick={async () => {
-            localStorage.clear();
-            router.push("/");
-          }}
-          className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
-        >
-          RESET
-        </button>
       </div>
     </div>
   );

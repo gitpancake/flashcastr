@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "~/auth";
+import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
 import { Users } from "~/lib/mongodb/users";
 
 export async function GET() {
@@ -42,6 +43,7 @@ export async function DELETE() {
   }
 
   await new Users().deleteDocument({ fid: session.user.fid });
+  await new FlashcastrFlashesDb().deleteMany({ "user.fid": session.user.fid });
 
   return NextResponse.json({ success: true }, { status: 200 });
 }

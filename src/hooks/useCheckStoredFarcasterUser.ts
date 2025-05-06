@@ -12,9 +12,10 @@ type FarcasterUser = {
 export const useCheckStoredFarcasterUser = (callback: (user: FarcasterUser) => void) => {
   useEffect(() => {
     const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
+
     if (storedData) {
       const user: FarcasterUser = JSON.parse(storedData);
       callback(user);
     }
-  }, [callback]);
+  }, []);
 };
