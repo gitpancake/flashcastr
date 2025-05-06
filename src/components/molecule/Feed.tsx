@@ -5,6 +5,7 @@ import axios from "axios";
 import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "~/hooks/useDebounce";
+import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { Flash } from "~/lib/mongodb/flashes/types";
 import { players } from "~/lib/players";
@@ -12,17 +13,18 @@ import FlashCard from "./FlashCard";
 import SearchBar from "./SearchBar";
 import SectionTitle from "./SectionTitle";
 
-const LIMIT = 40;
-const fetchThreshold = 15;
+type Props = {
+  initialFlashes: Flash[];
+};
 
-export default function Feed() {
+export default function Feed({ initialFlashes }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput, 500);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery({
     queryKey: ["flashes", search],
     queryFn: async ({ pageParam = 1 }) => {
-      let url = `/api/flashes?page=${pageParam}&limit=${LIMIT}`;
+      let url = `/api/flashes?page=${pageParam}&limit=${FETCH.LIMIT}`;
 
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
@@ -32,8 +34,12 @@ export default function Feed() {
 
       return res.data;
     },
-    getNextPageParam: (lastPage, allPages) => (lastPage.length === LIMIT ? allPages.length + 1 : undefined),
+    getNextPageParam: (lastPage, allPages) => (lastPage.length === FETCH.LIMIT ? allPages.length + 1 : undefined),
     initialPageParam: 1,
+    initialData: {
+      pages: [initialFlashes],
+      pageParams: [1],
+    },
   });
 
   const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
@@ -66,25 +72,24 @@ export default function Feed() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div className="h-screen w-screen bg-black flex justify-center overflow-y-auto">
-      <div className="flex flex-col gap-4 p-4 w-full max-w-2xl animate-fade-in">
-        <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
-        <SectionTitle>Recent Flashes</SectionTitle>
-        {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-        {flashes.map((flash: Flash, index: number) => (
-          <FlashCard
-            ref={index === flashes.length - fetchThreshold ? loadMoreRef : null}
-            key={flash.flash_id.toString()}
-            player={players.find((player) => player.username === flash.player)?.fid.toString() ?? flash.player}
-            city={flash.city}
-            timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
-            flashNumber={flash.flash_id.toLocaleString()}
-            imageUrl={flash.img}
-          />
-        ))}
+    <div className="flex flex-col gap-4 p-4 w-full max-w-2xl animate-fade-in">
+      <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+      <SectionTitle>Recent Flashes</SectionTitle>
 
-        {isFetchingNextPage && <div className="font-invader text-white animate-pulse text-center py-4">LOADING...</div>}
-      </div>
+      {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
+      {flashes.map((flash: Flash, index: number) => (
+        <FlashCard
+          ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
+          key={flash.flash_id.toString()}
+          player={players.find((player) => player.username === flash.player)?.fid.toString() ?? flash.player}
+          city={flash.city}
+          timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
+          flashNumber={flash.flash_id.toLocaleString()}
+          imageUrl={flash.img}
+        />
+      ))}
+
+      {isFetchingNextPage && <div className="font-invader text-white animate-pulse text-center py-4">LOADING...</div>}
     </div>
   );
 }

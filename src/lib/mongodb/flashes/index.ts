@@ -1,4 +1,4 @@
-import { Collection, Filter, UpdateFilter } from "mongodb";
+import { Collection, Filter, UpdateFilter, WithId } from "mongodb";
 import { Mongo } from "../connector";
 import { Flash } from "./types";
 
@@ -18,7 +18,7 @@ export class Flashes extends Mongo<Flash> {
     return this.execute(async (collection) => await collection.findOne(filter));
   }
 
-  public async getMany(filter: Filter<Flash>, page: number = 1, limit: number = 10): Promise<Flash[]> {
+  public async getMany(filter: Filter<Flash>, page: number = 1, limit: number = 10): Promise<WithId<Flash>[]> {
     const skip = (page - 1) * limit;
     return this.execute(async (collection) => await collection.find(filter).sort({ timestamp: -1 }).skip(skip).limit(limit).toArray());
   }
