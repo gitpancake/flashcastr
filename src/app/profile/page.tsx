@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getSession } from "~/auth";
 import Feed from "~/components/molecule/Feed";
+import { ToggleAutoCast } from "~/components/molecule/ToggleAutoCast";
 import Setup from "~/components/organism/Setup";
 import { FETCH } from "~/lib/constants";
 import { serializeDoc } from "~/lib/help/serialize";
@@ -41,6 +42,7 @@ export default async function ProfilePage() {
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
             {flashCount} {flashCount > 0 ? "Flashes" : "Flash"}
           </p>
+          <ToggleAutoCast auto_cast={user.auto_cast} />
         </div>
         <Feed initialFlashes={flashes.map(serializeDoc)} />
       </div>
