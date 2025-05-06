@@ -14,9 +14,10 @@ import SectionTitle from "./SectionTitle";
 
 type Props = {
   initialFlashes: Flashcastr[];
+  fid?: number;
 };
 
-export default function Feed({ initialFlashes }: Props) {
+export default function Feed({ initialFlashes, fid }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput, 500);
 
@@ -27,6 +28,10 @@ export default function Feed({ initialFlashes }: Props) {
 
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
+      }
+
+      if (fid) {
+        url += `&fid=${fid}`;
       }
 
       const res = await axios.get(url);
@@ -76,16 +81,18 @@ export default function Feed({ initialFlashes }: Props) {
       <SectionTitle>Recent Flashes</SectionTitle>
 
       {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-      {flashes.map(({ user, flash }: Flashcastr, index: number) => (
+      {flashes.map(({ user, flash, castHash }: Flashcastr, index: number) => (
         <FlashCard
           ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
           key={flash.flash_id.toString()}
           avatar={user.pfp_url ?? "/splash.png"}
           player={user.username ?? flash.player}
+          fid={user.fid}
           city={flash.city}
           timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
           flashNumber={flash.flash_id.toLocaleString()}
           imageUrl={flash.img}
+          castHash={castHash}
         />
       ))}
 

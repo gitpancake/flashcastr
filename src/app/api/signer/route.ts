@@ -34,7 +34,7 @@ export async function GET(req: Request) {
           fid: signer.fid,
           signer_uuid: signer.signer_uuid,
           username,
-          auto_cast: false,
+          auto_cast: true,
         });
       } else {
         await new Users().updateDocument({ fid: signer.fid }, { $set: { signer_uuid: signer.signer_uuid } });

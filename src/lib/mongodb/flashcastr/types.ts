@@ -4,4 +4,5 @@ import { Flash } from "../flashes/types";
 export interface Flashcastr {
   flash: Flash;
   user: NeynarUser;
+  castHash: string | null;
 }
