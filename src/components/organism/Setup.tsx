@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import sdk from "@farcaster/frame-sdk";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -19,6 +20,8 @@ type FarcasterUser = {
 export default function Setup() {
   const [username, setUsername] = useState("");
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
+
+  const router = useRouter();
 
   const { mutateAsync: createAndStoreSigner } = useCreateAndStoreSigner((signer) => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(signer));
@@ -67,11 +70,18 @@ export default function Setup() {
           </>
         ) : farcasterUser?.status == "pending_approval" && farcasterUser?.signer_approval_url ? (
           <div className="flex flex-col items-center gap-4">
-            <p className="text-white text-sm text-center">Please scan the QR code below and approve Flashcastr to cast on your behalf.</p>
+            <p className="text-white text-sm text-center">Please scan the QR code below and approve Flashcastr to cast on your behalf. If you are on mobile, please click the link below.</p>
             <QRCodeSVG value={farcasterUser.signer_approval_url} />
-            <Link href={farcasterUser.signer_approval_url} target="_blank" rel="noopener noreferrer" className="text-[#8A63D2] underline text-sm">
+            <button
+              onClick={async () => {
+                if (farcasterUser.signer_approval_url) {
+                  await sdk.actions.openUrl(farcasterUser.signer_approval_url);
+                }
+              }}
+              className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-base py-1 rounded transition-colors tracking-widest"
+            >
               I am on mobile
-            </Link>
+            </button>
           </div>
         ) : farcasterUser?.status === "approved" ? (
           <>
@@ -81,9 +91,14 @@ export default function Setup() {
                 <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
                 <p className="text-white text-sm">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
               </div>
-              <Link href={`/profile`} target="_blank" rel="noopener noreferrer" className="text-[#8A63D2] underline text-sm text-center">
+              <button
+                onClick={async () => {
+                  router.push("/profile");
+                }}
+                className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-base py-1 rounded transition-colors tracking-widest"
+              >
                 View my profile
-              </Link>
+              </button>
             </div>
           </>
         ) : (
