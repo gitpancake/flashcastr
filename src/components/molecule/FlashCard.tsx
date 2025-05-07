@@ -2,6 +2,7 @@ import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
 import Link from "next/link";
 import { Ref } from "react";
+import { S3 } from "~/lib/constants";
 
 interface FlashCardProps {
   player?: string;
@@ -37,12 +38,12 @@ export default function FlashCard({ avatar, player, fid, city, timeAgo, flashNum
           if (castHash) {
             sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
           } else {
-            sdk.actions.openUrl("https://invader-flashes.s3.amazonaws.com" + imageUrl);
+            sdk.actions.openUrl(S3.BASE_URL + imageUrl);
           }
         }}
         width={1920}
         height={1080}
-        src={"https://invader-flashes.s3.amazonaws.com" + imageUrl}
+        src={S3.BASE_URL + imageUrl}
         alt="flash"
         className="w-[60px] h-[60px] object-cover border border-gray-800 hover:cursor-pointer"
       />

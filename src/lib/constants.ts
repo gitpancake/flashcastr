@@ -7,3 +7,7 @@ export const FETCH = {
   THRESHOLD: 15,
   LIMIT: 40,
 };
+
+export const S3 = {
+  BASE_URL: "https://invader-flashes.s3.amazonaws.com",
+};
