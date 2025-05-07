@@ -93,11 +93,18 @@ export default function Setup() {
               </div>
               <button
                 onClick={async () => {
-                  router.push("/profile");
+                  await sdk.actions
+                    .addFrame()
+                    .then(() => {
+                      router.push("/profile");
+                    })
+                    .catch(() => {
+                      router.push("/profile");
+                    });
                 }}
                 className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-base py-1 rounded transition-colors tracking-widest"
               >
-                View my profile
+                Add to My Apps
               </button>
             </div>
           </>
