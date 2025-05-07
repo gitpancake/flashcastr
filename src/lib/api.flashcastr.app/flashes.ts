@@ -27,7 +27,7 @@ export interface FlashStats {
 
 export class FlashesApi extends BaseApi {
   public async getFlashes(page: number = 1, limit: number = 40, fid?: number, search?: string): Promise<FlashResponse[]> {
-    const variables: Record<string, any> = {
+    const variables: Record<string, number | string | undefined> = {
       page,
       limit,
     };

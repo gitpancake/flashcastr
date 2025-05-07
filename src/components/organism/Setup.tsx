@@ -75,7 +75,7 @@ export default function Setup() {
 
                 try {
                   await createAndStoreSigner();
-                } catch (ex) {
+                } catch {
                   toast.error("An error occurred, please message @flashcastr on Farcaster");
                 } finally {
                   setLoading(false);
