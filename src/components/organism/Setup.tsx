@@ -52,7 +52,8 @@ export default function Setup() {
             <div className="w-full text-left flex flex-col gap-4">
               <h2 className="text-white text-lg font-semibold">How it works</h2>
               <div className="flex flex-col gap-2">
-                <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
+                <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the Flash Invaders app.</p>
+                <p className="text-white text-sm">If you do not have a Flash Invaders account, you need to download the app and create an account. Then return to this app and enter your username.</p>
                 <p className="text-white text-sm">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
                 <p className="text-white text-sm">Set your username below, then sign in. Flashcastr needs permission to cast on your behalf.</p>
                 <p className="text-white text-sm">After setup, your historic sync will begin. This can take up to 10 minutes.</p>
@@ -107,7 +108,7 @@ export default function Setup() {
             <div className="w-full text-left flex flex-col gap-4">
               <h2 className="text-white text-lg font-semibold">Approved!</h2>
               <div className="flex flex-col gap-2">
-                <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the flash invaders app.</p>
+                <p className="text-white text-sm">Flashcastr automatically casts from your Farcaster account whenever you flash a space invader using the Flash Invaders app.</p>
                 <p className="text-white text-sm">{`Ensure that your Flash Invaders username is set to 'public'.`}</p>
               </div>
               <button
