@@ -4,8 +4,12 @@ export abstract class BaseApi {
   protected readonly api: AxiosInstance;
 
   constructor() {
+    if (!process.env.NEXT_PUBLIC_FLASHCASTR_API_URL) {
+      throw new Error("NEXT_PUBLIC_FLASHCASTR_API_URL is not set");
+    }
+
     this.api = axios.create({
-      baseURL: "https://api.flashcastr.app",
+      baseURL: process.env.NEXT_PUBLIC_FLASHCASTR_API_URL,
       headers: {
         "Content-Type": "application/json",
       },
