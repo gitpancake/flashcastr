@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { Users } from "~/lib/mongodb/users";
 import neynarClient from "~/lib/neynar/client";
 import { getSignedKey } from "~/lib/neynar/getSignedKey";
 import SignupTask from "~/lib/tasks/signup";
@@ -28,13 +27,7 @@ export async function GET(req: Request) {
     const signer = await neynarClient.lookupSigner({ signerUuid: signer_uuid });
 
     if (signer.status === "approved" && signer.fid && username) {
-      const existingUser = await new Users().getExcludingSigner({ fid: signer.fid });
-
-      if (!existingUser) {
-        await new SignupTask().handle({ fid: signer.fid, signer_uuid: signer.signer_uuid, username });
-      } else {
-        await new Users().updateDocument({ fid: signer.fid }, { $set: { signer_uuid: signer.signer_uuid } });
-      }
+      await new SignupTask().handle({ fid: signer.fid, signer_uuid: signer.signer_uuid, username });
     }
 
     return NextResponse.json(signer, { status: 200 });
