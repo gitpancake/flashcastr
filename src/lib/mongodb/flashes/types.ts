@@ -1,5 +1,4 @@
 import { User } from "@neynar/nodejs-sdk/build/api";
-import { ObjectId } from "mongodb";
 
 export enum MosaicStatus {
   DESTROYED = "destroyed",
@@ -16,7 +15,6 @@ export interface Contribution {
 }
 
 export interface Flash {
-  _id: ObjectId | string;
   img: string;
   city: string;
   text: string;
@@ -25,5 +23,4 @@ export interface Flash {
   timestamp: number;
   flash_count: string;
   posted: boolean;
-  contributions: Contribution[];
 }

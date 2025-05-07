@@ -35,11 +35,11 @@ export class UsersApi extends BaseApi {
       "/graphql",
       {
         query: `
-        mutation SetAutoCast($fid: Int!, $autoCast: Boolean!) {
-          setUserAutoCast(fid: $fid, auto_cast: $autoCast) {
-            auto_cast
-          }
-        }
+			mutation SetAutoCast($fid: Int!, $autoCast: Boolean!) {
+				setUserAutoCast(fid: $fid, auto_cast: $autoCast) {
+					auto_cast
+				}
+			}
       `,
         variables: {
           fid,
@@ -53,7 +53,7 @@ export class UsersApi extends BaseApi {
       }
     );
 
-    return response.data.data.setUserAutoCast;
+    return response.data.setUserAutoCast;
   }
 
   public async deleteUser(fid: number, apiKey: string): Promise<{ success: boolean; message: string }> {
@@ -80,5 +80,33 @@ export class UsersApi extends BaseApi {
     );
 
     return response.data.data.deleteUser;
+  }
+
+  public async signup(fid: number, signer_uuid: string, username: string, apiKey: string): Promise<void> {
+    const response = await this.api.post(
+      "/graphql",
+      {
+        query: `
+          mutation Signup($fid: Int!, $signer_uuid: String!, $username: String!) {
+            signup(fid: $fid, signer_uuid: $signer_uuid, username: $username) {
+              success
+              message
+            }
+          }
+        `,
+        variables: {
+          fid,
+          signer_uuid,
+          username,
+        },
+      },
+      {
+        headers: {
+          "X-API-KEY": apiKey,
+        },
+      }
+    );
+
+    return response.data.signup;
   }
 }

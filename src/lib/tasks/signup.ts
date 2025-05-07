@@ -1,8 +1,4 @@
-import { FlashcastrFlashesDb } from "../mongodb/flashcastr";
-import { Flashcastr } from "../mongodb/flashcastr/types";
-import { Flashes } from "../mongodb/flashes";
-import { Users } from "../mongodb/users";
-import neynarClient from "../neynar/client";
+import { UsersApi } from "../api.flashcastr.app/users";
 import { encrypt } from "../utils";
 
 class SignupTask {
@@ -15,46 +11,17 @@ class SignupTask {
 
     const encryptedSigner = encrypt(signer_uuid, encryptionKey);
 
-    await new Users().insert({
-      fid,
-      signer_uuid: encryptedSigner,
-      username,
-      auto_cast: true,
-      historic_sync: false,
-    });
+    const apiKey = process.env.FLASHCASTR_API_KEY;
 
-    const {
-      users: [neynarUser],
-    } = await neynarClient.fetchBulkUsers({ fids: [fid] });
-
-    function escapeRegex(str: string) {
-      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!apiKey) {
+      throw new Error("FLASHCASTR_API_KEY is not set in the environment");
     }
 
-    const safeUsername = escapeRegex(username);
-
-    const flashes = await new Flashes().getMany({
-      player: {
-        $regex: `^${safeUsername}$`,
-        $options: "i",
-      },
-    });
-
-    if (!flashes.length) {
-      return;
+    try {
+      await new UsersApi().signup(fid, encryptedSigner, username, apiKey);
+    } catch (ex) {
+      console.log(ex);
     }
-
-    const docs: Flashcastr[] = [];
-
-    for (const flash of flashes) {
-      docs.push({
-        flash,
-        user: neynarUser,
-        castHash: null,
-      });
-    }
-
-    await new FlashcastrFlashesDb().insertMany(docs);
   }
 }
 

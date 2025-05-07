@@ -63,6 +63,8 @@ export class FlashesApi extends BaseApi {
       variables,
     });
 
+    console.log(response.data);
+
     return response.data.data.flashesAll;
   }
 

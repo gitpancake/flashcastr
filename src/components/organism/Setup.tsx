@@ -18,6 +18,8 @@ type FarcasterUser = {
 };
 
 export default function Setup() {
+  const [loading, setLoading] = useState(false);
+
   const [username, setUsername] = useState("");
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
 
@@ -69,26 +71,25 @@ export default function Setup() {
             </div>
             <button
               onClick={async () => {
-                const toastId = toast.loading("Saving user...");
+                setLoading(true);
 
                 try {
                   await createAndStoreSigner();
-                  toast.loading("Waiting for signer approval...", { id: toastId });
-                } catch {
-                  toast.error("An error occurred", { id: toastId });
+                } catch (ex) {
+                  toast.error("An error occurred, please message @flashcastr on Farcaster");
                 } finally {
-                  toast.dismiss(toastId);
+                  setLoading(false);
                 }
               }}
-              className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
-              disabled={!username}
+              className={`w-full bg-[#8A63D2] text-white font-invader text-xl py-3 rounded transition-colors tracking-widest ${loading ? "opacity-50 cursor-not-allowed" : "hover:opacity-75"}`}
+              disabled={!username || loading}
             >
-              SAVE
+              {loading ? "SAVING..." : "SAVE"}
             </button>
           </>
         ) : farcasterUser?.status == "pending_approval" && farcasterUser?.signer_approval_url ? (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-white text-sm text-center">Please scan the QR code below and approve Flashcastr to cast on your behalf. If you are on mobile, please click the link below.</p>
+          <div className="flex flex-col items-center gap-8">
+            <p className="text-white text-sm text-center">Please scan the QR code below and approve Flashcastr to cast on your behalf. If you are on mobile, please click the button below.</p>
             <QRCodeSVG value={farcasterUser.signer_approval_url} />
             <button
               onClick={async () => {
@@ -96,7 +97,7 @@ export default function Setup() {
                   await sdk.actions.openUrl(farcasterUser.signer_approval_url);
                 }
               }}
-              className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-base py-1 rounded transition-colors tracking-widest"
+              className="px-4 bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
             >
               I am on mobile
             </button>
