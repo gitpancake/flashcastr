@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-export const useGetNeynarUser = ({ enabled }: { enabled?: boolean }) => {
+export const useGetNeynarUser = ({ fid }: { fid?: number }) => {
   return useQuery({
     queryFn: async () => {
-      const response = await axios.get(`/api/neynar/user`);
+      const response = await axios.get(`/api/neynar/user?fid=${fid}`);
 
       if (response.status === 200) {
         return response.data;
@@ -12,7 +12,7 @@ export const useGetNeynarUser = ({ enabled }: { enabled?: boolean }) => {
 
       return null;
     },
-    queryKey: ["neynarUser"],
-    enabled,
+    queryKey: ["neynarUser", fid],
+    enabled: !!fid,
   });
 };

@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSession } from "~/auth";
 import neynarClient from "~/lib/neynar/client";
 
-export async function GET() {
-  const session = await getSession();
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const fid = url.searchParams.get("fid");
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!fid) {
+    return NextResponse.json({ error: "Fid is required" }, { status: 400 });
   }
 
   const user = await neynarClient.fetchBulkUsers({
-    fids: [session.user.fid],
+    fids: [Number(fid)],
   });
-
-  console.log({ user });
 
   if (!user) {
     return NextResponse.json({ error: "Neynar user not found" }, { status: 404 });

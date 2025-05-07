@@ -1,20 +1,22 @@
 import { BaseApi } from "./base";
 
 export type User = {
+  fid: number;
   username: string;
   auto_cast: boolean;
 };
 
 export class UsersApi extends BaseApi {
-  public async getUser(fid?: number): Promise<User | null> {
+  public async getUser(fid?: number): Promise<User[]> {
     if (!fid) {
-      return null;
+      return [];
     }
 
     const response = await this.api.post("/graphql", {
       query: `
         query Users($fid: Int!) {
           users(fid: $fid) {
+		  	fid
             username
 			auto_cast
           }
