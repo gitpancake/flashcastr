@@ -34,7 +34,7 @@ export default async function ProfilePage() {
         <div className="flex flex-col items-center gap-2">
           <ProfileSettings user={serializeUser(user)} flashCount={flashCount} cities={cities.length} />
         </div>
-        <Feed initialFlashes={flashes.map(serializeFlashcastr)} />
+        <Feed initialFlashes={flashes.map(serializeFlashcastr)} fid={session?.user.fid} />
       </div>
     );
   }

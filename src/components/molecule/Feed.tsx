@@ -22,7 +22,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
   const search = useDebounce(searchInput, 500);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery({
-    queryKey: ["flashes", search],
+    queryKey: ["flashes", search, fid],
     queryFn: async ({ pageParam = 1 }) => {
       let url = `/api/flashes?page=${pageParam}&limit=${FETCH.LIMIT}`;
 
