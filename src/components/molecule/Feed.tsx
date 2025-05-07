@@ -1,19 +1,18 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "~/hooks/useDebounce";
+import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
-import { Flashcastr } from "~/lib/mongodb/flashcastr/types";
 import FlashCard from "./FlashCard";
 import SearchBar from "./SearchBar";
 import SectionTitle from "./SectionTitle";
 
 type Props = {
-  initialFlashes: Flashcastr[];
+  initialFlashes: FlashResponse[];
   fid?: number;
 };
 
@@ -24,19 +23,8 @@ export default function Feed({ initialFlashes, fid }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery({
     queryKey: ["flashes", search, fid],
     queryFn: async ({ pageParam = 1 }) => {
-      let url = `/api/flashes?page=${pageParam}&limit=${FETCH.LIMIT}`;
-
-      if (search) {
-        url += `&search=${encodeURIComponent(search)}`;
-      }
-
-      if (fid) {
-        url += `&fid=${fid}`;
-      }
-
-      const res = await axios.get(url);
-
-      return res.data;
+      const flashesApi = new FlashesApi();
+      return flashesApi.getFlashes(pageParam, FETCH.LIMIT, fid, search);
     },
     getNextPageParam: (lastPage, allPages) => (lastPage.length === FETCH.LIMIT ? allPages.length + 1 : undefined),
     initialPageParam: 1,
@@ -81,7 +69,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
       <SectionTitle>Recent Flashes</SectionTitle>
 
       {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-      {flashes.map(({ user, flash, castHash }: Flashcastr, index: number) => (
+      {flashes.map(({ user, flash, castHash }: FlashResponse, index: number) => (
         <FlashCard
           ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
           key={flash.flash_id.toString()}

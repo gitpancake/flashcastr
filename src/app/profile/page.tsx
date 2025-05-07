@@ -1,42 +1,28 @@
-import { redirect } from "next/navigation";
-import { getSession } from "~/auth";
+"use client";
+
 import Feed from "~/components/molecule/Feed";
 import { ProfileSettings } from "~/components/molecule/ProfileSettings";
 import Setup from "~/components/organism/Setup";
+import { useFrame } from "~/components/providers/FrameProvider";
+import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { UsersApi } from "~/lib/api.flashcastr.app/users";
 import { FETCH } from "~/lib/constants";
-import { serializeFlashcastr, serializeUser } from "~/lib/help/serialize";
-import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
-import { Users } from "~/lib/mongodb/users";
 
 export default async function ProfilePage() {
-  const session = await getSession();
+  const { context } = useFrame();
 
-  if (!session) {
-    redirect("/");
-  }
-
-  const user = await new Users().getExcludingSigner({ fid: session?.user.fid });
+  const user = await new UsersApi().getUser(context?.user.fid);
 
   if (user) {
-    const db = new FlashcastrFlashesDb();
-
-    const flashes = await db.getMany(
-      {
-        "user.fid": session?.user.fid,
-      },
-      FETCH.INITIAL_PAGE,
-      FETCH.LIMIT
-    );
-
-    const flashCount = await db.count({ "user.fid": session?.user.fid });
-    const cities = await db.getDistinctCities({ "user.fid": session?.user.fid });
+    const stats = await new FlashesApi().getFlashStats(context?.user.fid);
+    const flashes = await new FlashesApi().getFlashes(FETCH.INITIAL_PAGE, FETCH.LIMIT, context?.user.fid);
 
     return (
       <div className="flex flex-col justify-center w-full h-full bg-black">
         <div className="flex flex-col items-center gap-2">
-          <ProfileSettings user={serializeUser(user)} flashCount={flashCount} cities={cities.length} />
+          <ProfileSettings user={user} flashCount={stats.flashCount} cities={stats.cities.length} />
         </div>
-        <Feed initialFlashes={flashes.map(serializeFlashcastr)} fid={session?.user.fid} />
+        <Feed initialFlashes={flashes} fid={context?.user.fid} />
       </div>
     );
   }

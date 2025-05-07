@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { getSession } from "~/auth";
 import Feed from "~/components/molecule/Feed";
+import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { UsersApi } from "~/lib/api.flashcastr.app/users";
 import { FETCH } from "~/lib/constants";
-import { serializeFlashcastr } from "~/lib/help/serialize";
-import { FlashcastrFlashesDb } from "~/lib/mongodb/flashcastr";
-import { Users } from "~/lib/mongodb/users";
 
 export default async function App() {
   const session = await getSession();
 
-  const initialUser = await new Users().getExcludingSigner({ fid: session?.user.fid });
-
-  const initialFlashes = await new FlashcastrFlashesDb().getMany({}, FETCH.INITIAL_PAGE, FETCH.LIMIT);
+  const initialUser = await new UsersApi().getUser(session?.user.fid);
+  const initialFlashes = await new FlashesApi().getFlashes(FETCH.INITIAL_PAGE, FETCH.LIMIT);
 
   return (
     <>
@@ -22,7 +20,7 @@ export default async function App() {
           </Link>
         </div>
       )}
-      <Feed initialFlashes={initialFlashes.map(serializeFlashcastr)} />
+      <Feed initialFlashes={initialFlashes} />
     </>
   );
 }

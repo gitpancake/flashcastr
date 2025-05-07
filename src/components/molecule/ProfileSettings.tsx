@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { FC, useState } from "react";
 import { FiSettings } from "react-icons/fi";
-import { UserWithoutSigner } from "~/lib/mongodb/users/types";
+import { User } from "~/lib/api.flashcastr.app/users";
 import { useFrame } from "../providers/FrameProvider";
 import { DeleteProfile } from "./Delete";
 import { ToggleAutoCast } from "./ToggleAutoCast";
 
-export const ProfileSettings: FC<{ user: UserWithoutSigner; flashCount: number; cities: number }> = ({ user, flashCount, cities }) => {
+export const ProfileSettings: FC<{ user: User; flashCount: number; cities: number }> = ({ user, flashCount, cities }) => {
   const { context } = useFrame();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
