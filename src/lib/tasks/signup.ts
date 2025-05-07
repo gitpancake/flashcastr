@@ -27,9 +27,16 @@ class SignupTask {
       users: [neynarUser],
     } = await neynarClient.fetchBulkUsers({ fids: [fid] });
 
+    function escapeRegex(str: string) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    const safeUsername = escapeRegex(username);
+
     const flashes = await new Flashes().getMany({
       player: {
-        $eq: username,
+        $regex: `^${safeUsername}$`,
+        $options: "i",
       },
     });
 
