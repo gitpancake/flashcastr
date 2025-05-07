@@ -18,7 +18,9 @@ export default async function ProfilePage() {
   const user = await new Users().getExcludingSigner({ fid: session?.user.fid });
 
   if (user) {
-    const flashes = await new FlashcastrFlashesDb().getMany(
+    const db = new FlashcastrFlashesDb();
+
+    const flashes = await db.getMany(
       {
         "user.fid": session?.user.fid,
       },
@@ -26,8 +28,8 @@ export default async function ProfilePage() {
       FETCH.LIMIT
     );
 
-    const flashCount = await new FlashcastrFlashesDb().count({ "user.fid": session?.user.fid });
-    const cities = await new FlashcastrFlashesDb().getDistinctCities({ "user.fid": session?.user.fid });
+    const flashCount = await db.count({ "user.fid": session?.user.fid });
+    const cities = await db.getDistinctCities({ "user.fid": session?.user.fid });
 
     return (
       <div className="flex flex-col justify-center w-full h-full bg-black">

@@ -67,6 +67,24 @@ export default function Setup() {
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
+            <button
+              onClick={async () => {
+                const toastId = toast.loading("Saving user...");
+
+                try {
+                  await createAndStoreSigner();
+                  toast.loading("Waiting for signer approval...", { id: toastId });
+                } catch {
+                  toast.error("An error occurred", { id: toastId });
+                } finally {
+                  toast.dismiss(toastId);
+                }
+              }}
+              className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
+              disabled={!username}
+            >
+              SAVE
+            </button>
           </>
         ) : farcasterUser?.status == "pending_approval" && farcasterUser?.signer_approval_url ? (
           <div className="flex flex-col items-center gap-4">
@@ -110,27 +128,6 @@ export default function Setup() {
           </>
         ) : (
           <></>
-        )}
-
-        {farcasterUser?.status !== "approved" && (
-          <button
-            onClick={async () => {
-              const toastId = toast.loading("Saving user...");
-
-              try {
-                await createAndStoreSigner();
-                toast.loading("Waiting for signer approval...", { id: toastId });
-              } catch {
-                toast.error("An error occurred", { id: toastId });
-              } finally {
-                toast.dismiss(toastId);
-              }
-            }}
-            className="w-full bg-[#8A63D2] hover:bg-purple-600 text-white font-invader text-xl py-3 rounded transition-colors tracking-widest"
-            disabled={!username}
-          >
-            SAVE
-          </button>
         )}
       </div>
     </div>
