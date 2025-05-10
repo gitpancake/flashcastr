@@ -18,7 +18,7 @@ interface FlashCardProps {
 
 export default function FlashCard({ avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash }: FlashCardProps) {
   return (
-    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-xl max-h-[100px] animate-fade-in" ref={ref}>
+    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in" ref={ref}>
       <div className="flex items-start gap-3">
         <Image width={1920} height={1080} src={avatar} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
 
