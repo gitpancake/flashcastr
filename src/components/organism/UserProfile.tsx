@@ -33,7 +33,7 @@ export default function UserProfile({ user }: { user: User }) {
           </>
         )}
       </div>
-      {flashes && <Feed initialFlashes={flashes} fid={user.fid} />}
+      <div className="flex w-full justify-center">{flashes && <Feed initialFlashes={flashes} fid={user.fid} />}</div>
     </div>
   );
 }
