@@ -16,9 +16,9 @@ export class UsersApi extends BaseApi {
       query: `
         query Users($fid: Int!) {
           users(fid: $fid) {
-		  	fid
+		  	    fid
             username
-			auto_cast
+			      auto_cast
           }
         }
       `,

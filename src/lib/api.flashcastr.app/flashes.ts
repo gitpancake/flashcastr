@@ -15,9 +15,11 @@ export interface FlashData {
 }
 
 export interface FlashResponse {
-  user: FlashUser;
+  user_fid: number;
+  user_pfp_url: string;
+  user_username: string;
   flash: FlashData;
-  castHash: string;
+  cast_hash: string;
 }
 
 export interface FlashStats {
@@ -37,33 +39,32 @@ export class FlashesApi extends BaseApi {
       variables.fid = fid;
     }
     if (search !== undefined && search !== null) {
-      variables.search = search;
+      variables.username = search;
     }
 
     const response = await this.api.post("/graphql", {
       query: `
-        query Flashes($page: Int!, $limit: Int!, $fid: Int, $search: String) {
-          flashesAll(page: $page, limit: $limit, fid: $fid, search: $search) {
-            user {
-              fid
-              pfp_url
-              username
-            },
-            flash {
-              flash_id
-              player
-              city
-              timestamp
-              img
-            },
-            castHash
+        query Flashes($page: Int!, $limit: Int!, $fid: Int, $username: String) {
+          flashes(page: $page, limit: $limit, fid: $fid, username: $username) {
+              user_fid
+              user_pfp_url
+              user_username
+              flash {
+                city
+                flash_id
+                player
+                city
+                timestamp
+                img
+              }
+              cast_hash
           }
         }
       `,
       variables,
     });
 
-    return response.data.data.flashesAll;
+    return response.data.data.flashes;
   }
 
   public async getFlashStats(fid?: number): Promise<FlashStats> {
