@@ -36,7 +36,31 @@ export default async function RootLayout({
           ) : (
             <Landing />
           )}
-          <Toaster />
+          <Toaster
+            toastOptions={{
+              style: {
+                background: "#111827", // Dark gray, similar to bg-gray-900
+                color: "#FFFFFF", // White text
+                borderRadius: "0px",
+                border: "1px solid #8A63D2", // Purple border
+                fontFamily: "'Space Invaders', sans-serif", // Invader font
+                padding: "8px",
+                letterSpacing: "2px", // Added letter spacing
+              },
+              success: {
+                iconTheme: {
+                  primary: "#8A63D2", // Purple for success icon
+                  secondary: "#FFFFFF",
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: "#8A63D2", // Purple for error icon (can adjust if a red is preferred for error)
+                  secondary: "#FFFFFF",
+                },
+              },
+            }}
+          />
         </Providers>
       </body>
     </html>

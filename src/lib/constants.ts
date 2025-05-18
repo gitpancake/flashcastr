@@ -5,7 +5,7 @@ export const LOCAL_STORAGE_KEYS = {
 export const FETCH = {
   INITIAL_PAGE: 1,
   THRESHOLD: 15,
-  LIMIT: 40,
+  LIMIT: 20,
 };
 
 export const S3 = {
