@@ -1,11 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FiTrash } from "react-icons/fi";
 import { useDeleteAppUser } from "~/hooks/useDeleteAppUser";
 
 export const DeleteProfile = () => {
+  const router = useRouter();
+
   const [deleteStep, setDeleteStep] = useState(0);
 
   const { mutateAsync: deleteAppUser } = useDeleteAppUser();
@@ -31,6 +34,8 @@ export const DeleteProfile = () => {
               await deleteAppUser();
 
               localStorage.clear();
+
+              router.refresh();
 
               toast.success("Deleted account & all associated data", { id: toastId });
             } catch {

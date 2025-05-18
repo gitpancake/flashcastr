@@ -145,26 +145,25 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
       <div className="px-8 py-10 max-w-md w-full flex flex-col gap-6 items-center shadow-xl bg-gray-900 rounded-lg">
         <h1 className="font-invader text-white text-4xl text-center tracking-wider">LINK FLASH INVADERS</h1>
 
-        <div className="text-gray-300 text-sm flex flex-col gap-2 mb-2">
-          <p>
-            Flash Invaders is a game by the artist Invader. Spot and &apos;flash&apos; their street art mosaics hidden in cities around the world using the official app to build your gallery and score
-            points.
-          </p>
-          <p>
-            Learn more at the official{" "}
-            <a href="https://www.space-invaders.com/flashinvaders/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">
-              Flash Invaders website
-            </a>
-            .
-          </p>
-        </div>
-
         {(signupProgress === "idle" ||
           signupProgress === "username_search_error" ||
           signupProgress === "username_search_loading" ||
           signupProgress === "username_search_found" ||
           signupProgress === "username_search_not_found") && (
           <>
+            <div className="text-gray-300 text-sm flex flex-col gap-2 mb-2">
+              <p>
+                Flash Invaders is a game by the artist Invader. Spot and &apos;flash&apos; their street art mosaics hidden in cities around the world using the official app to build your gallery and
+                score points.
+              </p>
+              <p>
+                Learn more at the official{" "}
+                <a href="https://www.space-invaders.com/flashinvaders/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">
+                  Flash Invaders website
+                </a>
+                .
+              </p>
+            </div>
             <div className="w-full text-left flex flex-col gap-3">
               <p className="text-gray-300 text-sm">Connect your Flash Invaders account to automatically cast your flashes on Farcaster.</p>
               <p className="text-gray-300 text-sm">Enter your Flash Invaders username (must be public).</p>
