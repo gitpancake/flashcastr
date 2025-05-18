@@ -69,20 +69,25 @@ export default function Feed({ initialFlashes, fid }: Props) {
       <SectionTitle>Recent Flashes</SectionTitle>
 
       {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-      {flashes.map(({ user_fid, user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => (
-        <FlashCard
-          ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
-          key={flash.flash_id.toString()}
-          avatar={user_pfp_url ?? "/splash.png"}
-          player={user_username ?? flash.player}
-          fid={user_fid}
-          city={flash.city}
-          timeAgo={formatTimeAgo(fromUnixTime(flash.timestamp))}
-          flashNumber={flash.flash_id.toLocaleString()}
-          imageUrl={flash.img}
-          castHash={cast_hash}
-        />
-      ))}
+      {flashes.map(({ user_fid, user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
+        const timestampSeconds = Math.floor(flash.timestamp / 1000);
+        const timestamp = fromUnixTime(timestampSeconds);
+
+        return (
+          <FlashCard
+            ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
+            key={flash.flash_id.toString()}
+            avatar={user_pfp_url ?? "/splash.png"}
+            player={user_username ?? flash.player}
+            fid={user_fid}
+            city={flash.city}
+            timeAgo={formatTimeAgo(timestamp)}
+            flashNumber={flash.flash_id.toLocaleString()}
+            imageUrl={flash.img}
+            castHash={cast_hash}
+          />
+        );
+      })}
 
       {isFetchingNextPage && <div className="font-invader text-white animate-pulse text-center py-4">LOADING...</div>}
     </div>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Ref } from "react";
 import { S3 } from "~/lib/constants";
+import addCommasToNumber from "~/lib/help/addCommasToNumber";
 
 interface FlashCardProps {
   player?: string;
@@ -29,7 +30,7 @@ export default function FlashCard({ avatar, player, fid, city, timeAgo, flashNum
             </Link>
             <p className="font-invader text-gray-400 text-[18px] leading-none">{city}</p>
           </div>
-          <p className="font-invader text-gray-300 text-[12px] leading-none">{`${timeAgo} | #${flashNumber}`}</p>
+          <p className="font-invader text-gray-300 text-[12px] leading-none tracking-wider">{`${timeAgo} | #${addCommasToNumber(flashNumber)}`}</p>
         </div>
       </div>
 
