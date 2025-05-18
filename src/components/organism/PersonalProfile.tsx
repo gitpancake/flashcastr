@@ -1,6 +1,6 @@
 "use client";
 
-import { FrameContext } from "@farcaster/frame-sdk";
+import { FrameContext } from "@farcaster/frame-core/dist/context";
 import { useGetFidFlashes } from "~/hooks/api.flashcastrs.app/useGetFidFlashes";
 import { useGetFlashStats } from "~/hooks/api.flashcastrs.app/useGetFlashStats";
 import { User } from "~/lib/api.flashcastr.app/users";
@@ -16,7 +16,7 @@ interface PersonalProfileProps {
 export default function PersonalProfile({ user, farcasterUserContext }: PersonalProfileProps) {
   const fidToUse = user?.fid || farcasterUserContext?.fid;
 
-  const { data: stats, isLoading: statsLoading } = useGetFlashStats(fidToUse, !!user);
+  const { data: stats, isLoading: statsLoading } = useGetFlashStats(fidToUse);
   const { data: flashes, isLoading: flashesLoading } = useGetFidFlashes(fidToUse);
 
   if (statsLoading || flashesLoading) {
