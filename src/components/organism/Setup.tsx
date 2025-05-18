@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useCreateAndStoreSigner } from "~/hooks/useCreateAndStoreSigner";
+import { useCreateSigner } from "~/hooks/useCreateAndStoreSigner";
 import { usePollSigner } from "~/hooks/usePollSigner";
 import { LOCAL_STORAGE_KEYS } from "~/lib/constants";
 
@@ -25,7 +25,7 @@ export default function Setup() {
 
   const router = useRouter();
 
-  const { mutateAsync: createAndStoreSigner } = useCreateAndStoreSigner((signer) => {
+  const { mutateAsync: createAndStoreSigner } = useCreateSigner((signer) => {
     localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(signer));
     setFarcasterUser(signer);
   });
