@@ -17,6 +17,14 @@ export default function UserProfile({ user }: { user: User }) {
     return <Loading />;
   }
 
+  if (!neynarUser) {
+    return (
+      <div className="flex flex-col justify-center w-full h-full bg-black">
+        <p className="text-white font-invader text-center text-[32px] tracking-widest">User not found</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col justify-center w-full h-full bg-black">
       <div className="flex flex-col items-center gap-2">
