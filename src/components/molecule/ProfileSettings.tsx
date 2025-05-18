@@ -4,31 +4,51 @@ import Image from "next/image";
 import { FC, useState } from "react";
 import { FiSettings } from "react-icons/fi";
 import { User } from "~/lib/api.flashcastr.app/users";
-import { useFrame } from "../providers/FrameProvider";
 import { DeleteProfile } from "./Delete";
 import { ToggleAutoCast } from "./ToggleAutoCast";
 
-export const ProfileSettings: FC<{ user: User; flashCount: number; cities: number }> = ({ user, flashCount, cities }) => {
-  const { context } = useFrame();
+// Minimal local type for Farcaster user data from frame context
+interface FarcasterFrameUser {
+  fid?: number;
+  displayName?: string;
+  pfpUrl?: string;
+  // Add other fields if used from farcasterUserContext
+}
 
+interface ProfileSettingsProps {
+  user?: User;
+  farcasterUserContext?: FarcasterFrameUser | null; // Use local minimal type
+  flashCount?: number;
+  cities?: number;
+}
+
+export const ProfileSettings: FC<ProfileSettingsProps> = ({ user, farcasterUserContext, flashCount, cities }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const displayName = farcasterUserContext?.displayName || user?.username || "User";
+  // Ensure pfpUrl access is safe if farcasterUserContext itself could be null/undefined
+  const pfpUrl = farcasterUserContext?.pfpUrl ?? "/splash.png";
 
   return (
     <div className="flex flex-col gap-4 items-center">
       <div className="flex flex-col items-center gap-2">
-        <Image src={context?.user.pfpUrl ?? `/splash.png`} width={64} height={64} alt="Profile" />
+        <Image src={pfpUrl} width={64} height={64} alt="Profile" className="rounded-full" />
         <div className="flex gap-2 items-center">
-          <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{context?.user.displayName}</p>
-          <FiSettings className="text-white hover:cursor-pointer" onClick={() => setIsSettingsOpen(!isSettingsOpen)} />
+          <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{displayName}</p>
+          {user && <FiSettings className="text-white hover:cursor-pointer" onClick={() => setIsSettingsOpen(!isSettingsOpen)} />}
         </div>
-        <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-          {flashCount} {flashCount === 1 ? "Flash" : "Flashes"}
-        </p>
-        <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
-          {cities} {cities === 1 ? "City" : "Cities"}
-        </p>
+        {flashCount !== undefined && flashCount !== null && (
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {flashCount} {flashCount === 1 ? "Flash" : "Flashes"}
+          </p>
+        )}
+        {cities !== undefined && cities !== null && (
+          <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
+            {cities} {cities === 1 ? "City" : "Cities"}
+          </p>
+        )}
       </div>
-      {isSettingsOpen && (
+      {isSettingsOpen && user && (
         <>
           <ToggleAutoCast auto_cast={user.auto_cast} />
           <DeleteProfile />

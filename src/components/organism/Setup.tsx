@@ -1,7 +1,6 @@
 "use client";
 
 import sdk from "@farcaster/frame-sdk";
-import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -20,22 +19,24 @@ type SignupProgressStatus =
   | "initiating_signup"
   | "pending_approval"
   | "finalizing_signup"
-  | "signup_successful"
   | "signup_error"
   | "signup_revoked"
   | "signup_timeout";
 
-export default function Setup() {
+interface SetupProps {
+  onSetupComplete: (user: User) => void;
+  onSkip: () => void;
+}
+
+export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
   const [signupProgress, setSignupProgress] = useState<SignupProgressStatus>("idle");
   const [username, setUsername] = useState("");
   const [searchedUsername, setSearchedUsername] = useState("");
 
   const [signerUuid, setSignerUuid] = useState<string | null>(null);
   const [signerApprovalUrl, setSignerApprovalUrl] = useState<string | null>(null);
-  const [finalFid, setFinalFid] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const router = useRouter();
   const flashesApi = new FlashesApi();
 
   const handleUsernameSearch = async () => {
@@ -62,26 +63,27 @@ export default function Setup() {
     }
   };
 
-  const resetUsernameSearch = () => {
+  const resetStateAndStartOver = () => {
     setSignupProgress("idle");
     setUsername("");
     setSearchedUsername("");
     setErrorMessage(null);
     setSignerUuid(null);
     setSignerApprovalUrl(null);
-    setFinalFid(null);
   };
 
   const { mutateAsync: initiateSignupMutation, isPending: isInitiatingSignup } = useCreateSigner((response) => {
     setSignerUuid(response.signer_uuid);
     setSignerApprovalUrl(response.signer_approval_url || null);
 
-    if (response.status === "approved" && response.fid) {
-      setFinalFid(response.fid);
-      setSignupProgress("signup_successful");
+    if (response.status === "approved" && response.fid && searchedUsername) {
       localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_FID, response.fid.toString());
       toast.success("Sign up approved and finalized immediately!");
-      router.push(`/profile`);
+      if (response.signer_approval_url) {
+        setSignupProgress("pending_approval");
+      } else {
+        setSignupProgress("pending_approval");
+      }
     } else if (response.signer_approval_url) {
       setSignupProgress("pending_approval");
     } else {
@@ -95,7 +97,14 @@ export default function Setup() {
     setSignupProgress("initiating_signup");
     setErrorMessage(null);
     try {
-      await initiateSignupMutation(searchedUsername || username);
+      const currentUsernameForSignup = searchedUsername || username;
+      if (!currentUsernameForSignup) {
+        toast.error("Username is missing.");
+        setSignupProgress("idle");
+        return;
+      }
+      setSearchedUsername(currentUsernameForSignup);
+      await initiateSignupMutation(currentUsernameForSignup);
     } catch (e) {
       setSignupProgress("signup_error");
       if (e instanceof Error) {
@@ -108,14 +117,12 @@ export default function Setup() {
 
   usePollSigner({
     signerUuid: signerUuid,
-    username: searchedUsername || username,
-    enabled: signupProgress === "pending_approval" || signupProgress === "finalizing_signup",
+    username: searchedUsername,
+    enabled: signupProgress === "pending_approval",
     onSuccess: (user: User) => {
-      setFinalFid(user.fid);
-      setSignupProgress("signup_successful");
-      router.push(`/profile`);
+      onSetupComplete(user);
     },
-    onError: (message: string, fid?: number | null) => {
+    onError: (message: string) => {
       if (message.toLowerCase().includes("timeout")) {
         setSignupProgress("signup_timeout");
       } else if (message.toLowerCase().includes("revoked")) {
@@ -124,20 +131,33 @@ export default function Setup() {
         setSignupProgress("signup_error");
       }
       setErrorMessage(message);
-      if (fid) setFinalFid(fid);
     },
     onSettled: () => {
-      if (signupProgress === "pending_approval" || signupProgress === "finalizing_signup") {
+      if (signupProgress === "pending_approval") {
       }
     },
   });
 
-  const isLoading = signupProgress === "username_search_loading" || isInitiatingSignup || signupProgress === "initiating_signup" || signupProgress === "finalizing_signup";
+  const isLoading = signupProgress === "username_search_loading" || isInitiatingSignup || signupProgress === "initiating_signup";
 
   return (
     <div className="flex items-center justify-center bg-black p-4">
       <div className="px-8 py-10 max-w-md w-full flex flex-col gap-6 items-center shadow-xl bg-gray-900 rounded-lg">
-        <h1 className="font-invader text-white text-4xl text-center tracking-wider">CAST YOUR FLASHES</h1>
+        <h1 className="font-invader text-white text-4xl text-center tracking-wider">LINK FLASH INVADERS</h1>
+
+        <div className="text-gray-300 text-sm flex flex-col gap-2 mb-2">
+          <p>
+            Flash Invaders is a game by the artist Invader. Spot and &apos;flash&apos; their street art mosaics hidden in cities around the world using the official app to build your gallery and score
+            points.
+          </p>
+          <p>
+            Learn more at the official{" "}
+            <a href="https://www.space-invaders.com/flashinvaders/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">
+              Flash Invaders website
+            </a>
+            .
+          </p>
+        </div>
 
         {(signupProgress === "idle" ||
           signupProgress === "username_search_error" ||
@@ -146,8 +166,8 @@ export default function Setup() {
           signupProgress === "username_search_not_found") && (
           <>
             <div className="w-full text-left flex flex-col gap-3">
-              <p className="text-gray-300 text-sm">Flashcastr automatically casts from your Farcaster account when you flash a space invader.</p>
-              <p className="text-gray-300 text-sm">Enter your Flash Invaders username (must be public) to begin.</p>
+              <p className="text-gray-300 text-sm">Connect your Flash Invaders account to automatically cast your flashes on Farcaster.</p>
+              <p className="text-gray-300 text-sm">Enter your Flash Invaders username (must be public).</p>
             </div>
             <div className="w-full flex flex-col items-start gap-2">
               <label htmlFor="usernameInput" className="font-invader text-white text-md tracking-widest">
@@ -159,8 +179,13 @@ export default function Setup() {
                 className="w-full bg-gray-800 border border-gray-700 text-white px-4 py-3 font-invader text-lg tracking-widest outline-none placeholder-gray-500 rounded-md focus:border-purple-500"
                 placeholder="ENTER USERNAME..."
                 value={username}
-                onChange={(e) => setUsername(e.target.value.trim())}
-                disabled={signupProgress === "username_search_loading" || signupProgress === "username_search_found" || signupProgress === "username_search_not_found"}
+                onChange={(e) => {
+                  setUsername(e.target.value.trim());
+                  if (signupProgress === "username_search_found" || signupProgress === "username_search_not_found" || signupProgress === "username_search_error") {
+                    setSignupProgress("idle");
+                  }
+                }}
+                disabled={signupProgress === "username_search_loading"}
               />
             </div>
 
@@ -179,8 +204,8 @@ export default function Setup() {
             {signupProgress === "username_search_error" && errorMessage && (
               <div className="w-full flex flex-col gap-2 items-center text-center">
                 <p className="text-red-400">Error: {errorMessage}</p>
-                <button onClick={resetUsernameSearch} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  TRY AGAIN
+                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
+                  TRY DIFFERENT USERNAME
                 </button>
               </div>
             )}
@@ -191,8 +216,8 @@ export default function Setup() {
                 <button onClick={handleProceedToInitiateSignup} className="w-full bg-green-500 text-white font-invader text-lg py-3 rounded-md hover:bg-green-600 tracking-widest">
                   PROCEED AS &quot;{searchedUsername}&quot;
                 </button>
-                <button onClick={resetUsernameSearch} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  USE A DIFFERENT USERNAME
+                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
+                  TRY DIFFERENT USERNAME
                 </button>
               </div>
             )}
@@ -204,11 +229,21 @@ export default function Setup() {
                 <button onClick={handleProceedToInitiateSignup} className="w-full bg-yellow-500 text-black font-invader text-lg py-3 rounded-md hover:bg-yellow-600 tracking-widest">
                   PROCEED ANYWAY WITH &quot;{searchedUsername}&quot;
                 </button>
-                <button onClick={resetUsernameSearch} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  USE A DIFFERENT USERNAME
+                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
+                  TRY DIFFERENT USERNAME
                 </button>
               </div>
             )}
+
+            {(signupProgress === "idle" || signupProgress === "username_search_error" || signupProgress === "username_search_found" || signupProgress === "username_search_not_found") &&
+              !isLoading && (
+                <button
+                  onClick={onSkip}
+                  className="w-full text-gray-400 hover:text-white font-invader text-md py-2 rounded-md transition-colors tracking-widest mt-2 border border-gray-700 hover:border-gray-500"
+                >
+                  SKIP FOR NOW
+                </button>
+              )}
           </>
         )}
 
@@ -236,27 +271,11 @@ export default function Setup() {
               APPROVE ON MOBILE
             </button>
             <p className="text-purple-400 animate-pulse text-md mt-2">Waiting for approval...</p>
-          </div>
-        )}
-
-        {signupProgress === "finalizing_signup" && (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-purple-400 animate-pulse text-lg">Finalizing your setup for &quot;{searchedUsername}&quot;...</p>
-          </div>
-        )}
-
-        {signupProgress === "signup_successful" && finalFid && (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <h2 className="text-green-400 text-2xl font-semibold">Setup Complete!</h2>
-            <p className="text-white">
-              User &quot;{searchedUsername}&quot; (FID: {finalFid}) is now connected.
-            </p>
-            <p className="text-white">Flashcastr will automatically cast your new flashes.</p>
             <button
-              onClick={() => router.push(`/profile`)}
-              className="w-full max-w-xs bg-green-500 hover:bg-green-600 text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest mt-2"
+              onClick={resetStateAndStartOver}
+              className="w-full max-w-xs text-gray-400 hover:text-white font-invader text-md py-2 rounded-md transition-colors tracking-widest mt-4 border border-gray-700 hover:border-gray-500"
             >
-              GO TO YOUR PROFILE
+              CANCEL / CHANGE USERNAME
             </button>
           </div>
         )}
@@ -267,8 +286,7 @@ export default function Setup() {
               {signupProgress === "signup_timeout" ? "Signup Timed Out" : signupProgress === "signup_revoked" ? "Approval Revoked" : "Signup Failed"}
             </h2>
             <p className="text-white">{errorMessage}</p>
-            {finalFid && <p className="text-gray-400 text-sm">Your Farcaster ID {finalFid} was retrieved, but setup could not be fully completed.</p>}
-            <button onClick={resetUsernameSearch} className="w-full max-w-xs bg-gray-600 hover:bg-gray-700 text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest mt-2">
+            <button onClick={resetStateAndStartOver} className="w-full max-w-xs bg-gray-600 hover:bg-gray-700 text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest mt-2">
               TRY AGAIN
             </button>
           </div>
