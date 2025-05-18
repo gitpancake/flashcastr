@@ -7,6 +7,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useCreateSigner } from "~/hooks/useCreateAndStoreSigner";
 import { usePollSigner } from "~/hooks/usePollSigner";
+import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { LOCAL_STORAGE_KEYS } from "~/lib/constants";
 
 type FarcasterUser = {
@@ -19,14 +20,63 @@ type FarcasterUser = {
 
 export default function Setup() {
   const [loading, setLoading] = useState(false);
+  const [usernameSearchLoading, setUsernameSearchLoading] = useState(false);
 
   const [username, setUsername] = useState("");
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
 
+  type UsernameSearchStatus = "idle" | "found" | "notFound" | "error";
+  const [usernameSearchStatus, setUsernameSearchStatus] = useState<UsernameSearchStatus>("idle");
+  const [searchedUsernameValue, setSearchedUsernameValue] = useState<string>("");
+
   const router = useRouter();
+  const flashesApi = new FlashesApi();
+
+  const handleUsernameSearch = async () => {
+    if (!username.trim()) {
+      toast.error("Please enter a username.");
+      return;
+    }
+    setUsernameSearchLoading(true);
+    setLoading(true);
+    setUsernameSearchStatus("idle");
+    setSearchedUsernameValue(username);
+
+    try {
+      const players = await flashesApi.getAllPlayers(username.trim());
+      if (players.length > 0) {
+        setUsernameSearchStatus("found");
+      } else {
+        setUsernameSearchStatus("notFound");
+      }
+    } catch (error) {
+      console.error("Failed to search for player:", error);
+      toast.error("Error searching for username. Please try again.");
+      setUsernameSearchStatus("error");
+    }
+    setUsernameSearchLoading(false);
+    setLoading(false);
+  };
+
+  const proceedToCreateSigner = async () => {
+    setLoading(true);
+    try {
+      await createAndStoreSigner();
+    } catch {
+      toast.error("An error occurred during setup, please message @flashcastr on Farcaster");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetUsernameSearch = () => {
+    setUsernameSearchStatus("idle");
+  };
 
   const { mutateAsync: createAndStoreSigner } = useCreateSigner((signer) => {
-    localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(signer));
+    if (signer.fid) {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_FID, signer.fid.toString());
+    }
     setFarcasterUser(signer);
   });
 
@@ -67,26 +117,59 @@ export default function Setup() {
                 className="w-full bg-black border border-white text-white px-4 py-2 font-invader text-lg tracking-widest outline-none placeholder-white"
                 placeholder="USERNAME..."
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (usernameSearchStatus !== "idle") {
+                    setUsernameSearchStatus("idle");
+                  }
+                }}
+                disabled={usernameSearchLoading || usernameSearchStatus === "found" || usernameSearchStatus === "notFound"}
               />
             </div>
-            <button
-              onClick={async () => {
-                setLoading(true);
 
-                try {
-                  await createAndStoreSigner();
-                } catch {
-                  toast.error("An error occurred, please message @flashcastr on Farcaster");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              className={`w-full bg-[#8A63D2] text-white font-invader text-xl py-3 rounded transition-colors tracking-widest ${loading ? "opacity-50 cursor-not-allowed" : "hover:opacity-75"}`}
-              disabled={!username || loading}
-            >
-              {loading ? "SAVING..." : "SAVE"}
-            </button>
+            {usernameSearchStatus === "idle" && (
+              <button
+                onClick={handleUsernameSearch}
+                className={`w-full bg-[#8A63D2] text-white font-invader text-xl py-3 rounded transition-colors tracking-widest ${loading ? "opacity-50 cursor-not-allowed" : "hover:opacity-75"}`}
+                disabled={!username.trim() || loading}
+              >
+                {loading ? "SEARCHING..." : "SAVE"}
+              </button>
+            )}
+
+            {usernameSearchStatus === "found" && (
+              <div className="w-full flex flex-col gap-2 items-center text-center">
+                <p className="text-green-400">Success! We found a player for &quot;{searchedUsernameValue}&quot;.</p>
+                <button onClick={proceedToCreateSigner} className="w-full bg-green-500 text-white font-invader text-lg py-2 rounded hover:bg-green-600 tracking-widest">
+                  PROCEED AS &quot;{searchedUsernameValue}&quot;
+                </button>
+                <button onClick={resetUsernameSearch} className="w-full bg-gray-500 text-white font-invader text-lg py-2 rounded hover:bg-gray-600 tracking-widest">
+                  TRY DIFFERENT USERNAME
+                </button>
+              </div>
+            )}
+
+            {usernameSearchStatus === "notFound" && (
+              <div className="w-full flex flex-col gap-2 items-center text-center">
+                <p className="text-yellow-400">Warning: We did not find &quot;{searchedUsernameValue}&quot;. Indexing started Jan 1, 2025.</p>
+                <p className="text-yellow-400 text-xs">You can check the username or proceed anyway.</p>
+                <button onClick={proceedToCreateSigner} className="w-full bg-yellow-500 text-white font-invader text-lg py-2 rounded hover:bg-yellow-600 tracking-widest">
+                  PROCEED ANYWAY WITH &quot;{searchedUsernameValue}&quot;
+                </button>
+                <button onClick={resetUsernameSearch} className="w-full bg-gray-500 text-white font-invader text-lg py-2 rounded hover:bg-gray-600 tracking-widest">
+                  TRY DIFFERENT USERNAME
+                </button>
+              </div>
+            )}
+
+            {usernameSearchStatus === "error" && (
+              <div className="w-full flex flex-col gap-2 items-center text-center">
+                <p className="text-red-500">An error occurred. Please try searching again.</p>
+                <button onClick={resetUsernameSearch} className="w-full bg-gray-500 text-white font-invader text-lg py-2 rounded hover:bg-gray-600 tracking-widest">
+                  TRY AGAIN
+                </button>
+              </div>
+            )}
           </>
         ) : farcasterUser?.status == "pending_approval" && farcasterUser?.signer_approval_url ? (
           <div className="flex flex-col items-center gap-8">

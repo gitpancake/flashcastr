@@ -91,4 +91,22 @@ export class FlashesApi extends BaseApi {
 
     return response.data.data.flashesSummary;
   }
+
+  public async getAllPlayers(username?: string): Promise<string[]> {
+    const variables: Record<string, string | undefined> = {};
+    if (username) {
+      variables.username = username;
+    }
+
+    const response = await this.api.post("/graphql", {
+      query: `
+        query AllFlashesPlayers($username: String) {
+          allFlashesPlayers(username: $username)
+        }
+      `,
+      variables,
+    });
+
+    return response.data.data.allFlashesPlayers || [];
+  }
 }

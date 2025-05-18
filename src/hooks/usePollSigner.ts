@@ -25,7 +25,9 @@ export const usePollSigner = (username: string, callback: (user: FarcasterUser) 
 
             if (user?.status === "approved") {
               // store the user in local storage
-              localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_USER, JSON.stringify(user));
+              if (user.fid) {
+                localStorage.setItem(LOCAL_STORAGE_KEYS.FARCASTER_FID, user.fid.toString());
+              }
 
               callback(user);
               clearInterval(intervalId);

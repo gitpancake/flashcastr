@@ -1,5 +1,5 @@
 export const LOCAL_STORAGE_KEYS = {
-  FARCASTER_USER: "farcasterUser",
+  FARCASTER_FID: "farcasterFid",
 };
 
 export const FETCH = {

@@ -44,9 +44,9 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
   // First check for FRAME_METADATA in .env and use that if it exists
   if (process.env.FRAME_METADATA) {
     try {
-      const metadata = JSON.parse(process.env.FRAME_METADATA);
+      const frameMetadata = JSON.parse(process.env.FRAME_METADATA);
       console.log("Using pre-signed frame metadata from environment");
-      return metadata;
+      return frameMetadata;
     } catch (error) {
       console.warn("Failed to parse FRAME_METADATA from environment:", error);
     }
