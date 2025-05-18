@@ -8,10 +8,10 @@ import { User } from "~/lib/api.flashcastr.app/users";
 import { Loading } from "../atom/Loading";
 import Feed from "../molecule/Feed";
 
-export default function UserProfile({ user }: { user: User }) {
-  const { data: neynarUser, isLoading: neynarUserLoading } = useGetNeynarUser({ fid: user.fid });
-  const { data: stats, isLoading: statsLoading } = useGetFlashStats(user.fid);
-  const { data: flashes, isLoading: flashesLoading } = useGetFidFlashes(user.fid);
+export default function UserProfile({ user }: { user?: User }) {
+  const { data: neynarUser, isLoading: neynarUserLoading } = useGetNeynarUser({ fid: user?.fid });
+  const { data: stats, isLoading: statsLoading } = useGetFlashStats(user?.fid);
+  const { data: flashes, isLoading: flashesLoading } = useGetFidFlashes(user?.fid);
 
   if (statsLoading || flashesLoading || neynarUserLoading) {
     return <Loading />;
@@ -41,7 +41,7 @@ export default function UserProfile({ user }: { user: User }) {
           </>
         )}
       </div>
-      <div className="flex w-full justify-center">{flashes && <Feed initialFlashes={flashes} fid={user.fid} />}</div>
+      <div className="flex w-full justify-center">{flashes && <Feed initialFlashes={flashes} fid={user?.fid} />}</div>
     </div>
   );
 }
