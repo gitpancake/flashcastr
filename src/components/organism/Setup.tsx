@@ -44,6 +44,14 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
       toast.error("Please enter a username.");
       return;
     }
+
+    if (username.trim().toLowerCase() === "anonymous") {
+      setErrorMessage("The username 'Anonymous' is not allowed. Please choose a different username.");
+      setSignupProgress("username_search_error");
+      setSearchedUsername(username.trim());
+      return;
+    }
+
     setSignupProgress("username_search_loading");
     setSearchedUsername(username);
     setErrorMessage(null);
