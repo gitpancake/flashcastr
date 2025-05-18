@@ -35,7 +35,7 @@ export const DeleteProfile = () => {
 
               localStorage.clear();
 
-              router.refresh();
+              router.push("/");
 
               toast.success("Deleted account & all associated data", { id: toastId });
             } catch {
