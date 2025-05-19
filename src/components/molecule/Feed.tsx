@@ -10,6 +10,7 @@ import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import FlashCard from "./FlashCard";
 import SearchBar from "./SearchBar";
 import SectionTitle from "./SectionTitle";
+import { useFrame } from "../providers/FrameProvider";
 
 type Props = {
   initialFlashes: FlashResponse[];
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function Feed({ initialFlashes, fid }: Props) {
+  const { context } = useFrame();
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput, 500);
 
@@ -79,6 +81,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
             key={flash.flash_id.toString()}
             avatar={user_pfp_url ?? "/splash.png"}
             player={user_username ?? flash.player}
+            isPlayer={context?.user?.fid === user_fid}
             fid={user_fid}
             city={flash.city}
             timeAgo={formatTimeAgo(timestamp)}

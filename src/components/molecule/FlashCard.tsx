@@ -15,9 +15,10 @@ interface FlashCardProps {
   avatar: string;
   fid: number;
   castHash: string | null;
+  isPlayer: boolean;
 }
 
-export default function FlashCard({ avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash }: FlashCardProps) {
+export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash }: FlashCardProps) {
   return (
     <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in" ref={ref}>
       <div className="flex items-start gap-3">
@@ -25,7 +26,7 @@ export default function FlashCard({ avatar, player, fid, city, timeAgo, flashNum
 
         <div className="flex flex-col gap-3 h-full">
           <div className="flex flex-col gap-0">
-            <Link href={`/profile/${fid}`} target="_self">
+            <Link href={isPlayer ? `/profile` : `/profile/${fid}`} target="_self">
               <p className="font-invader text-white text-[28px] leading-none">{player}</p>
             </Link>
             <p className="font-invader text-gray-400 text-[18px] leading-none">{city}</p>
