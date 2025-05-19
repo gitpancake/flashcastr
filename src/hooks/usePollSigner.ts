@@ -48,7 +48,6 @@ export const usePollSigner = ({
       }
       if (response.user) {
         onSuccess(response.user);
-        toast.success(response.message || "Signup successful!");
       } else {
         onError(response.message || "Signup approved but user data is missing.", response.fid);
         toast.error(response.message || "Signup approved but user data is missing.");
