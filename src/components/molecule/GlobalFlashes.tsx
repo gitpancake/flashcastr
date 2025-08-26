@@ -72,7 +72,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
       {/* ASCII Header - Mobile Responsive */}
       <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-cyan-400 text-[6px] sm:text-xs leading-none hidden sm:block">
+        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
 {`
   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
@@ -88,7 +88,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 `}
         </pre>
-        <div className="text-cyan-400 text-lg sm:hidden font-mono font-bold">
+        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
           GLOBAL FLASH
         </div>
         <div className="text-gray-400 text-[10px] sm:text-sm mt-2">
@@ -96,65 +96,54 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
         </div>
       </div>
 
-      {/* Trending Cities Bar (excluding Paris) */}
-      {trendingCities.length > 0 && (
-        <div className="mb-6 bg-gray-900 border-2 border-gray-600 p-4">
-          <div className="text-cyan-400 text-sm font-bold mb-2">TRENDING CITIES</div>
-          <div className="flex flex-wrap gap-2">
-            {trendingCities.slice(0, 8).map((cityData) => (
-              <button
-                key={cityData.city}
-                onClick={() => setSelectedCity(selectedCity === cityData.city ? null : cityData.city)}
-                className={`
-                  px-3 py-1 text-xs border transition-all duration-200
-                  ${selectedCity === cityData.city 
-                    ? 'bg-cyan-400 text-black border-cyan-400' 
-                    : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
-                  }
-                `}
-              >
-                {cityData.city.toUpperCase()} ({cityData.count})
-              </button>
-            ))}
+      {/* Combined Filters - Compact */}
+      <div className="mb-4 bg-gray-900 border border-green-400 p-2">
+        <div className="text-green-400 text-xs font-bold mb-2">FILTER</div>
+        
+        {/* Trending Cities - One line */}
+        {trendingCities.length > 0 && (
+          <div className="mb-2">
+            <div className="flex flex-wrap gap-1">
+              {trendingCities.slice(0, 6).map((cityData) => (
+                <button
+                  key={cityData.city}
+                  onClick={() => setSelectedCity(selectedCity === cityData.city ? null : cityData.city)}
+                  className={`
+                    px-2 py-1 text-[10px] border transition-all duration-200
+                    ${selectedCity === cityData.city 
+                      ? 'bg-green-400 text-black border-green-400' 
+                      : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
+                    }
+                  `}
+                >
+                  {cityData.city.toUpperCase()} ({cityData.count})
+                </button>
+              ))}
+            </div>
           </div>
+        )}
+        
+        {/* All Cities Toggle */}
+        <div className="flex gap-1">
+          <button
+            onClick={() => setSelectedCity(null)}
+            className={`
+              px-2 py-1 text-[10px] border transition-all duration-200
+              ${selectedCity === null 
+                ? 'bg-green-400 text-black border-green-400' 
+                : 'bg-transparent text-green-400 border-gray-600 hover:border-green-400'
+              }
+            `}
+          >
+            ALL
+          </button>
+          {selectedCity && (
+            <div className="text-green-400 text-[10px] py-1 px-2 border border-green-400">
+              {">"} {selectedCity.toUpperCase()}
+            </div>
+          )}
         </div>
-      )}
-
-      {/* City Filter */}
-      {cities.length > 0 && (
-        <div className="mb-6 bg-gray-900 border border-gray-600 p-4">
-          <div className="text-cyan-400 text-sm font-bold mb-2">FILTER BY CITY</div>
-          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-            <button
-              onClick={() => setSelectedCity(null)}
-              className={`
-                px-2 py-1 text-xs border transition-all duration-200
-                ${selectedCity === null 
-                  ? 'bg-cyan-400 text-black border-cyan-400' 
-                  : 'bg-transparent text-cyan-400 border-gray-600 hover:border-cyan-400'
-                }
-              `}
-            >
-              ALL CITIES
-            </button>
-            {cities.map((city) => (
-              <button
-                key={city}
-                onClick={() => setSelectedCity(selectedCity === city ? null : city)}
-                className={`
-                  px-2 py-1 text-xs border transition-all duration-200
-                  ${selectedCity === city 
-                    ? 'bg-cyan-400 text-black border-cyan-400' 
-                    : 'bg-transparent text-cyan-400 border-gray-600 hover:border-cyan-400'
-                  }
-                `}
-              >
-                {city.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Flash Grid - Mobile First */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
@@ -162,7 +151,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           <div
             key={`${flash.flash_id}-${index}`}
             ref={index === flashes.length - 10 ? lastFlashRef : null}
-            className="bg-gray-900 border border-gray-600 hover:border-cyan-400 transition-all duration-200 group"
+            className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
           >
             {/* Flash Image */}
             <div className="aspect-square overflow-hidden">
@@ -176,7 +165,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
 
             {/* Flash Info */}
             <div className="p-2 sm:p-3 space-y-1">
-              <div className="text-cyan-400 text-[10px] sm:text-xs font-bold">
+              <div className="text-green-400 text-[10px] sm:text-xs font-bold">
                 #{flash.flash_id}
               </div>
               <div className="text-white text-xs sm:text-sm">
@@ -191,7 +180,11 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
                 </div>
               )}
               <div className="text-gray-500 text-[10px] sm:text-xs">
-                {new Date(flash.timestamp * 1000).toLocaleDateString()}
+                {new Date(flash.timestamp * 1000).toLocaleDateString('en-US', { 
+                  month: '2-digit', 
+                  day: '2-digit', 
+                  year: '2-digit' 
+                })}
               </div>
             </div>
           </div>
@@ -201,7 +194,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       {/* Loading States */}
       {(isLoading || isFetchingNextPage) && (
         <div className="text-center py-12">
-          <div className="text-cyan-400 text-sm animate-pulse">
+          <div className="text-green-400 text-sm animate-pulse">
             LOADING FLASHES...
           </div>
           <div className="text-gray-500 text-xs mt-2">

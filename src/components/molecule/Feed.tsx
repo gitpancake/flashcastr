@@ -66,33 +66,60 @@ export default function Feed({ initialFlashes, fid }: Props) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div className="flex flex-col gap-4 p-4 w-full max-w-2xl animate-fade-in">
-      <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
-      <SectionTitle>Recent Flashes</SectionTitle>
+    <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
+      {/* ASCII Header - Mobile Responsive */}
+      <div className="text-center mb-4 sm:mb-8">
+        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
+{`
+██╗   ██╗ ██████╗ ██╗   ██╗██████╗     
+╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗    
+ ╚████╔╝ ██║   ██║██║   ██║██████╔╝    
+  ╚██╔╝  ██║   ██║██║   ██║██╔══██╗    
+   ██║   ╚██████╔╝╚██████╔╝██║  ██║    
+   ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═╝    
+███████╗███████╗███████╗██████╗ 
+██╔════╝██╔════╝██╔════╝██╔══██╗
+█████╗  █████╗  █████╗  ██║  ██║
+██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║
+██║     ███████╗███████╗██████╔╝
+╚═╝     ╚══════╝╚══════╝╚═════╝ 
+`}
+        </pre>
+        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
+          YOUR FEED
+        </div>
+        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">
+          PERSONAL FLASH FEED * CONNECTED TO FARCASTER
+        </div>
+      </div>
 
-      {searchInput && isFetching && <div className="font-invader text-white animate-pulse text-center py-2">SEARCHING...</div>}
-      {flashes.map(({ user_fid, user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
-        const timestampSeconds = Math.floor(flash.timestamp / 1000);
-        const timestamp = fromUnixTime(timestampSeconds);
+      <div className="flex flex-col gap-4">
+        <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
 
-        return (
-          <FlashCard
-            ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
-            key={flash.flash_id.toString()}
-            avatar={user_pfp_url ?? "/splash.png"}
-            player={user_username ?? flash.player}
-            isPlayer={context?.user?.fid === user_fid}
-            fid={user_fid}
-            city={flash.city}
-            timeAgo={formatTimeAgo(timestamp)}
-            flashNumber={flash.flash_id.toLocaleString()}
-            imageUrl={flash.img}
-            castHash={cast_hash}
-          />
-        );
-      })}
+        {searchInput && isFetching && <div className="font-mono text-green-400 animate-pulse text-center py-2">SEARCHING...</div>}
+        {flashes.map(({ user_fid, user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
+          const timestampSeconds = Math.floor(flash.timestamp / 1000);
+          const timestamp = fromUnixTime(timestampSeconds);
 
-      {isFetchingNextPage && <div className="font-invader text-white animate-pulse text-center py-4">LOADING...</div>}
+          return (
+            <FlashCard
+              ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
+              key={flash.flash_id.toString()}
+              avatar={user_pfp_url ?? "/splash.png"}
+              player={user_username ?? flash.player}
+              isPlayer={context?.user?.fid === user_fid}
+              fid={user_fid}
+              city={flash.city}
+              timeAgo={formatTimeAgo(timestamp)}
+              flashNumber={flash.flash_id.toLocaleString()}
+              imageUrl={flash.img}
+              castHash={cast_hash}
+            />
+          );
+        })}
+
+        {isFetchingNextPage && <div className="font-mono text-green-400 animate-pulse text-center py-4">LOADING...</div>}
+      </div>
     </div>
   );
 }

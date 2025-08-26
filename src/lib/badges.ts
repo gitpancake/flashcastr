@@ -29,106 +29,176 @@ export interface UserProgress {
   streak?: number;
 }
 
-// Badge tiers for flash counts
+// Flash count badges with achievable thresholds
 export const FLASH_COUNT_BADGES: Badge[] = [
   {
     id: 'newbie',
-    name: 'Space Cadet',
+    name: 'Cadet',
     description: 'First flash!',
-    icon: '^',
+    icon: '.',
     threshold: 1,
     tier: 'bronze',
-    gradient: 'from-amber-600 to-amber-400'
+    gradient: 'from-green-600 to-green-400'
+  },
+  {
+    id: 'rookie',
+    name: 'Rookie',
+    description: '5 flashes shared',
+    icon: '-',
+    threshold: 5,
+    tier: 'bronze',
+    gradient: 'from-green-600 to-green-400'
   },
   {
     id: 'explorer',
     name: 'Explorer',
     description: '10 flashes shared',
-    icon: '?',
+    icon: '=',
     threshold: 10,
     tier: 'bronze',
-    gradient: 'from-amber-600 to-amber-400'
+    gradient: 'from-green-600 to-green-400'
   },
   {
-    id: 'flasher',
-    name: 'Flasher',
-    description: '100 flashes shared',
-    icon: '!',
-    threshold: 100,
+    id: 'scout',
+    name: 'Scout',
+    description: '20 flashes shared',
+    icon: '+',
+    threshold: 20,
     tier: 'silver',
-    gradient: 'from-gray-500 to-gray-300'
+    gradient: 'from-green-500 to-green-300'
   },
   {
     id: 'invader',
     name: 'Invader',
-    description: '500 flashes shared',
+    description: '50 flashes shared',
     icon: '*',
-    threshold: 500,
+    threshold: 50,
     tier: 'gold',
-    gradient: 'from-yellow-500 to-yellow-300'
+    gradient: 'from-green-400 to-green-200'
   },
   {
     id: 'commander',
     name: 'Commander',
-    description: '1,000 flashes shared',
-    icon: '+',
-    threshold: 1000,
-    tier: 'gold',
-    gradient: 'from-yellow-500 to-yellow-300'
+    description: '100 flashes shared',
+    icon: '#',
+    threshold: 100,
+    tier: 'platinum',
+    gradient: 'from-green-300 to-green-100'
+  },
+  {
+    id: 'captain',
+    name: 'Captain',
+    description: '200 flashes shared',
+    icon: '@',
+    threshold: 200,
+    tier: 'diamond',
+    gradient: 'from-green-200 to-white'
   },
   {
     id: 'legend',
     name: 'Legend',
-    description: '2,000 flashes shared',
-    icon: '#',
-    threshold: 2000,
-    tier: 'platinum',
-    gradient: 'from-purple-500 to-purple-300'
+    description: '500 flashes shared',
+    icon: '%',
+    threshold: 500,
+    tier: 'diamond',
+    gradient: 'from-green-100 to-white'
   },
   {
     id: 'master',
-    name: 'Flash Master',
-    description: '4,000 flashes shared',
-    icon: '@',
-    threshold: 4000,
+    name: 'Master',
+    description: '1000+ flashes shared',
+    icon: '&',
+    threshold: 1000,
     tier: 'diamond',
-    gradient: 'from-blue-500 to-cyan-300'
+    gradient: 'from-white to-green-100'
   }
 ];
 
-// City-based achievements
-export const CITY_ACHIEVEMENTS: Achievement[] = [
+// City count badges with achievable thresholds
+export const CITY_COUNT_BADGES: Badge[] = [
   {
-    id: 'city_explorer',
-    name: 'City Explorer',
-    description: '20 flashes in the same city',
-    icon: '&',
-    type: 'city_explorer',
-    requirement: 20,
-    gradient: 'from-green-500 to-emerald-300'
+    id: 'local',
+    name: 'Local',
+    description: 'First city!',
+    icon: '|',
+    threshold: 1,
+    tier: 'bronze',
+    gradient: 'from-green-600 to-green-400'
+  },
+  {
+    id: 'traveler',
+    name: 'Traveler',
+    description: '5 different cities',
+    icon: '/',
+    threshold: 5,
+    tier: 'bronze',
+    gradient: 'from-green-600 to-green-400'
+  },
+  {
+    id: 'wanderer',
+    name: 'Wanderer',
+    description: '10 different cities',
+    icon: '\\',
+    threshold: 10,
+    tier: 'silver',
+    gradient: 'from-green-500 to-green-300'
+  },
+  {
+    id: 'nomad',
+    name: 'Nomad',
+    description: '20 different cities',
+    icon: '^',
+    threshold: 20,
+    tier: 'gold',
+    gradient: 'from-green-400 to-green-200'
+  },
+  {
+    id: 'explorer',
+    name: 'Explorer',
+    description: '50 different cities',
+    icon: '<',
+    threshold: 50,
+    tier: 'platinum',
+    gradient: 'from-green-300 to-green-100'
   },
   {
     id: 'globe_trotter',
     name: 'Globe Trotter',
-    description: 'Flash in 10 different cities',
-    icon: '%',
-    type: 'city_explorer',
-    requirement: 10,
-    gradient: 'from-blue-500 to-cyan-300'
+    description: '100 different cities',
+    icon: '>',
+    threshold: 100,
+    tier: 'diamond',
+    gradient: 'from-green-200 to-white'
   },
   {
     id: 'world_invader',
     name: 'World Invader',
-    description: 'Flash in 25 different cities',
-    icon: '$',
-    type: 'city_explorer',
-    requirement: 25,
-    gradient: 'from-purple-500 to-pink-300'
+    description: '200+ different cities',
+    icon: '~',
+    threshold: 200,
+    tier: 'diamond',
+    gradient: 'from-green-100 to-white'
   }
 ];
 
-export const ALL_BADGES = [...FLASH_COUNT_BADGES];
-export const ALL_ACHIEVEMENTS = [...CITY_ACHIEVEMENTS];
+export const ALL_BADGES = [...FLASH_COUNT_BADGES, ...CITY_COUNT_BADGES];
+
+// Utility functions for city badges
+export function getCityBadgeForCount(count: number): Badge | null {
+  const eligibleBadges = CITY_COUNT_BADGES
+    .filter(badge => count >= badge.threshold)
+    .sort((a, b) => b.threshold - a.threshold);
+  
+  return eligibleBadges[0] || null;
+}
+
+export function getNextCityBadge(count: number): Badge | null {
+  const nextBadges = CITY_COUNT_BADGES
+    .filter(badge => count < badge.threshold)
+    .sort((a, b) => a.threshold - b.threshold);
+  
+  return nextBadges[0] || null;
+}
 
 // Utility functions
 export function getBadgeForFlashCount(count: number): Badge | null {

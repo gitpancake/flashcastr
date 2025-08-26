@@ -33,7 +33,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const { data: flashStats } = useGetFlashStats(farcasterFid);
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
-  const [showSetupFlow, setShowSetupFlow] = useState<boolean | null>(null);
+  const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
   const [hasSkippedSetup, setHasSkippedSetup] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem(SETUP_SKIPPED_STORAGE_KEY) === "true";
@@ -41,25 +41,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     return false;
   });
 
-  useEffect(() => {
-    if (!farcasterFid) {
-      // Wait for FID to be available
-      setShowSetupFlow(null); // Remain in undecided/loading state
-      return;
-    }
-    if (userLoading) {
-      // Still loading user data
-      return;
-    }
-
-    if (!appUser && !hasSkippedSetup) {
-      setShowSetupFlow(true);
-    } else {
-      setShowSetupFlow(false);
-    }
-  }, [userLoading, appUser, hasSkippedSetup, farcasterFid]);
-
-  const handleSetupComplete = () => {
+  const handleSetupComplete = (user: User) => {
     refetchAppUser();
     setShowSetupFlow(false);
     setHasSkippedSetup(false);
@@ -75,10 +57,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       localStorage.setItem(SETUP_SKIPPED_STORAGE_KEY, "true");
     }
   };
-
-  if (showSetupFlow === null || (!farcasterFid && showSetupFlow === null) || (farcasterFid && userLoading && !appUser && !hasSkippedSetup && showSetupFlow === null)) {
-    return <Loading />;
-  }
 
   if (showSetupFlow) {
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
@@ -111,12 +89,12 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab === 'feed' ? null : <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />}
       
-      {hasSkippedSetup && !appUser && activeTab === 'feed' && (
-        <div className="bg-gray-900 border-b border-yellow-400 p-3 text-center text-yellow-400 text-sm font-mono">
+      {!appUser && (
+        <div className="bg-gray-900 border-b border-green-400 p-3 text-center text-green-400 text-sm font-mono">
           <p>
-            {">>> WARNING: ACCOUNT NOT LINKED <<<"}{" "}
+            {">>> CONNECT FLASH INVADERS ACCOUNT <<<"}{" "}
             <Link
               href="#"
               onClick={(e) => {
@@ -125,17 +103,54 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
                 setShowSetupFlow(true);
                 if (typeof window !== "undefined") localStorage.removeItem(SETUP_SKIPPED_STORAGE_KEY);
               }}
-              className="font-bold underline hover:text-white blink"
+              className="font-bold underline hover:text-white animate-pulse"
             >
-              [CONNECT FLASH INVADERS ACCOUNT]
+              [LINK ACCOUNT]
             </Link>{" "}
-            TO ENABLE AUTO-CAST & FULL STATS.
+            FOR AUTO-CAST & FULL STATS
           </p>
         </div>
       )}
       
       <div className="flex-1">
         {renderTabContent()}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="flex justify-center bg-black border-t border-green-400 p-2">
+        <div className="flex w-full max-w-2xl bg-gray-900 border border-gray-700 font-mono">
+          {[
+            { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
+            { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
+            { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
+            { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                relative flex-1 px-2 py-2 sm:py-3 text-xs sm:text-sm border-r border-gray-700 last:border-r-0 
+                transition-all duration-200
+                ${activeTab === tab.id 
+                  ? 'bg-green-400 text-black' 
+                  : 'text-green-400 hover:bg-gray-800'
+                }
+              `}
+            >
+              <div className="flex flex-col items-center gap-0.5">
+                <div className="text-base sm:text-lg">{tab.icon}</div>
+                <div className="font-bold text-[10px]">
+                  {tab.label}
+                </div>
+              </div>
+
+              {/* Active indicator */}
+              {activeTab === tab.id && (
+                <div className="absolute -top-0.5 left-0 right-0 h-0.5 bg-green-400" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
