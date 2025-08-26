@@ -1,9 +1,9 @@
 import AppInitializer from "~/components/organism/AppInitializer";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { FlashesApi, FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 
 export default async function App() {
-  let initialFlashes = [];
+  let initialFlashes: FlashResponse[] = [];
   
   try {
     initialFlashes = await new FlashesApi().getFlashes(FETCH.INITIAL_PAGE, FETCH.LIMIT);
