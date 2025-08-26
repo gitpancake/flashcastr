@@ -16,11 +16,16 @@ interface PersonalProfileProps {
 export default function PersonalProfile({ user, farcasterUserContext }: PersonalProfileProps) {
   const fidToUse = user?.fid || farcasterUserContext?.fid;
 
-  const { data: stats, isLoading: statsLoading } = useGetFlashStats(fidToUse);
-  const { data: flashes, isLoading: flashesLoading } = useGetFidFlashes(fidToUse);
+  const { data: stats, isLoading: statsLoading, error: statsError } = useGetFlashStats(fidToUse);
+  const { data: flashes, isLoading: flashesLoading, error: flashesError } = useGetFidFlashes(fidToUse);
 
   if (statsLoading || flashesLoading) {
     return <Loading />;
+  }
+
+  // Handle API errors gracefully
+  if (statsError || flashesError) {
+    console.error('Profile API errors:', { statsError, flashesError });
   }
 
   if (!fidToUse) {
@@ -41,7 +46,7 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
           cities={stats?.cities?.length || 0} 
         />
       </div>
-      {flashes && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
+      {flashes && Array.isArray(flashes) && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
       {!user && (
         <div className="text-center text-yellow-400 p-4">
           <p>Link your Flash Invaders account to see more stats and enable auto-casting.</p>

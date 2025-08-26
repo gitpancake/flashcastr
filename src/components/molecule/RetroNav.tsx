@@ -19,22 +19,25 @@ export function RetroNav({ activeTab, onTabChange, className = "" }: RetroNavPro
 
   return (
     <div className={`w-full bg-black border-b-2 border-green-400 ${className}`}>
-      {/* ASCII Logo Header - Responsive */}
-      <div className="text-center py-2 sm:py-4 border-b border-gray-700">
-        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
+      {/* ASCII Logo Header - Clean Style */}
+      <div className="text-center py-4 border-b border-gray-700">
+        <pre className="text-green-400 text-xs leading-none mb-2">
 {`
-███████╗██╗      █████╗ ███████╗██╗  ██╗ ██████╗ █████╗ ███████╗████████╗██████╗ 
-██╔════╝██║     ██╔══██╗██╔════╝██║  ██║██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔══██╗
-█████╗  ██║     ███████║███████╗███████║██║     ███████║███████╗   ██║   ██████╔╝
-██╔══╝  ██║     ██╔══██║╚════██║██╔══██║██║     ██╔══██║╚════██║   ██║   ██╔══██╗
-██║     ███████╗██║  ██║███████║██║  ██║╚██████╗██║  ██║███████║   ██║   ██║  ██║
-╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝
+███████╗██╗      █████╗ ███████╗██╗  ██╗
+██╔════╝██║     ██╔══██╗██╔════╝██║  ██║
+█████╗  ██║     ███████║███████╗███████║
+██╔══╝  ██║     ██╔══██║╚════██║██╔══██║
+██║     ███████╗██║  ██║███████║██║  ██║
+╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+ ██████╗ █████╗ ███████╗████████╗██████╗ 
+██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔══██╗
+██║     ███████║███████╗   ██║   ██████╔╝
+██║     ██╔══██║╚════██║   ██║   ██╔══██╗
+╚██████╗██║  ██║███████║   ██║   ██║  ██║
+ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝
 `}
         </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">FLASHCASTR</div>
-        <div className="text-gray-400 text-[10px] sm:text-xs mt-1 font-mono">
-          SPACE INVADER FLASH BROADCASTING SYSTEM v2.0
-        </div>
+        <div className="text-gray-400 text-xs">SPACE INVADER FLASH BROADCASTING SYSTEM v2.0</div>
       </div>
 
       {/* Navigation Tabs - Mobile Optimized */}

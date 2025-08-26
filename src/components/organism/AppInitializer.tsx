@@ -54,12 +54,12 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
   }
 
-  // Get real user stats for the current user
+  // Get real user stats for the current user with safe defaults
   const userProgress: UserProgress = {
     fid: farcasterFid || 0,
     username: context?.user?.username || 'anonymous',
     totalFlashes: flashStats?.flashCount || 0,
-    citiesVisited: flashStats?.cities || [],
+    citiesVisited: Array.isArray(flashStats?.cities) ? flashStats.cities : [],
     badges: [],
     achievements: [],
   };
