@@ -31,6 +31,26 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({ user, farcasterUserC
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
+      {/* Small FLASHCASTR Header */}
+      <div className="text-center mb-3 sm:mb-4">
+        <pre className="text-green-400 text-[4px] sm:text-[6px] leading-none">
+{`
+███████╗██╗      █████╗ ███████╗██╗  ██╗
+██╔════╝██║     ██╔══██╗██╔════╝██║  ██║
+█████╗  ██║     ███████║███████╗███████║
+██╔══╝  ██║     ██╔══██║╚════██║██╔══██║
+██║     ███████╗██║  ██║███████║██║  ██║
+╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+ ██████╗ █████╗ ███████╗████████╗██████╗ 
+██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔══██╗
+██║     ███████║███████╗   ██║   ██████╔╝
+██║     ██╔══██║╚════██║   ██║   ██╔══██╗
+╚██████╗██║  ██║███████║   ██║   ██║  ██║
+ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝
+`}
+        </pre>
+      </div>
+      
       {/* Profile Info Card */}
       <div className="bg-gray-900 border border-green-400 p-3 sm:p-4 mb-4">
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
