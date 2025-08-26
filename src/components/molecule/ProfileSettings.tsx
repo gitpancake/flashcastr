@@ -31,22 +31,6 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({ user, farcasterUserC
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
-      {/* ASCII Header - Mobile Responsive */}
-      <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
-          {`
-██████╗ ██████╗  ██████╗ ███████╗██╗██╗     ███████╗
-██╔══██╗██╔══██╗██╔═══██╗██╔════╝██║██║     ██╔════╝
-██████╔╝██████╔╝██║   ██║█████╗  ██║██║     █████╗  
-██╔═══╝ ██╔══██╗██║   ██║██╔══╝  ██║██║     ██╔══╝  
-██║     ██║  ██║╚██████╔╝██║     ██║███████╗███████╗
-╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚══════╝
-`}
-        </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">PROFILE</div>
-        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">SPACE INVADER FLASH COMMANDER</div>
-      </div>
-
       {/* Profile Info Card */}
       <div className="bg-gray-900 border border-green-400 p-3 sm:p-4 mb-4">
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
