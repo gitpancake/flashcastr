@@ -6,7 +6,6 @@ import PersonalProfile from "~/components/organism/PersonalProfile";
 import Setup from "~/components/organism/Setup";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useGetUser } from "~/hooks/api.flashcastrs.app/useGetUser";
-import { User } from "~/lib/api.flashcastr.app/users";
 
 export default function ProfilePage() {
   const { context } = useFrame();
