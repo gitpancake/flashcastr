@@ -217,29 +217,6 @@ export function getNextBadge(count: number): Badge | null {
   return nextBadges[0] || null;
 }
 
-export function getCityAchievements(citiesVisited: string[], flashesPerCity: Record<string, number>): Achievement[] {
-  const earned: Achievement[] = [];
-  
-  // City Explorer: 20 flashes in same city
-  if (Object.values(flashesPerCity).some(count => count >= 20)) {
-    const cityExplorer = CITY_ACHIEVEMENTS.find(a => a.id === 'city_explorer');
-    if (cityExplorer) earned.push(cityExplorer);
-  }
-  
-  // Globe Trotter: 10 different cities
-  if (citiesVisited.length >= 10) {
-    const globeTrotter = CITY_ACHIEVEMENTS.find(a => a.id === 'globe_trotter');
-    if (globeTrotter) earned.push(globeTrotter);
-  }
-  
-  // World Invader: 25 different cities
-  if (citiesVisited.length >= 25) {
-    const worldInvader = CITY_ACHIEVEMENTS.find(a => a.id === 'world_invader');
-    if (worldInvader) earned.push(worldInvader);
-  }
-  
-  return earned;
-}
 
 export function calculateProgress(count: number, target: number): number {
   return Math.min((count / target) * 100, 100);

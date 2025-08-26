@@ -8,7 +8,6 @@ import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import SearchBar from "./SearchBar";
-import { useFrame } from "../providers/FrameProvider";
 
 type Props = {
   initialFlashes: FlashResponse[];
@@ -16,7 +15,6 @@ type Props = {
 };
 
 export default function Feed({ initialFlashes, fid }: Props) {
-  const { context } = useFrame();
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput, 500);
 
@@ -104,7 +102,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
 
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map(({ user_fid, user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
+        {flashes.map(({ user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
           const timestampSeconds = Math.floor(flash.timestamp / 1000);
           const timestamp = fromUnixTime(timestampSeconds);
 
@@ -179,7 +177,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
             NO FLASHES FOUND
           </div>
           <div className="text-gray-500 text-sm mt-2">
-            {searchInput ? `No results for "${searchInput}"` : 'No flashes available'}
+{searchInput ? `No results for &quot;${searchInput}&quot;` : 'No flashes available'}
           </div>
         </div>
       )}
@@ -187,7 +185,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
       {/* Footer Stats */}
       <div className="mt-8 text-center text-xs text-gray-500">
         <div>SHOWING {flashes.length} FLASHES</div>
-        {searchInput && <div>SEARCH: "{searchInput}"</div>}
+        {searchInput && <div>SEARCH: &quot;{searchInput}&quot;</div>}
         <div className="mt-2">DATA SOURCE: FLASHCASTR API</div>
       </div>
     </div>
