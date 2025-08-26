@@ -37,14 +37,29 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
   }
 
   return (
-    <div className="flex flex-col justify-center w-full h-full bg-black">
-      <div className="flex flex-col items-center gap-2 py-4">
-        <ProfileSettings user={user} farcasterUserContext={farcasterUserContext} flashCount={stats?.flashCount} cities={stats?.cities?.length || 0} />
-      </div>
-      {flashes && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
-      {!user && (
-        <div className="text-center text-yellow-400 p-4">
-          <p>Link your Flash Invaders account to see more stats and enable auto-casting.</p>
+    <div className="w-full min-h-screen bg-black">
+      {/* Profile Header */}
+      <ProfileSettings 
+        user={user} 
+        farcasterUserContext={farcasterUserContext} 
+        flashCount={stats?.flashCount} 
+        cities={stats?.cities?.length || 0} 
+      />
+      
+      {/* User Feed */}
+      {flashes && Array.isArray(flashes) && flashes.length > 0 && fidToUse && (
+        <Feed initialFlashes={flashes} fid={fidToUse} />
+      )}
+      
+      {/* No flashes message */}
+      {(!flashes || !Array.isArray(flashes) || flashes.length === 0) && (
+        <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-lg">NO FLASHES FOUND</div>
+            <div className="text-gray-500 text-sm mt-2">
+              {!user ? "Link your Flash Invaders account to see your flashes and enable auto-casting." : "No flashes available for this user."}
+            </div>
+          </div>
         </div>
       )}
     </div>

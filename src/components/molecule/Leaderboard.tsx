@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { formatFlashCount } from "~/lib/badges";
 
 interface LeaderboardUser {
@@ -19,6 +20,7 @@ interface LeaderboardProps {
 
 export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
   const [sortBy, setSortBy] = useState<'flashes' | 'cities'>('flashes');
+  const router = useRouter();
   
   const sortedUsers = useMemo(() => {
     const sorted = [...users].sort((a, b) => {
@@ -114,11 +116,12 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
           return (
             <div
               key={user.fid}
+              onClick={() => router.push(`/profile/${user.fid}`)}
               className={`
-                grid grid-cols-6 sm:grid-cols-4 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm
+                grid grid-cols-6 sm:grid-cols-4 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm cursor-pointer
                 ${isCurrentUser 
-                  ? 'bg-green-900/50 border-green-400 text-green-400' 
-                  : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+                  ? 'bg-green-900/50 border-green-400 text-green-400 hover:bg-green-800/50' 
+                  : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500 hover:bg-gray-800'
                 }
               `}
             >
