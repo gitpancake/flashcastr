@@ -34,7 +34,12 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
   return (
     <div className="flex flex-col justify-center w-full h-full bg-black">
       <div className="flex flex-col items-center gap-2 py-4">
-        <ProfileSettings user={user} farcasterUserContext={farcasterUserContext} flashCount={stats?.flashCount} cities={stats?.cities?.length} />
+        <ProfileSettings 
+          user={user} 
+          farcasterUserContext={farcasterUserContext} 
+          flashCount={stats?.flashCount} 
+          cities={stats?.cities?.length || 0} 
+        />
       </div>
       {flashes && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
       {!user && (

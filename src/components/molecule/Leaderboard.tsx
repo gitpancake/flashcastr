@@ -162,7 +162,6 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
       <div className="mt-8 text-center text-xs text-gray-500 font-mono">
         <div>TOTAL INVADERS: {users.length}</div>
         <div>TOTAL FLASHES: {users.reduce((sum, u) => sum + u.flashCount, 0).toLocaleString()}</div>
-        <div>SCORE = FLASHES + (CITIES × 10)</div>
       </div>
     </div>
   );

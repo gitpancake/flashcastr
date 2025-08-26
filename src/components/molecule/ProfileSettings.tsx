@@ -35,7 +35,7 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({ user, farcasterUserC
         <Image src={pfpUrl} width={64} height={64} alt="Profile" className="rounded-full" />
         <div className="flex gap-2 items-center">
           <p className="text-white font-invader text-[32px] tracking-widest my-[-10px]">{displayName}</p>
-          {user && <FiSettings className="text-white hover:cursor-pointer" onClick={() => setIsSettingsOpen(!isSettingsOpen)} />}
+          {user && <FiSettings size={20} className="text-white hover:cursor-pointer" onClick={() => setIsSettingsOpen(!isSettingsOpen)} />}
         </div>
         {flashCount !== undefined && flashCount !== null && (
           <p className="text-white font-invader text-[24px] tracking-widest my-[-10px]">
