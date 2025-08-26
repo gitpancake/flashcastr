@@ -17,8 +17,8 @@ export function ShareAchievement({ badge, achievement, username, onClose }: Shar
   if (!item) return null;
 
   const shareText = badge 
-    ? `🚀 Just earned the "${badge.name}" badge on @flashcastr! 👾\n\n${badge.description}\n\nJoin me in broadcasting Space Invader flashes across the galaxy! 🌌\n\nhttps://flashcastr.com`
-    : `🎖️ Achievement unlocked: "${achievement?.name}" on @flashcastr! 👾\n\n${achievement?.description}\n\nCome invade cities with me! 🏙️👽\n\nhttps://flashcastr.com`;
+    ? `* Just earned the "${badge.name}" badge on @flashcastr! *\n\n${badge.description}\n\nJoin me in broadcasting Space Invader flashes across the galaxy!\n\nhttps://flashcastr.com`
+    : `+ Achievement unlocked: "${achievement?.name}" on @flashcastr! +\n\n${achievement?.description}\n\nCome invade cities with me!\n\nhttps://flashcastr.com`;
 
   const handleShare = async () => {
     setIsSharing(true);

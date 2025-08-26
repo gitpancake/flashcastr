@@ -39,7 +39,7 @@ export function Badge({
       <div className={`relative group ${className}`}>
         <div
           className={`
-            relative overflow-hidden rounded-xl p-4 border transition-all duration-300 cursor-pointer
+            relative overflow-hidden rounded-lg p-2 sm:p-4 border transition-all duration-300 cursor-pointer
             ${earned 
               ? `bg-gradient-to-br ${item.gradient} border-white/20 shadow-lg hover:shadow-xl hover:scale-105` 
               : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
@@ -49,17 +49,17 @@ export function Badge({
           onClick={() => earned && allowSharing && setShowShareModal(true)}
         >
         {/* Icon */}
-        <div className="text-3xl mb-2 text-center">
-          {isLocked ? '🔒' : item.icon}
+        <div className="text-xl sm:text-3xl mb-1 sm:mb-2 text-center font-bold">
+          {isLocked ? 'X' : item.icon}
         </div>
 
         {/* Name */}
-        <div className="text-sm font-bold text-white mb-1 text-center">
+        <div className="text-xs sm:text-sm font-bold text-white mb-1 text-center">
           {item.name}
         </div>
 
         {/* Description */}
-        <div className="text-xs text-gray-200 text-center">
+        <div className="text-[10px] sm:text-xs text-gray-200 text-center">
           {item.description}
         </div>
 

@@ -35,7 +35,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'newbie',
     name: 'Space Cadet',
     description: 'First flash!',
-    icon: '🚀',
+    icon: '^',
     threshold: 1,
     tier: 'bronze',
     gradient: 'from-amber-600 to-amber-400'
@@ -44,7 +44,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'explorer',
     name: 'Explorer',
     description: '10 flashes shared',
-    icon: '🔍',
+    icon: '?',
     threshold: 10,
     tier: 'bronze',
     gradient: 'from-amber-600 to-amber-400'
@@ -53,7 +53,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'flasher',
     name: 'Flasher',
     description: '100 flashes shared',
-    icon: '⚡',
+    icon: '!',
     threshold: 100,
     tier: 'silver',
     gradient: 'from-gray-500 to-gray-300'
@@ -62,7 +62,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'invader',
     name: 'Invader',
     description: '500 flashes shared',
-    icon: '👾',
+    icon: '*',
     threshold: 500,
     tier: 'gold',
     gradient: 'from-yellow-500 to-yellow-300'
@@ -71,7 +71,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'commander',
     name: 'Commander',
     description: '1,000 flashes shared',
-    icon: '⭐',
+    icon: '+',
     threshold: 1000,
     tier: 'gold',
     gradient: 'from-yellow-500 to-yellow-300'
@@ -80,7 +80,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'legend',
     name: 'Legend',
     description: '2,000 flashes shared',
-    icon: '💎',
+    icon: '#',
     threshold: 2000,
     tier: 'platinum',
     gradient: 'from-purple-500 to-purple-300'
@@ -89,7 +89,7 @@ export const FLASH_COUNT_BADGES: Badge[] = [
     id: 'master',
     name: 'Flash Master',
     description: '4,000 flashes shared',
-    icon: '👑',
+    icon: '@',
     threshold: 4000,
     tier: 'diamond',
     gradient: 'from-blue-500 to-cyan-300'
@@ -102,7 +102,7 @@ export const CITY_ACHIEVEMENTS: Achievement[] = [
     id: 'city_explorer',
     name: 'City Explorer',
     description: '20 flashes in the same city',
-    icon: '🏙️',
+    icon: '&',
     type: 'city_explorer',
     requirement: 20,
     gradient: 'from-green-500 to-emerald-300'
@@ -111,7 +111,7 @@ export const CITY_ACHIEVEMENTS: Achievement[] = [
     id: 'globe_trotter',
     name: 'Globe Trotter',
     description: 'Flash in 10 different cities',
-    icon: '🌍',
+    icon: '%',
     type: 'city_explorer',
     requirement: 10,
     gradient: 'from-blue-500 to-cyan-300'
@@ -120,7 +120,7 @@ export const CITY_ACHIEVEMENTS: Achievement[] = [
     id: 'world_invader',
     name: 'World Invader',
     description: 'Flash in 25 different cities',
-    icon: '🌐',
+    icon: '$',
     type: 'city_explorer',
     requirement: 25,
     gradient: 'from-purple-500 to-pink-300'

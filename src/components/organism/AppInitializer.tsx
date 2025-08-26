@@ -10,6 +10,8 @@ import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useGetUser } from "~/hooks/api.flashcastrs.app/useGetUser";
+import { useGetLeaderboard } from "~/hooks/api.flashcastrs.app/useGetLeaderboard";
+import { useGetFlashStats } from "~/hooks/api.flashcastrs.app/useGetFlashStats";
 import { FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { UserProgress } from "~/lib/badges";
 import Setup from "./Setup";
@@ -26,6 +28,9 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   const { data: appUserArray, isLoading: userLoading, refetch: refetchAppUser } = useGetUser(farcasterFid);
   const appUser = appUserArray && appUserArray.length > 0 ? appUserArray[0] : undefined;
+  
+  const { data: leaderboardUsers = [] } = useGetLeaderboard();
+  const { data: flashStats } = useGetFlashStats(farcasterFid);
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean | null>(null);
@@ -79,34 +84,15 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
   }
 
-  // Mock user progress data - in real implementation this would come from API
+  // Get real user stats for the current user
   const userProgress: UserProgress = {
     fid: farcasterFid || 0,
     username: context?.user?.username || 'anonymous',
-    totalFlashes: 42, // This should come from FlashStats API
-    citiesVisited: ['New York', 'London', 'Tokyo'], // This should come from API
+    totalFlashes: flashStats?.flashCount || 0,
+    citiesVisited: flashStats?.cities || [],
     badges: [],
     achievements: [],
   };
-
-  // Mock leaderboard data - in real implementation this would come from API
-  const leaderboardUsers = [
-    {
-      fid: 1,
-      username: 'invadermaster',
-      pfp_url: '',
-      flashCount: 2500,
-      citiesCount: 15,
-    },
-    {
-      fid: 2,
-      username: 'flashhero',
-      pfp_url: '',
-      flashCount: 1800,
-      citiesCount: 12,
-    },
-    // Add more mock users...
-  ];
 
   const renderTabContent = () => {
     switch (activeTab) {

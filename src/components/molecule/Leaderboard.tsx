@@ -37,10 +37,10 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
   const currentUserRank = sortedUsers.find(u => u.fid === currentUserFid)?.rank;
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 font-mono">
-      {/* ASCII Header */}
-      <div className="text-center mb-8">
-        <pre className="text-green-400 text-xs sm:text-sm leading-none">
+    <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
+      {/* ASCII Header - Mobile Responsive */}
+      <div className="text-center mb-4 sm:mb-8">
+        <pre className="text-green-400 text-[5px] sm:text-xs leading-none hidden sm:block">
 {`
  ██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗ 
  ██║     ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
@@ -56,6 +56,9 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
           ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ 
 `}
         </pre>
+        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
+          LEADER BOARD
+        </div>
       </div>
 
       {/* Current User Rank (if logged in) */}
@@ -104,7 +107,7 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
           <div className="col-span-2 text-center">SCORE</div>
         </div>
 
-        {/* Leaderboard Entries */}
+        {/* Leaderboard Entries - Mobile Responsive */}
         {sortedUsers.slice(0, 50).map((user) => {
           const badge = getBadgeForFlashCount(user.flashCount);
           const isCurrentUser = user.fid === currentUserFid;
@@ -114,7 +117,7 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
             <div
               key={user.fid}
               className={`
-                grid grid-cols-12 gap-2 p-3 border transition-all duration-200
+                grid grid-cols-6 sm:grid-cols-12 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm
                 ${isCurrentUser 
                   ? 'bg-green-900/50 border-green-400 text-green-400' 
                   : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
@@ -122,21 +125,21 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
               `}
             >
               {/* Rank */}
-              <div className="col-span-1 text-center font-bold">
-                {user.rank === 1 && '👑'}
-                {user.rank === 2 && '🥈'}
-                {user.rank === 3 && '🥉'}
+              <div className="col-span-1 text-center font-bold text-xs">
+                {user.rank === 1 && '*'}
+                {user.rank === 2 && '^'}
+                {user.rank === 3 && '+'}
                 {user.rank && user.rank > 3 && `#${user.rank}`}
               </div>
 
-              {/* Badge */}
-              <div className="col-span-1 text-center text-lg">
-                {badge?.icon || '📱'}
+              {/* Badge - Hidden on mobile */}
+              <div className="hidden sm:block col-span-1 text-center text-sm">
+                {badge?.icon?.replace(/[^\w\s]/g, '*') || '*'}
               </div>
 
               {/* Username */}
-              <div className="col-span-4 flex items-center">
-                <div className="w-6 h-6 bg-gray-600 rounded mr-2 flex-shrink-0 overflow-hidden">
+              <div className="col-span-3 sm:col-span-4 flex items-center">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded mr-1 sm:mr-2 flex-shrink-0 overflow-hidden">
                   {user.pfp_url && (
                     <img 
                       src={user.pfp_url} 
@@ -145,23 +148,24 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
                     />
                   )}
                 </div>
-                <div className="truncate font-mono text-sm">
-                  @{user.username}
+                <div className="truncate font-mono text-[10px] sm:text-sm">
+                  @{user.username.slice(0, 8)}
+                  {user.username.length > 8 && '...'}
                 </div>
               </div>
 
               {/* Flash Count */}
-              <div className="col-span-2 text-center font-bold">
+              <div className="col-span-1 sm:col-span-2 text-center font-bold text-[10px] sm:text-sm">
                 {formatFlashCount(user.flashCount)}
               </div>
 
               {/* Cities Count */}
-              <div className="col-span-2 text-center">
+              <div className="col-span-1 sm:col-span-2 text-center text-[10px] sm:text-sm">
                 {user.citiesCount}
               </div>
 
-              {/* Score */}
-              <div className="col-span-2 text-center font-bold text-purple-400">
+              {/* Score - Hidden on mobile */}
+              <div className="hidden sm:block col-span-2 text-center font-bold text-purple-400">
                 {score.toLocaleString()}
               </div>
             </div>

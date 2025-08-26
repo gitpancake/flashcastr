@@ -24,55 +24,67 @@ export function Achievements({ userProgress, flashesPerCity = {} }: Achievements
   const earnedAchievements = getCityAchievements(userProgress.citiesVisited, flashesPerCity);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      {/* Header with stats */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">
-          👾 Your Progress
-        </h2>
-        <div className="flex justify-center gap-8 text-sm text-gray-300">
-          <div>
-            <span className="text-purple-400 font-bold text-lg">
+    <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
+      {/* ASCII Header - Mobile Responsive */}
+      <div className="text-center mb-4 sm:mb-8">
+        <pre className="text-purple-400 text-[6px] sm:text-xs leading-none hidden sm:block">
+{`
+██╗   ██╗ ██████╗ ██╗   ██╗██████╗     ██████╗ ██████╗  ██████╗  ██████╗ ██████╗ ███████╗███████╗███████╗
+╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗    ██╔══██╗██╔══██╗██╔═══██╗██╔════╝ ██╔══██╗██╔════╝██╔════╝██╔════╝
+ ╚████╔╝ ██║   ██║██║   ██║██████╔╝    ██████╔╝██████╔╝██║   ██║██║  ███╗██████╔╝█████╗  ███████╗███████╗
+  ╚██╔╝  ██║   ██║██║   ██║██╔══██╗    ██╔═══╝ ██╔══██╗██║   ██║██║   ██║██╔══██╗██╔══╝  ╚════██║╚════██║
+   ██║   ╚██████╔╝╚██████╔╝██║  ██║    ██║     ██║  ██║╚██████╔╝╚██████╔╝██║  ██║███████╗███████║███████║
+   ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═╝    ╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
+`}
+        </pre>
+        <div className="text-purple-400 text-lg sm:hidden font-mono font-bold">
+          YOUR PROGRESS
+        </div>
+        
+        {/* Stats Grid - Mobile Optimized */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-8 text-xs sm:text-sm text-gray-300 mt-4">
+          <div className="text-center">
+            <span className="text-purple-400 font-bold text-sm sm:text-lg block">
               {formatFlashCount(userProgress.totalFlashes)}
             </span>
-            <div>Total Flashes</div>
+            <div className="text-[10px] sm:text-sm">TOTAL FLASHES</div>
           </div>
-          <div>
-            <span className="text-blue-400 font-bold text-lg">
+          <div className="text-center">
+            <span className="text-blue-400 font-bold text-sm sm:text-lg block">
               {userProgress.citiesVisited.length}
             </span>
-            <div>Cities Visited</div>
+            <div className="text-[10px] sm:text-sm">CITIES VISITED</div>
           </div>
-          <div>
-            <span className="text-green-400 font-bold text-lg">
+          <div className="text-center">
+            <span className="text-green-400 font-bold text-sm sm:text-lg block">
               {(userProgress.badges.length || 0) + earnedAchievements.length}
             </span>
-            <div>Achievements</div>
+            <div className="text-[10px] sm:text-sm">ACHIEVEMENTS</div>
           </div>
         </div>
       </div>
 
-      {/* Current Badge Display */}
+      {/* Current Badge Display - Mobile Optimized */}
       {currentBadge && (
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-center items-center mb-4 sm:mb-8 gap-4">
           <div className="text-center">
-            <div className="text-sm text-gray-400 mb-2">Current Rank</div>
-            <Badge badge={currentBadge} earned={true} className="w-32" />
+            <div className="text-xs sm:text-sm text-gray-400 mb-2">CURRENT RANK</div>
+            <Badge badge={currentBadge} earned={true} className="w-24 sm:w-32" />
           </div>
           {nextBadge && (
             <>
-              <div className="flex items-center mx-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-transparent" />
-                <span className="text-gray-400 mx-2">→</span>
-                <div className="w-8 h-0.5 bg-gradient-to-l from-purple-500 to-transparent" />
+              <div className="flex items-center">
+                <div className="w-4 sm:w-8 h-0.5 bg-gradient-to-r from-purple-500 to-transparent" />
+                <span className="text-gray-400 mx-1 sm:mx-2 text-sm sm:text-base">{">"}</span>
+                <div className="w-4 sm:w-8 h-0.5 bg-gradient-to-l from-purple-500 to-transparent" />
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-400 mb-2">Next Goal</div>
+                <div className="text-xs sm:text-sm text-gray-400 mb-2">NEXT GOAL</div>
                 <Badge 
                   badge={nextBadge} 
                   earned={false} 
                   currentCount={userProgress.totalFlashes}
-                  className="w-32" 
+                  className="w-24 sm:w-32" 
                 />
               </div>
             </>
@@ -108,7 +120,7 @@ export function Achievements({ userProgress, flashesPerCity = {} }: Achievements
 
       {/* Content */}
       {activeTab === 'badges' && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {ALL_BADGES.map((badge) => {
             const earned = userProgress.totalFlashes >= badge.threshold;
             return (
@@ -119,6 +131,7 @@ export function Achievements({ userProgress, flashesPerCity = {} }: Achievements
                 currentCount={userProgress.totalFlashes}
                 username={userProgress.username}
                 allowSharing={earned}
+                className="text-xs sm:text-sm"
               />
             );
           })}
@@ -128,7 +141,7 @@ export function Achievements({ userProgress, flashesPerCity = {} }: Achievements
       {activeTab === 'achievements' && (
         <div className="space-y-4">
           {earnedAchievements.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               {earnedAchievements.map((achievement) => (
                 <Badge
                   key={achievement.id}
@@ -136,16 +149,17 @@ export function Achievements({ userProgress, flashesPerCity = {} }: Achievements
                   earned={true}
                   username={userProgress.username}
                   allowSharing={true}
+                  className="text-xs sm:text-sm"
                 />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                No Achievements Yet
+            <div className="text-center py-8 sm:py-12">
+              <div className="text-4xl sm:text-6xl mb-4 font-mono">[ ]</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 font-mono">
+                NO ACHIEVEMENTS YET
               </h3>
-              <p className="text-gray-400 max-w-md mx-auto">
+              <p className="text-gray-400 max-w-md mx-auto text-sm sm:text-base">
                 Start exploring different cities and sharing flashes to earn your first achievements!
               </p>
             </div>

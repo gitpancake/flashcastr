@@ -69,10 +69,10 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   );
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 font-mono">
-      {/* ASCII Header */}
-      <div className="text-center mb-8">
-        <pre className="text-cyan-400 text-xs sm:text-sm leading-none">
+    <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
+      {/* ASCII Header - Mobile Responsive */}
+      <div className="text-center mb-4 sm:mb-8">
+        <pre className="text-cyan-400 text-[6px] sm:text-xs leading-none hidden sm:block">
 {`
   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
@@ -88,8 +88,11 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 `}
         </pre>
-        <div className="text-gray-400 text-sm mt-2">
-          OFFICIAL SPACE INVADER FLASHES • SCRAPED FROM THE GAME
+        <div className="text-cyan-400 text-lg sm:hidden font-mono font-bold">
+          GLOBAL FLASH
+        </div>
+        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">
+          OFFICIAL SPACE INVADER FLASHES * SCRAPED FROM THE GAME
         </div>
       </div>
 
@@ -153,8 +156,8 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
         </div>
       )}
 
-      {/* Flash Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Flash Grid - Mobile First */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {flashes.map((flash, index) => (
           <div
             key={`${flash.flash_id}-${index}`}
@@ -164,7 +167,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
             {/* Flash Image */}
             <div className="aspect-square overflow-hidden">
               <img
-                src={flash.img}
+                src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
                 alt={`Flash ${flash.flash_id}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 loading="lazy"
@@ -172,22 +175,22 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
             </div>
 
             {/* Flash Info */}
-            <div className="p-3 space-y-1">
-              <div className="text-cyan-400 text-xs font-bold">
-                ID: {flash.flash_id}
+            <div className="p-2 sm:p-3 space-y-1">
+              <div className="text-cyan-400 text-[10px] sm:text-xs font-bold">
+                #{flash.flash_id}
               </div>
-              <div className="text-white text-sm">
-                📍 {flash.city}
+              <div className="text-white text-xs sm:text-sm">
+                {">"} {flash.city}
               </div>
-              <div className="text-gray-400 text-xs">
-                👤 {flash.player}
+              <div className="text-gray-400 text-[10px] sm:text-xs">
+                @ {flash.player}
               </div>
               {flash.text && (
-                <div className="text-gray-300 text-xs line-clamp-2">
+                <div className="text-gray-300 text-[10px] sm:text-xs line-clamp-2">
                   {flash.text}
                 </div>
               )}
-              <div className="text-gray-500 text-xs">
+              <div className="text-gray-500 text-[10px] sm:text-xs">
                 {new Date(flash.timestamp * 1000).toLocaleDateString()}
               </div>
             </div>
