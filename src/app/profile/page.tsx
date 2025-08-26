@@ -20,7 +20,7 @@ export default function ProfilePage() {
     return <Loading />;
   }
 
-  const handleSetupComplete = (_user: User) => {
+  const handleSetupComplete = () => {
     // eslint-disable-line @typescript-eslint/no-unused-vars
     refetchAppUser();
     setShowSetupFlow(false);
