@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import Feed from "~/components/molecule/Feed";
-import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
+import { type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";

@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
