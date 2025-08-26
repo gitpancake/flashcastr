@@ -80,7 +80,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      {activeTab === 'feed' ? null : <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />}
       
       {!appUser && (
         <div className="bg-gray-900 border-b border-green-400 p-3 text-center text-green-400 text-sm font-mono">
