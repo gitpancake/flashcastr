@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Loading } from "~/components/atom/Loading";
 import Feed from "~/components/molecule/Feed";
+import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
+import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
+import { Leaderboard } from "~/components/molecule/Leaderboard";
+import { Achievements } from "~/components/molecule/Achievements";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useGetUser } from "~/hooks/api.flashcastrs.app/useGetUser";
 import { FlashResponse } from "~/lib/api.flashcastr.app/flashes";
+import { UserProgress } from "~/lib/badges";
 import Setup from "./Setup";
 
 const SETUP_SKIPPED_STORAGE_KEY = "flashcastr_setup_skipped";
@@ -22,6 +27,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const { data: appUserArray, isLoading: userLoading, refetch: refetchAppUser } = useGetUser(farcasterFid);
   const appUser = appUserArray && appUserArray.length > 0 ? appUserArray[0] : undefined;
 
+  const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean | null>(null);
   const [hasSkippedSetup, setHasSkippedSetup] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -73,11 +79,58 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
   }
 
+  // Mock user progress data - in real implementation this would come from API
+  const userProgress: UserProgress = {
+    fid: farcasterFid || 0,
+    username: context?.user?.username || 'anonymous',
+    totalFlashes: 42, // This should come from FlashStats API
+    citiesVisited: ['New York', 'London', 'Tokyo'], // This should come from API
+    badges: [],
+    achievements: [],
+  };
+
+  // Mock leaderboard data - in real implementation this would come from API
+  const leaderboardUsers = [
+    {
+      fid: 1,
+      username: 'invadermaster',
+      pfp_url: '',
+      flashCount: 2500,
+      citiesCount: 15,
+    },
+    {
+      fid: 2,
+      username: 'flashhero',
+      pfp_url: '',
+      flashCount: 1800,
+      citiesCount: 12,
+    },
+    // Add more mock users...
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'feed':
+        return <Feed initialFlashes={initialFlashes} />;
+      case 'global':
+        return <GlobalFlashes />;
+      case 'leaderboard':
+        return <Leaderboard users={leaderboardUsers} currentUserFid={farcasterFid} />;
+      case 'achievements':
+        return <Achievements userProgress={userProgress} />;
+      default:
+        return <Feed initialFlashes={initialFlashes} />;
+    }
+  };
+
   return (
-    <div className="flex flex-col w-full">
-      {hasSkippedSetup && !appUser && (
-        <div className="p-3 text-center text-gray-100 text-sm">
+    <div className="flex flex-col w-full min-h-screen bg-black">
+      <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {hasSkippedSetup && !appUser && activeTab === 'feed' && (
+        <div className="bg-gray-900 border-b border-yellow-400 p-3 text-center text-yellow-400 text-sm font-mono">
           <p>
+            {">>> WARNING: ACCOUNT NOT LINKED <<<"}{" "}
             <Link
               href="#"
               onClick={(e) => {
@@ -86,15 +139,18 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
                 setShowSetupFlow(true);
                 if (typeof window !== "undefined") localStorage.removeItem(SETUP_SKIPPED_STORAGE_KEY);
               }}
-              className="font-semibold underline hover:text-gray-300"
+              className="font-bold underline hover:text-white blink"
             >
-              Link your Flash Invaders account
+              [CONNECT FLASH INVADERS ACCOUNT]
             </Link>{" "}
-            to auto-cast your flashes & see full stats.
+            TO ENABLE AUTO-CAST & FULL STATS.
           </p>
         </div>
       )}
-      <Feed initialFlashes={initialFlashes} />
+      
+      <div className="flex-1">
+        {renderTabContent()}
+      </div>
     </div>
   );
 }

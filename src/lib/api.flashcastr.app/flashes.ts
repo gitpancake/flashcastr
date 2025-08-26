@@ -109,4 +109,29 @@ export class FlashesApi extends BaseApi {
 
     return response.data.data.allFlashesPlayers || [];
   }
+
+  public async getFlashById(flashId: number | string): Promise<FlashResponse | null> {
+    const response = await this.api.post("/graphql", {
+      query: `
+        query Flash($flash_id: Int!) {
+          flash(flash_id: $flash_id) {
+            user_fid
+            user_pfp_url
+            user_username
+            flash {
+              city
+              flash_id
+              player
+              timestamp
+              img
+            }
+            cast_hash
+          }
+        }
+      `,
+      variables: { flash_id: Number(flashId) },
+    });
+
+    return response.data.data.flash ?? null;
+  }
 }
