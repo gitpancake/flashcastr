@@ -88,7 +88,7 @@ export default function UserProfile({ user }: { user?: User }) {
       
       {/* User Feed */}
       {flashes && Array.isArray(flashes) && flashes.length > 0 && (
-        <Feed initialFlashes={flashes} fid={user?.fid} />
+        <Feed initialFlashes={flashes} fid={user?.fid} showHeader={false} />
       )}
       
       {/* No flashes message */}

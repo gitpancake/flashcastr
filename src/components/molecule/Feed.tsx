@@ -10,9 +10,10 @@ import formatTimeAgo from "~/lib/help/formatTimeAgo";
 type Props = {
   initialFlashes: FlashResponse[];
   fid?: number;
+  showHeader?: boolean;
 };
 
-export default function Feed({ initialFlashes, fid }: Props) {
+export default function Feed({ initialFlashes, fid, showHeader = true }: Props) {
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {
@@ -63,10 +64,11 @@ export default function Feed({ initialFlashes, fid }: Props) {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
-      {/* ASCII Header - Mobile Responsive */}
-      <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
-          {`
+      {/* ASCII Header - Mobile Responsive - Only show if showHeader is true */}
+      {showHeader && (
+        <div className="text-center mb-4 sm:mb-8">
+          <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
+            {`
 ██╗   ██╗ ██████╗ ██╗   ██╗██████╗     
 ╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗    
  ╚████╔╝ ██║   ██║██║   ██║██████╔╝    
@@ -77,13 +79,14 @@ export default function Feed({ initialFlashes, fid }: Props) {
 ██╔════╝██╔════╝██╔════╝██╔══██╗
 █████╗  █████╗  █████╗  ██║  ██║
 ██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║
-██║     ███████╗███████╗██████╔╝
+██║     ███████╗███████╗██████╗╝
 ╚═╝     ╚══════╝╚══════╝╚═════╝ 
 `}
-        </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">YOUR FEED</div>
-        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">PERSONAL FLASH FEED * CONNECTED TO FARCASTER</div>
-      </div>
+          </pre>
+          <div className="text-green-400 text-lg sm:hidden font-mono font-bold">YOUR FEED</div>
+          <div className="text-gray-400 text-[10px] sm:text-sm mt-2">PERSONAL FLASH FEED * CONNECTED TO FARCASTER</div>
+        </div>
+      )}
 
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">

@@ -48,7 +48,7 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
       
       {/* User Feed */}
       {flashes && Array.isArray(flashes) && flashes.length > 0 && fidToUse && (
-        <Feed initialFlashes={flashes} fid={fidToUse} />
+        <Feed initialFlashes={flashes} fid={fidToUse} showHeader={false} />
       )}
       
       {/* No flashes message */}
