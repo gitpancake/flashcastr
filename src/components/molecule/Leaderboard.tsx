@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { getBadgeForFlashCount, formatFlashCount } from "~/lib/badges";
+import { formatFlashCount } from "~/lib/badges";
 
 interface LeaderboardUser {
   fid: number;
@@ -135,6 +135,7 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
                       src={user.pfp_url} 
                       alt={user.username}
                       className="w-full h-full object-cover"
+                      // eslint-disable-next-line @next/next/no-img-element
                     />
                   )}
                 </div>

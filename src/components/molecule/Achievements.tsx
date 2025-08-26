@@ -2,9 +2,7 @@
 
 import { Badge } from "./Badge";
 import { 
-  getBadgeForFlashCount, 
   getNextBadge,
-  getCityBadgeForCount,
   getNextCityBadge,
   ALL_BADGES,
   FLASH_COUNT_BADGES,
@@ -19,9 +17,7 @@ interface AchievementsProps {
 }
 
 export function Achievements({ userProgress }: AchievementsProps) {
-  const currentFlashBadge = getBadgeForFlashCount(userProgress.totalFlashes);
   const nextFlashBadge = getNextBadge(userProgress.totalFlashes);
-  const currentCityBadge = getCityBadgeForCount(userProgress.citiesVisited.length);
   const nextCityBadge = getNextCityBadge(userProgress.citiesVisited.length);
 
   return (

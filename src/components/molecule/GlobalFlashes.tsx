@@ -10,19 +10,14 @@ interface GlobalFlashesProps {
 
 export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [cities, setCities] = useState<string[]>([]);
   const [trendingCities, setTrendingCities] = useState<{city: string, count: number}[]>([]);
   
   const api = useMemo(() => new InvadersFunApi(), []);
 
-  // Fetch cities and trending data
+  // Fetch trending data
   useEffect(() => {
     const fetchData = async () => {
-      const [citiesData, trendingData] = await Promise.all([
-        api.getGlobalCities(),
-        api.getTrendingCities(true) // Exclude Paris
-      ]);
-      setCities(citiesData);
+      const trendingData = await api.getTrendingCities(true); // Exclude Paris
       setTrendingCities(trendingData);
     };
     fetchData();
@@ -160,6 +155,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
                 alt={`Flash ${flash.flash_id}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 loading="lazy"
+                // eslint-disable-next-line @next/next/no-img-element
               />
             </div>
 

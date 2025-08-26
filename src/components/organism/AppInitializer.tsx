@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Loading } from "~/components/atom/Loading";
+import { useState } from "react";
 import Feed from "~/components/molecule/Feed";
 import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
@@ -26,7 +25,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const { context } = useFrame();
   const farcasterFid = context?.user?.fid;
 
-  const { data: appUserArray, isLoading: userLoading, refetch: refetchAppUser } = useGetUser(farcasterFid);
+  const { data: appUserArray, refetch: refetchAppUser } = useGetUser(farcasterFid);
   const appUser = appUserArray && appUserArray.length > 0 ? appUserArray[0] : undefined;
   
   const { data: leaderboardUsers = [] } = useGetLeaderboard();
@@ -34,24 +33,16 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
-  const [hasSkippedSetup, setHasSkippedSetup] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem(SETUP_SKIPPED_STORAGE_KEY) === "true";
-    }
-    return false;
-  });
 
-  const handleSetupComplete = (user: User) => {
+  const handleSetupComplete = () => {
     refetchAppUser();
     setShowSetupFlow(false);
-    setHasSkippedSetup(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem(SETUP_SKIPPED_STORAGE_KEY);
     }
   };
 
   const handleSkipSetup = () => {
-    setHasSkippedSetup(true);
     setShowSetupFlow(false);
     if (typeof window !== "undefined") {
       localStorage.setItem(SETUP_SKIPPED_STORAGE_KEY, "true");
@@ -99,7 +90,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                setHasSkippedSetup(false);
                 setShowSetupFlow(true);
                 if (typeof window !== "undefined") localStorage.removeItem(SETUP_SKIPPED_STORAGE_KEY);
               }}
