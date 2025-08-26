@@ -32,8 +32,6 @@ export default function Feed({ initialFlashes, fid }: Props) {
     enabled: !!fid, // Only run query when fid is defined
   });
 
-  console.log({ data });
-
   const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
