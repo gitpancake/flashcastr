@@ -25,7 +25,7 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
 
   // Handle API errors gracefully
   if (statsError || flashesError) {
-    console.error('Profile API errors:', { statsError, flashesError });
+    console.error("Profile API errors:", { statsError, flashesError });
   }
 
   if (!fidToUse) {
@@ -39,14 +39,9 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
   return (
     <div className="flex flex-col justify-center w-full h-full bg-black">
       <div className="flex flex-col items-center gap-2 py-4">
-        <ProfileSettings 
-          user={user} 
-          farcasterUserContext={farcasterUserContext} 
-          flashCount={stats?.flashCount} 
-          cities={stats?.cities?.length || 0} 
-        />
+        <ProfileSettings user={user} farcasterUserContext={farcasterUserContext} flashCount={stats?.flashCount} cities={stats?.cities?.length || 0} />
       </div>
-      {flashes && Array.isArray(flashes) && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
+      {flashes && fidToUse && <Feed initialFlashes={flashes} fid={fidToUse} />}
       {!user && (
         <div className="text-center text-yellow-400 p-4">
           <p>Link your Flash Invaders account to see more stats and enable auto-casting.</p>

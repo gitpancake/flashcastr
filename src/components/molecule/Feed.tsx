@@ -13,19 +13,26 @@ type Props = {
 };
 
 export default function Feed({ initialFlashes, fid }: Props) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ["flashes", fid],
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
+    queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {
       const flashesApi = new FlashesApi();
-      return flashesApi.getFlashes(pageParam, FETCH.LIMIT, fid);
+      return await flashesApi.getFlashes(pageParam, FETCH.LIMIT, fid);
     },
-    getNextPageParam: (lastPage, allPages) => (lastPage.length === FETCH.LIMIT ? allPages.length + 1 : undefined),
+    getNextPageParam: (lastPage, allPages) => {
+      // Add null check for lastPage
+      if (!lastPage || !Array.isArray(lastPage)) return undefined;
+      return lastPage.length === FETCH.LIMIT ? allPages.length + 1 : undefined;
+    },
     initialPageParam: 1,
     initialData: {
       pages: [initialFlashes],
       pageParams: [1],
     },
+    enabled: !!fid, // Only run query when fid is defined
   });
+
+  console.log({ data });
 
   const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
 
@@ -61,7 +68,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
       {/* ASCII Header - Mobile Responsive */}
       <div className="text-center mb-4 sm:mb-8">
         <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
-{`
+          {`
 ██╗   ██╗ ██████╗ ██╗   ██╗██████╗     
 ╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗    
  ╚████╔╝ ██║   ██║██║   ██║██████╔╝    
@@ -76,14 +83,9 @@ export default function Feed({ initialFlashes, fid }: Props) {
 ╚═╝     ╚══════╝╚══════╝╚═════╝ 
 `}
         </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
-          YOUR FEED
-        </div>
-        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">
-          PERSONAL FLASH FEED * CONNECTED TO FARCASTER
-        </div>
+        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">YOUR FEED</div>
+        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">PERSONAL FLASH FEED * CONNECTED TO FARCASTER</div>
       </div>
-
 
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
@@ -98,9 +100,9 @@ export default function Feed({ initialFlashes, fid }: Props) {
               className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
               onClick={() => {
                 if (cast_hash) {
-                  window.open(`https://warpcast.com/${user_username}/${cast_hash}`, '_blank');
+                  window.open(`https://warpcast.com/${user_username}/${cast_hash}`, "_blank");
                 } else {
-                  window.open(`https://invader-flashes.s3.amazonaws.com${flash.img}`, '_blank');
+                  window.open(`https://invader-flashes.s3.amazonaws.com${flash.img}`, "_blank");
                 }
               }}
             >
@@ -117,13 +119,11 @@ export default function Feed({ initialFlashes, fid }: Props) {
 
               {/* Flash Info */}
               <div className="p-2 sm:p-3 space-y-1">
-                <div className="text-green-400 text-[10px] sm:text-xs font-bold">
-                  #{flash.flash_id.toLocaleString()}
-                </div>
+                <div className="text-green-400 text-[10px] sm:text-xs font-bold">#{flash.flash_id.toLocaleString()}</div>
                 <div className="text-white text-xs sm:text-sm flex items-center gap-1">
                   {user_pfp_url && (
-                    <img 
-                      src={user_pfp_url} 
+                    <img
+                      src={user_pfp_url}
                       alt={user_username || flash.player}
                       className="w-3 h-3 rounded-full"
                       // eslint-disable-next-line @next/next/no-img-element
@@ -134,9 +134,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
                 <div className="text-gray-400 text-[10px] sm:text-xs">
                   {">"} {flash.city}
                 </div>
-                <div className="text-gray-500 text-[10px] sm:text-xs">
-                  {formatTimeAgo(timestamp)}
-                </div>
+                <div className="text-gray-500 text-[10px] sm:text-xs">{formatTimeAgo(timestamp)}</div>
               </div>
             </div>
           );
@@ -146,9 +144,7 @@ export default function Feed({ initialFlashes, fid }: Props) {
       {/* Loading States */}
       {isFetchingNextPage && (
         <div className="text-center py-12">
-          <div className="text-green-400 text-sm animate-pulse">
-            LOADING FLASHES...
-          </div>
+          <div className="text-green-400 text-sm animate-pulse">LOADING FLASHES...</div>
           <div className="text-gray-500 text-xs mt-2">
             {`>>`} SCANNING FEED DATABASE {`<<`}
           </div>
@@ -158,12 +154,8 @@ export default function Feed({ initialFlashes, fid }: Props) {
       {/* No Results */}
       {flashes.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-400 text-lg">
-            NO FLASHES FOUND
-          </div>
-          <div className="text-gray-500 text-sm mt-2">
-            No flashes available
-          </div>
+          <div className="text-gray-400 text-lg">NO FLASHES FOUND</div>
+          <div className="text-gray-500 text-sm mt-2">No flashes available</div>
         </div>
       )}
 

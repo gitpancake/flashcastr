@@ -20,7 +20,8 @@ export default function ProfilePage() {
     return <Loading />;
   }
 
-  const handleSetupComplete = (_user: User) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+  const handleSetupComplete = (_user: User) => {
+    // eslint-disable-line @typescript-eslint/no-unused-vars
     refetchAppUser();
     setShowSetupFlow(false);
   };
@@ -58,10 +59,7 @@ export default function ProfilePage() {
         <div className="text-center max-w-md">
           <h1 className="text-green-400 text-2xl mb-4">LINK FLASH INVADERS</h1>
           <p className="text-gray-300 mb-6">Connect your Flash Invaders account to see your full profile with stats and enable auto-casting.</p>
-          <button
-            onClick={() => setShowSetupFlow(true)}
-            className="bg-green-400 text-black px-6 py-3 font-bold hover:bg-green-300 transition-colors mb-4"
-          >
+          <button onClick={() => setShowSetupFlow(true)} className="bg-green-400 text-black px-6 py-3 font-bold hover:bg-green-300 transition-colors mb-4">
             LINK ACCOUNT
           </button>
           <div className="text-gray-500 text-sm">
