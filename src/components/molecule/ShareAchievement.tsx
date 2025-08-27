@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import sdk from "@farcaster/frame-sdk";
 import { Badge as BadgeType, Achievement } from "~/lib/badges";
 
 interface ShareAchievementProps {
@@ -24,24 +25,19 @@ export function ShareAchievement({ badge, achievement, username, onClose }: Shar
     setIsSharing(true);
     
     try {
-      // Create a Farcaster cast with the achievement
-      const castUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
-      window.open(castUrl, '_blank', 'noopener,noreferrer');
+      // Use Farcaster Mini App SDK to compose cast directly
+      await sdk.actions.composeCast({
+        text: shareText,
+        embeds: ["https://flashcastr.app"]
+      });
     } catch (error) {
       console.error('Error sharing achievement:', error);
     } finally {
       setIsSharing(false);
+      onClose(); // Close modal after sharing attempt
     }
   };
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      // Could add a toast notification here
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-mono p-2">
@@ -104,14 +100,7 @@ export function ShareAchievement({ badge, achievement, username, onClose }: Shar
               }
             `}
           >
-            {isSharing ? 'SHARING...' : '[S] SHARE ON FARCASTER'}
-          </button>
-
-          <button
-            onClick={copyToClipboard}
-            className="w-full p-2 border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black transition-all duration-200 font-bold text-xs"
-          >
-            [C] COPY TO CLIPBOARD
+            {isSharing ? 'CASTING...' : '[S] CAST ACHIEVEMENT'}
           </button>
 
           <button
