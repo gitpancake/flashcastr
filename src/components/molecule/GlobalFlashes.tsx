@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { fromUnixTime } from "date-fns";
 import { InvadersFunApi, type GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import formatTimeAgo from "~/lib/help/formatTimeAgo";
 
 interface GlobalFlashesProps {
   initialFlashes?: GlobalFlash[];
@@ -163,49 +165,50 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
 
       {/* Flash Grid - Mobile First */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map((flash, index) => (
-          <div
-            key={`${flash.flash_id}-${index}`}
-            ref={index === flashes.length - 10 ? lastFlashRef : null}
-            className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
-          >
-            {/* Flash Image */}
-            <div className="aspect-square overflow-hidden">
-              <img
-                src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
-                alt={`Flash ${flash.flash_id}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                loading="lazy"
-                // eslint-disable-next-line @next/next/no-img-element
-              />
-            </div>
+        {flashes.map((flash, index) => {
+          const timestampSeconds = Math.floor(flash.timestamp / 1000);
+          const timestamp = fromUnixTime(timestampSeconds);
 
-            {/* Flash Info */}
-            <div className="p-2 sm:p-3 space-y-1">
-              <div className="text-green-400 text-[10px] sm:text-xs font-bold">
-                #{flash.flash_id}
+          return (
+            <div
+              key={`${flash.flash_id}-${index}`}
+              ref={index === flashes.length - 10 ? lastFlashRef : null}
+              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
+            >
+              {/* Flash Image */}
+              <div className="aspect-square overflow-hidden">
+                <img
+                  src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
+                  alt={`Flash ${flash.flash_id}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  loading="lazy"
+                  // eslint-disable-next-line @next/next/no-img-element
+                />
               </div>
-              <div className="text-white text-xs sm:text-sm">
-                {">"} {flash.city}
-              </div>
-              <div className="text-gray-400 text-[10px] sm:text-xs">
-                @ {flash.player}
-              </div>
-              {flash.text && (
-                <div className="text-gray-300 text-[10px] sm:text-xs line-clamp-2">
-                  {flash.text}
+
+              {/* Flash Info */}
+              <div className="p-2 sm:p-3 space-y-1">
+                <div className="text-green-400 text-[10px] sm:text-xs font-bold">
+                  #{flash.flash_id}
                 </div>
-              )}
-              <div className="text-gray-500 text-[10px] sm:text-xs">
-                {new Date(flash.timestamp * 1000).toLocaleDateString('en-US', { 
-                  month: '2-digit', 
-                  day: '2-digit', 
-                  year: '2-digit' 
-                })}
+                <div className="text-white text-xs sm:text-sm">
+                  {">"} {flash.city}
+                </div>
+                <div className="text-gray-400 text-[10px] sm:text-xs">
+                  @ {flash.player}
+                </div>
+                {flash.text && (
+                  <div className="text-gray-300 text-[10px] sm:text-xs line-clamp-2">
+                    {flash.text}
+                  </div>
+                )}
+                <div className="text-gray-500 text-[10px] sm:text-xs">
+                  {formatTimeAgo(timestamp)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Loading States */}
