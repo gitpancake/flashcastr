@@ -11,14 +11,18 @@ interface GlobalFlashesProps {
 export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [trendingCities, setTrendingCities] = useState<{city: string, count: number}[]>([]);
+  const [allCities, setAllCities] = useState<string[]>([]);
+  const [showAllCities, setShowAllCities] = useState(false);
   
   const api = useMemo(() => new InvadersFunApi(), []);
 
-  // Fetch trending data
+  // Fetch trending data and all cities
   useEffect(() => {
     const fetchData = async () => {
       const trendingData = await api.getTrendingCities(true); // Exclude Paris
+      const cities = await api.getGlobalCities();
       setTrendingCities(trendingData);
+      setAllCities(cities.sort());
     };
     fetchData();
   }, [api]);
@@ -73,6 +77,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
         {/* Trending Cities - One line */}
         {trendingCities.length > 0 && (
           <div className="mb-2">
+            <div className="text-gray-400 text-[9px] mb-1">TRENDING:</div>
             <div className="flex flex-wrap gap-1">
               {trendingCities.slice(0, 6).map((cityData) => (
                 <button
@@ -93,8 +98,8 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           </div>
         )}
         
-        {/* All Cities Toggle */}
-        <div className="flex gap-1">
+        {/* Controls Row */}
+        <div className="flex gap-1 items-center flex-wrap">
           <button
             onClick={() => setSelectedCity(null)}
             className={`
@@ -107,12 +112,53 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           >
             ALL
           </button>
+          
+          <button
+            onClick={() => setShowAllCities(!showAllCities)}
+            className={`
+              px-2 py-1 text-[10px] border transition-all duration-200
+              ${showAllCities 
+                ? 'bg-cyan-400 text-black border-cyan-400' 
+                : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
+              }
+            `}
+          >
+            {showAllCities ? 'HIDE CITIES' : 'ALL CITIES'}
+          </button>
+          
           {selectedCity && (
             <div className="text-green-400 text-[10px] py-1 px-2 border border-green-400">
               {">"} {selectedCity.toUpperCase()}
             </div>
           )}
         </div>
+        
+        {/* All Cities Grid - Expandable */}
+        {showAllCities && allCities.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-gray-600">
+            <div className="text-gray-400 text-[9px] mb-1">ALL CITIES:</div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1">
+              {allCities.map((city) => (
+                <button
+                  key={city}
+                  onClick={() => {
+                    setSelectedCity(selectedCity === city ? null : city);
+                    setShowAllCities(false);
+                  }}
+                  className={`
+                    px-2 py-1 text-[10px] border transition-all duration-200 text-left
+                    ${selectedCity === city 
+                      ? 'bg-green-400 text-black border-green-400' 
+                      : 'bg-transparent text-green-400 border-gray-600 hover:border-green-400 hover:bg-green-400 hover:text-black'
+                    }
+                  `}
+                >
+                  {city.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Flash Grid - Mobile First */}
