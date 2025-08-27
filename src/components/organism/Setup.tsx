@@ -149,9 +149,29 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
   const isLoading = signupProgress === "username_search_loading" || isInitiatingSignup || signupProgress === "initiating_signup";
 
   return (
-    <div className="flex items-center justify-center bg-black p-4">
-      <div className="px-8 py-10 max-w-md w-full flex flex-col gap-6 items-center shadow-xl bg-gray-900 rounded-lg">
-        <h1 className="font-invader text-white text-4xl text-center tracking-wider">LINK FLASH INVADERS</h1>
+    <div className="w-full max-w-2xl mx-auto p-2 sm:p-6 font-mono bg-black min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md bg-black border-2 border-green-400 p-4 relative">
+        {/* ASCII Header */}
+        <div className="text-center mb-4">
+          <pre className="text-green-400 text-[8px] sm:text-[10px] leading-none mb-2">
+{`
+██╗     ██╗███╗   ██╗██╗  ██╗
+██║     ██║████╗  ██║██║ ██╔╝
+██║     ██║██╔██╗ ██║█████╔╝ 
+██║     ██║██║╚██╗██║██╔═██╗ 
+███████╗██║██║ ╚████║██║  ██╗
+╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
+
+ ██████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗
+██╔══██╗██╔════╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝
+███████║██║     ██║     ██║   ██║██║   ██║██╔██╗ ██║   ██║   
+██╔══██║██║     ██║     ██║   ██║██║   ██║██║╚██╗██║   ██║   
+██║  ██║╚██████╗╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║   ██║   
+╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
+`}
+          </pre>
+          <div className="text-gray-400 text-xs">CONNECT FLASH INVADERS ACCOUNT</div>
+        </div>
 
         {(signupProgress === "idle" ||
           signupProgress === "username_search_error" ||
@@ -159,32 +179,22 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
           signupProgress === "username_search_found" ||
           signupProgress === "username_search_not_found") && (
           <>
-            <div className="text-gray-300 text-sm flex flex-col gap-2 mb-2">
-              <p>
-                Flash Invaders is a game by the artist Invader. Spot and &apos;flash&apos; their street art mosaics hidden in cities around the world using the official app to build your gallery and
-                score points.
-              </p>
-              <p>
-                Learn more at the official{" "}
-                <a href="https://www.space-invaders.com/flashinvaders/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">
-                  Flash Invaders website
-                </a>
-                .
-              </p>
+            {/* Info Section */}
+            <div className="bg-gray-900 border border-gray-600 p-3 mb-4 text-xs">
+              <div className="text-green-400 font-bold mb-2">FLASH INVADERS</div>
+              <div className="text-gray-300 space-y-2 leading-relaxed">
+                <p>Game by artist Invader. Find and &apos;flash&apos; street art mosaics in cities worldwide.</p>
+                <p className="text-cyan-400">Connect account → Auto-cast flashes to Farcaster</p>
+              </div>
             </div>
-            <div className="w-full text-left flex flex-col gap-3">
-              <p className="text-gray-300 text-sm">Connect your Flash Invaders account to automatically cast your flashes on Farcaster.</p>
-              <p className="text-gray-300 text-sm">Enter your Flash Invaders username (must be public).</p>
-            </div>
-            <div className="w-full flex flex-col items-start gap-2">
-              <label htmlFor="usernameInput" className="font-invader text-white text-md tracking-widest">
-                Flash Invaders Username
-              </label>
+
+            {/* Username Input */}
+            <div className="mb-4">
+              <div className="text-green-400 text-xs font-bold mb-2">USERNAME</div>
               <input
-                id="usernameInput"
                 type="text"
-                className="w-full bg-gray-800 border border-gray-700 text-white px-4 py-3 font-invader text-lg tracking-widest outline-none placeholder-gray-500 rounded-md focus:border-purple-500"
-                placeholder="ENTER USERNAME..."
+                className="w-full bg-gray-900 border border-gray-600 text-white px-3 py-2 text-sm font-mono focus:border-green-400 outline-none placeholder-gray-500"
+                placeholder="your.username"
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value.trim());
@@ -194,51 +204,79 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
                 }}
                 disabled={signupProgress === "username_search_loading"}
               />
+              <div className="text-gray-500 text-[10px] mt-1">Must be public in Flash Invaders app</div>
             </div>
 
             {signupProgress === "idle" && (
               <button
                 onClick={handleUsernameSearch}
-                className={`w-full bg-[#8A63D2] text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest ${
-                  !username.trim() || isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+                className={`w-full p-2 border-2 transition-all duration-200 font-bold text-xs mb-2 ${
+                  !username.trim() || isLoading 
+                    ? "border-gray-600 text-gray-600 cursor-not-allowed" 
+                    : "border-green-400 text-green-400 hover:bg-green-400 hover:text-black"
                 }`}
                 disabled={!username.trim() || isLoading}
               >
-                SEARCH USERNAME
+                [S] SEARCH USERNAME
               </button>
             )}
-            {signupProgress === "username_search_loading" && <p className="text-purple-400 animate-pulse">Searching for &quot;{searchedUsername}&quot;...</p>}
+            {signupProgress === "username_search_loading" && (
+              <div className="text-center py-4">
+                <div className="text-green-400 text-xs animate-pulse">SEARCHING...</div>
+                <div className="text-gray-500 text-[10px] mt-1">{`>> "${searchedUsername}" <<`}</div>
+              </div>
+            )}
+            
             {signupProgress === "username_search_error" && errorMessage && (
-              <div className="w-full flex flex-col gap-2 items-center text-center">
-                <p className="text-red-400">Error: {errorMessage}</p>
-                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  TRY DIFFERENT USERNAME
+              <div className="text-center mb-4">
+                <div className="text-red-400 text-xs mb-2">ERROR: {errorMessage}</div>
+                <button 
+                  onClick={resetStateAndStartOver} 
+                  className="w-full p-2 border-2 border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-all duration-200 font-bold text-xs"
+                >
+                  [R] RETRY
                 </button>
               </div>
             )}
 
             {signupProgress === "username_search_found" && (
-              <div className="w-full flex flex-col gap-3 items-center text-center">
-                <p className="text-green-400">Found player: &quot;{searchedUsername}&quot;!</p>
-                <button onClick={handleProceedToInitiateSignup} className="w-full bg-green-500 text-white font-invader text-lg py-3 rounded-md hover:bg-green-600 tracking-widest">
-                  PROCEED AS &quot;{searchedUsername}&quot;
-                </button>
-                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  TRY DIFFERENT USERNAME
-                </button>
+              <div className="text-center mb-4">
+                <div className="text-green-400 text-xs mb-3">✓ FOUND: &quot;{searchedUsername}&quot;</div>
+                <div className="space-y-2">
+                  <button 
+                    onClick={handleProceedToInitiateSignup} 
+                    className="w-full p-2 border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 font-bold text-xs"
+                  >
+                    [P] PROCEED
+                  </button>
+                  <button 
+                    onClick={resetStateAndStartOver} 
+                    className="w-full p-2 border-2 border-gray-600 text-gray-400 hover:bg-gray-600 hover:text-white transition-all duration-200 font-bold text-xs"
+                  >
+                    [C] CHANGE
+                  </button>
+                </div>
               </div>
             )}
 
             {signupProgress === "username_search_not_found" && (
-              <div className="w-full flex flex-col gap-3 items-center text-center">
-                <p className="text-yellow-400">Player &quot;{searchedUsername}&quot; not found. Ensure username is correct and public.</p>
-                <p className="text-yellow-400 text-xs">Note: Player data is indexed periodically. New accounts may take time to appear.</p>
-                <button onClick={handleProceedToInitiateSignup} className="w-full bg-yellow-500 text-black font-invader text-lg py-3 rounded-md hover:bg-yellow-600 tracking-widest">
-                  PROCEED ANYWAY WITH &quot;{searchedUsername}&quot;
-                </button>
-                <button onClick={resetStateAndStartOver} className="w-full bg-gray-600 text-white font-invader text-lg py-2 rounded-md hover:bg-gray-700 tracking-widest">
-                  TRY DIFFERENT USERNAME
-                </button>
+              <div className="text-center mb-4">
+                <div className="text-yellow-400 text-xs mb-2">? NOT FOUND: &quot;{searchedUsername}&quot;</div>
+                <div className="text-gray-500 text-[10px] mb-3">Check spelling or make profile public</div>
+                <div className="space-y-2">
+                  <button 
+                    onClick={handleProceedToInitiateSignup} 
+                    className="w-full p-2 border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black transition-all duration-200 font-bold text-xs"
+                  >
+                    [P] PROCEED ANYWAY
+                  </button>
+                  <button 
+                    onClick={resetStateAndStartOver} 
+                    className="w-full p-2 border-2 border-gray-600 text-gray-400 hover:bg-gray-600 hover:text-white transition-all duration-200 font-bold text-xs"
+                  >
+                    [C] CHANGE
+                  </button>
+                </div>
               </div>
             )}
 
@@ -246,58 +284,71 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
               !isLoading && (
                 <button
                   onClick={onSkip}
-                  className="w-full text-gray-400 hover:text-white font-invader text-md py-2 rounded-md transition-colors tracking-widest mt-2 border border-gray-700 hover:border-gray-500"
+                  className="w-full p-2 border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white transition-all duration-200 text-xs"
                 >
-                  SKIP FOR NOW
+                  [ESC] SKIP FOR NOW
                 </button>
               )}
           </>
         )}
 
         {(signupProgress === "initiating_signup" || isInitiatingSignup) && (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-purple-400 animate-pulse text-lg">Preparing your Farcaster connection for &quot;{searchedUsername}&quot;...</p>
+          <div className="text-center py-8">
+            <div className="text-green-400 text-xs animate-pulse mb-2">CONNECTING...</div>
+            <div className="text-gray-500 text-[10px]">{`>> Preparing "${searchedUsername}" <<`}</div>
           </div>
         )}
 
         {signupProgress === "pending_approval" && signerApprovalUrl && (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <p className="text-white text-md">Scan the QR code with your Farcaster app (e.g., Warpcast) to approve Flashcastr.</p>
-            <div className="p-4 bg-white rounded-lg">
-              <QRCodeSVG value={signerApprovalUrl} size={256} />
+          <div className="text-center">
+            <div className="text-green-400 text-xs font-bold mb-3">APPROVE CONNECTION</div>
+            <div className="text-gray-400 text-[10px] mb-4">Scan QR with Farcaster app</div>
+            
+            <div className="bg-white p-3 mb-4 inline-block">
+              <QRCodeSVG value={signerApprovalUrl} size={180} />
             </div>
-            <p className="text-gray-400 text-sm">Or click below if you&apos;re on mobile:</p>
-            <button
-              onClick={async () => {
-                if (signerApprovalUrl) {
-                  await sdk.actions.openUrl(signerApprovalUrl);
-                }
-              }}
-              className="w-full max-w-xs bg-[#8A63D2] hover:bg-purple-700 text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest"
-            >
-              APPROVE ON MOBILE
-            </button>
-            <p className="text-purple-400 animate-pulse text-md mt-2">Waiting for approval...</p>
-            <button
-              onClick={resetStateAndStartOver}
-              className="w-full max-w-xs text-gray-400 hover:text-white font-invader text-md py-2 rounded-md transition-colors tracking-widest mt-4 border border-gray-700 hover:border-gray-500"
-            >
-              CANCEL / CHANGE USERNAME
-            </button>
+            
+            <div className="space-y-2 mb-4">
+              <button
+                onClick={async () => {
+                  if (signerApprovalUrl) {
+                    await sdk.actions.openUrl(signerApprovalUrl);
+                  }
+                }}
+                className="w-full p-2 border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 font-bold text-xs"
+              >
+                [M] APPROVE ON MOBILE
+              </button>
+              
+              <button
+                onClick={resetStateAndStartOver}
+                className="w-full p-2 border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white transition-all duration-200 text-xs"
+              >
+                [ESC] CANCEL
+              </button>
+            </div>
+            
+            <div className="text-cyan-400 text-[10px] animate-pulse">{`>> WAITING FOR APPROVAL <<`}</div>
           </div>
         )}
 
         {(signupProgress === "signup_error" || signupProgress === "signup_timeout" || signupProgress === "signup_revoked") && errorMessage && (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <h2 className="text-red-400 text-2xl font-semibold">
-              {signupProgress === "signup_timeout" ? "Signup Timed Out" : signupProgress === "signup_revoked" ? "Approval Revoked" : "Signup Failed"}
-            </h2>
-            <p className="text-white">{errorMessage}</p>
-            <button onClick={resetStateAndStartOver} className="w-full max-w-xs bg-gray-600 hover:bg-gray-700 text-white font-invader text-xl py-3 rounded-md transition-colors tracking-widest mt-2">
-              TRY AGAIN
+          <div className="text-center">
+            <div className="text-red-400 text-xs font-bold mb-2">
+              {signupProgress === "signup_timeout" ? "TIMEOUT" : signupProgress === "signup_revoked" ? "REVOKED" : "ERROR"}
+            </div>
+            <div className="text-gray-400 text-[10px] mb-4">{errorMessage}</div>
+            <button 
+              onClick={resetStateAndStartOver} 
+              className="w-full p-2 border-2 border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-all duration-200 font-bold text-xs"
+            >
+              [R] TRY AGAIN
             </button>
           </div>
         )}
+
+        {/* Glow effect */}
+        <div className="absolute inset-0 border-2 border-green-400/20 animate-pulse pointer-events-none" />
       </div>
     </div>
   );
