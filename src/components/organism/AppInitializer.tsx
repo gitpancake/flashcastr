@@ -26,7 +26,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const { context } = useFrame();
   const farcasterFid = context?.user?.fid;
 
-  const { data: appUserArray, refetch: refetchAppUser } = useGetUser(farcasterFid);
+  const { data: appUserArray, refetch: refetchAppUser, isLoading: isLoadingUser } = useGetUser(farcasterFid);
   const appUser = appUserArray && appUserArray.length > 0 ? appUserArray[0] : undefined;
   
   const { data: leaderboardUsers = [] } = useGetLeaderboard();
@@ -83,7 +83,12 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     <div className="flex flex-col w-full min-h-screen bg-black">
       <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />
       
-      {!appUser && (
+      {/* Only show the banner if:
+          1. We have a farcasterFid (user is authenticated)
+          2. User data has finished loading (not in loading state)
+          3. No appUser found (account not linked)
+      */}
+      {farcasterFid && !isLoadingUser && !appUser && (
         <div className="bg-gray-900 border-b border-green-400 p-3 text-center text-green-400 text-sm font-mono">
           <p>
             {">>> CONNECT FLASH INVADERS ACCOUNT <<<"}{" "}
