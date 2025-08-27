@@ -3,7 +3,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
-import sdk from "@farcaster/frame-sdk";
+import { useRouter } from "next/navigation";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
@@ -15,6 +15,8 @@ type Props = {
 };
 
 export default function Feed({ initialFlashes, fid, showHeader = false }: Props) {
+  const router = useRouter();
+  
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {
@@ -91,7 +93,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
 
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map(({ user_pfp_url, user_username, flash, cast_hash }: FlashResponse, index: number) => {
+        {flashes.map(({ user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
           const timestampSeconds = Math.floor(flash.timestamp / 1000);
           const timestamp = fromUnixTime(timestampSeconds);
 
@@ -99,12 +101,9 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
             <div
               key={flash.flash_id.toString()}
               ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
-              className={`bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group ${cast_hash ? 'cursor-pointer' : ''}`}
-              onClick={async () => {
-                if (cast_hash) {
-                  await sdk.actions.openUrl(`https://warpcast.com/${user_username}/${cast_hash}`);
-                }
-                // Do nothing if no cast_hash
+              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
+              onClick={() => {
+                router.push(`/flash/${flash.flash_id}`);
               }}
             >
               {/* Flash Image */}
