@@ -65,31 +65,6 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
-      {/* ASCII Header - Mobile Responsive */}
-      <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-green-400 text-[6px] sm:text-xs leading-none hidden sm:block">
-{`
-  ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
- ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
- ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     
- ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     
- ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
-  ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
-          ███████╗██╗      █████╗ ███████╗██╗  ██╗
-          ██╔════╝██║     ██╔══██╗██╔════╝██║  ██║
-          █████╗  ██║     ███████║███████╗███████║
-          ██╔══╝  ██║     ██╔══██║╚════██║██╔══██║
-          ██║     ███████╗██║  ██║███████║██║  ██║
-          ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-`}
-        </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
-          GLOBAL FLASH
-        </div>
-        <div className="text-gray-400 text-[10px] sm:text-sm mt-2">
-          OFFICIAL SPACE INVADER FLASHES * SCRAPED FROM THE GAME
-        </div>
-      </div>
 
       {/* Combined Filters - Compact */}
       <div className="mb-4 bg-gray-900 border border-green-400 p-2">

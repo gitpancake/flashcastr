@@ -13,7 +13,7 @@ type Props = {
   showHeader?: boolean;
 };
 
-export default function Feed({ initialFlashes, fid, showHeader = true }: Props) {
+export default function Feed({ initialFlashes, fid, showHeader = false }: Props) {
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {

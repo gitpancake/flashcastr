@@ -22,45 +22,28 @@ export function Achievements({ userProgress }: AchievementsProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
-      {/* ASCII Header - Mobile Responsive */}
-      <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-purple-400 text-[6px] sm:text-xs leading-none hidden sm:block">
-{`
-██╗   ██╗ ██████╗ ██╗   ██╗██████╗     ██████╗ ██████╗  ██████╗  ██████╗ ██████╗ ███████╗███████╗███████╗
-╚██╗ ██╔╝██╔═══██╗██║   ██║██╔══██╗    ██╔══██╗██╔══██╗██╔═══██╗██╔════╝ ██╔══██╗██╔════╝██╔════╝██╔════╝
- ╚████╔╝ ██║   ██║██║   ██║██████╔╝    ██████╔╝██████╔╝██║   ██║██║  ███╗██████╔╝█████╗  ███████╗███████╗
-  ╚██╔╝  ██║   ██║██║   ██║██╔══██╗    ██╔═══╝ ██╔══██╗██║   ██║██║   ██║██╔══██╗██╔══╝  ╚════██║╚════██║
-   ██║   ╚██████╔╝╚██████╔╝██║  ██║    ██║     ██║  ██║╚██████╔╝╚██████╔╝██║  ██║███████╗███████║███████║
-   ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═╝    ╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
-`}
-        </pre>
-        <div className="text-purple-400 text-lg sm:hidden font-mono font-bold">
-          YOUR PROGRESS
+      {/* Stats Grid - Mobile Optimized */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-8 text-xs sm:text-sm text-gray-300 mb-4 sm:mb-6">
+        <div className="text-center">
+          <span className="text-purple-400 font-bold text-sm sm:text-lg block">
+            {formatFlashCount(userProgress.totalFlashes)}
+          </span>
+          <div className="text-[10px] sm:text-sm">TOTAL FLASHES</div>
         </div>
-        
-        {/* Stats Grid - Mobile Optimized */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-8 text-xs sm:text-sm text-gray-300 mt-4">
-          <div className="text-center">
-            <span className="text-purple-400 font-bold text-sm sm:text-lg block">
-              {formatFlashCount(userProgress.totalFlashes)}
-            </span>
-            <div className="text-[10px] sm:text-sm">TOTAL FLASHES</div>
-          </div>
-          <div className="text-center">
-            <span className="text-blue-400 font-bold text-sm sm:text-lg block">
-              {userProgress.citiesVisited?.length || 0}
-            </span>
-            <div className="text-[10px] sm:text-sm">CITIES VISITED</div>
-          </div>
-          <div className="text-center">
-            <span className="text-green-400 font-bold text-sm sm:text-lg block">
-              {ALL_BADGES.filter(badge => 
-                (FLASH_COUNT_BADGES.includes(badge) && (userProgress.totalFlashes || 0) >= badge.threshold) ||
-                (CITY_COUNT_BADGES.includes(badge) && (userProgress.citiesVisited?.length || 0) >= badge.threshold)
-              ).length}
-            </span>
-            <div className="text-[10px] sm:text-sm">BADGES</div>
-          </div>
+        <div className="text-center">
+          <span className="text-blue-400 font-bold text-sm sm:text-lg block">
+            {userProgress.citiesVisited?.length || 0}
+          </span>
+          <div className="text-[10px] sm:text-sm">CITIES VISITED</div>
+        </div>
+        <div className="text-center">
+          <span className="text-green-400 font-bold text-sm sm:text-lg block">
+            {ALL_BADGES.filter(badge => 
+              (FLASH_COUNT_BADGES.includes(badge) && (userProgress.totalFlashes || 0) >= badge.threshold) ||
+              (CITY_COUNT_BADGES.includes(badge) && (userProgress.citiesVisited?.length || 0) >= badge.threshold)
+            ).length}
+          </span>
+          <div className="text-[10px] sm:text-sm">BADGES</div>
         </div>
       </div>
 

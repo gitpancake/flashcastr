@@ -40,28 +40,6 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
-      {/* ASCII Header - Mobile Responsive */}
-      <div className="text-center mb-4 sm:mb-8">
-        <pre className="text-green-400 text-[5px] sm:text-xs leading-none hidden sm:block">
-{`
- ██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗ 
- ██║     ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗
- ██║     █████╗  ███████║██║  ██║█████╗  ██████╔╝
- ██║     ██╔══╝  ██╔══██║██║  ██║██╔══╝  ██╔══██╗
- ███████╗███████╗██║  ██║██████╔╝███████╗██║  ██║
- ╚══════╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-          ██████╗  ██████╗  █████╗ ██████╗ ██████╗ 
-          ██╔══██╗██╔═══██╗██╔══██╗██╔══██╗██╔══██╗
-          ██████╔╝██║   ██║███████║██████╔╝██║  ██║
-          ██╔══██╗██║   ██║██╔══██║██╔══██╗██║  ██║
-          ██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
-          ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ 
-`}
-        </pre>
-        <div className="text-green-400 text-lg sm:hidden font-mono font-bold">
-          LEADER BOARD
-        </div>
-      </div>
 
       {/* Current User Rank (if logged in) */}
       {currentUserRank && (
