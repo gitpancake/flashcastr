@@ -3,7 +3,7 @@
 import sdk, { SignIn as SignInCore } from "@farcaster/frame-sdk";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export const Landing = () => {
   const [signingIn, setSigningIn] = useState(false);
@@ -36,9 +36,7 @@ export const Landing = () => {
     }
   }, [getNonce]);
 
-  useEffect(() => {
-    handleSignIn();
-  }, [handleSignIn]);
+  // Remove automatic sign-in - now only manually triggered
 
   return (
     <div className="h-screen w-screen bg-black flex justify-center items-center">

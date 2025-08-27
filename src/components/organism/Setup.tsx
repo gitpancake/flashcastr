@@ -1,9 +1,11 @@
 "use client";
 
-import sdk from "@farcaster/frame-sdk";
+import sdk, { SignIn as SignInCore } from "@farcaster/frame-sdk";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
+import { getCsrfToken, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useCreateSigner } from "~/hooks/useCreateAndStoreSigner";
 import { usePollSigner } from "~/hooks/usePollSigner";
 import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
@@ -29,6 +31,9 @@ interface SetupProps {
 }
 
 export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
+  const { data: session } = useSession();
+  const [signingIn, setSigningIn] = useState(false);
+  
   const [signupProgress, setSignupProgress] = useState<SignupProgressStatus>("idle");
   const [username, setUsername] = useState("");
   const [searchedUsername, setSearchedUsername] = useState("");
@@ -38,6 +43,37 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const flashesApi = new FlashesApi();
+
+  const getNonce = useCallback(async () => {
+    const nonce = await getCsrfToken();
+    if (!nonce) throw new Error("Unable to generate nonce");
+    return nonce;
+  }, []);
+
+  const handleSignIn = useCallback(async () => {
+    try {
+      setSigningIn(true);
+
+      const nonce = await getNonce();
+      const result = await sdk.actions.signIn({ nonce });
+
+      await signIn("credentials", {
+        message: result.message,
+        signature: result.signature,
+        redirect: false, // Don't redirect, stay in setup flow
+      });
+    } catch (e) {
+      if (e instanceof SignInCore.RejectedByUser) {
+        // User rejected, they can try again
+        setSigningIn(false);
+        return;
+      }
+      setSigningIn(false);
+      setErrorMessage("Failed to sign in with Farcaster");
+    } finally {
+      setSigningIn(false);
+    }
+  }, [getNonce]);
 
   const handleUsernameSearch = async () => {
     if (!username.trim()) {
@@ -173,21 +209,57 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
           <div className="text-gray-400 text-xs">CONNECT FLASH INVADERS ACCOUNT</div>
         </div>
 
+        {/* Show Farcaster Sign-in first if not authenticated */}
+        {!session ? (
+          <div className="text-center">
+            <div className="bg-gray-900 border border-gray-600 p-3 mb-4 text-xs">
+              <div className="text-green-400 font-bold mb-2">STEP 1: FARCASTER AUTH</div>
+              <div className="text-gray-300 leading-relaxed">
+                <p>Sign in with Farcaster to connect your Flash Invaders account.</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              <button
+                onClick={handleSignIn}
+                disabled={signingIn}
+                className={`w-full p-2 border-2 transition-all duration-200 font-bold text-xs ${
+                  signingIn 
+                    ? "border-gray-600 text-gray-600 cursor-not-allowed" 
+                    : "border-green-400 text-green-400 hover:bg-green-400 hover:text-black"
+                }`}
+              >
+                {signingIn ? "SIGNING IN..." : "[S] SIGN IN WITH FARCASTER"}
+              </button>
+              
+              <button
+                onClick={onSkip}
+                className="w-full p-2 border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white transition-all duration-200 text-xs"
+              >
+                [ESC] SKIP FOR NOW
+              </button>
+            </div>
+            
+            {errorMessage && (
+              <div className="text-red-400 text-xs mb-2">{errorMessage}</div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Flash Invaders Account Setup - Only shown after Farcaster auth */}
+            <div className="bg-gray-900 border border-gray-600 p-3 mb-4 text-xs">
+              <div className="text-green-400 font-bold mb-2">STEP 2: FLASH INVADERS</div>
+              <div className="text-gray-300 leading-relaxed">
+                <p>Connect your Flash Invaders account for auto-casting.</p>
+              </div>
+            </div>
+
         {(signupProgress === "idle" ||
           signupProgress === "username_search_error" ||
           signupProgress === "username_search_loading" ||
           signupProgress === "username_search_found" ||
           signupProgress === "username_search_not_found") && (
           <>
-            {/* Info Section */}
-            <div className="bg-gray-900 border border-gray-600 p-3 mb-4 text-xs">
-              <div className="text-green-400 font-bold mb-2">FLASH INVADERS</div>
-              <div className="text-gray-300 space-y-2 leading-relaxed">
-                <p>Game by artist Invader. Find and &apos;flash&apos; street art mosaics in cities worldwide.</p>
-                <p className="text-cyan-400">Connect account → Auto-cast flashes to Farcaster</p>
-              </div>
-            </div>
-
             {/* Username Input */}
             <div className="mb-4">
               <div className="text-green-400 text-xs font-bold mb-2">USERNAME</div>
@@ -345,6 +417,8 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
               [R] TRY AGAIN
             </button>
           </div>
+        )}
+          </>
         )}
 
         {/* Glow effect */}

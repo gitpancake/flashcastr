@@ -5,7 +5,6 @@ import { Providers } from "~/app/providers";
 import { getSession } from "~/auth";
 import { Footer } from "~/components/atom/Footer";
 import { Header } from "~/components/atom/Header";
-import { Landing } from "~/components/atom/Landing";
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_FRAME_NAME || "Flashcastr",
@@ -27,15 +26,9 @@ export default async function RootLayout({
 
       <body>
         <Providers session={session}>
-          {session ? (
-            <>
-              <Header />
-              {children}
-              <Footer />
-            </>
-          ) : (
-            <Landing />
-          )}
+          <Header />
+          {children}
+          <Footer />
           <Toaster
             toastOptions={{
               style: {
