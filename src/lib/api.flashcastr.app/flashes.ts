@@ -111,19 +111,27 @@ export class FlashesApi extends BaseApi {
   }
 
   public async getFlashById(flashId: number | string): Promise<FlashResponse | null> {
-    // Since there's no individual flash endpoint, we'll fetch recent flashes and find the one we need
-    // This is not ideal but works as a fallback
-    try {
-      const allFlashes = await this.getFlashes(1, 100); // Get more flashes to increase chance of finding it
-      const targetFlashId = Number(flashId);
-      
-      // Find the flash with matching ID
-      const flash = allFlashes.find(f => f.flash.flash_id === targetFlashId);
-      
-      return flash ?? null;
-    } catch (error) {
-      console.error('Error fetching flash by ID:', error);
-      return null;
-    }
+    const response = await this.api.post("/graphql", {
+      query: `
+        query Flash($flash_id: Int!) {
+          flash(flash_id: $flash_id) {
+            user_fid
+            user_pfp_url
+            user_username
+            flash {
+              city
+              flash_id
+              player
+              timestamp
+              img
+            }
+            cast_hash
+          }
+        }
+      `,
+      variables: { flash_id: Number(flashId) },
+    });
+
+    return response.data.data.flash ?? null;
   }
 }
