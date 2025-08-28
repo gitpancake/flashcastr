@@ -7,9 +7,14 @@ import FlashPageClient from "./FlashPageClient";
 export default async function FlashPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
+  console.log(`Attempting to fetch flash with ID: ${id}`);
+  
   try {
     const invadersApi = new InvadersFunApi();
+    console.log('Created API instance, calling getGlobalFlash...');
+    
     const flash = await invadersApi.getGlobalFlash(Number(id));
+    console.log('API response:', flash);
 
     if (!flash) {
       console.error(`Flash not found for ID: ${id}`);
@@ -22,6 +27,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       return notFound();
     }
 
+    console.log('Flash data is valid, rendering component...');
     const timestampSeconds = Math.floor(flash.timestamp / 1000);
     const timestamp = fromUnixTime(timestampSeconds);
     const timeAgo = formatTimeAgo(timestamp);
