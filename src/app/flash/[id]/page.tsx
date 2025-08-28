@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { InvadersFunApi } from "~/lib/api.invaders.fun/flashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import FlashPageClient from "./FlashPageClient";
 
@@ -8,8 +8,8 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   
   try {
-    const flashesApi = new FlashesApi();
-    const flash = await flashesApi.getFlashById(id);
+    const invadersApi = new InvadersFunApi();
+    const flash = await invadersApi.getGlobalFlash(Number(id));
 
     if (!flash) {
       console.error(`Flash not found for ID: ${id}`);
@@ -17,12 +17,12 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
     }
 
     // Check if flash has the required structure
-    if (!flash.flash || !flash.flash.timestamp) {
+    if (!flash.timestamp) {
       console.error('Flash data structure is invalid:', flash);
       return notFound();
     }
 
-    const timestampSeconds = Math.floor(flash.flash.timestamp / 1000);
+    const timestampSeconds = Math.floor(flash.timestamp / 1000);
     const timestamp = fromUnixTime(timestampSeconds);
     const timeAgo = formatTimeAgo(timestamp);
 
