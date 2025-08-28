@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import sdk from "@farcaster/frame-sdk";
 import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
 
 interface FlashPageClientProps {
@@ -11,12 +10,6 @@ interface FlashPageClientProps {
 
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
   const router = useRouter();
-
-  const handleViewOnFarcaster = async () => {
-    // Note: GlobalFlash doesn't have cast_hash, so we'll disable this for now
-    // This button will be hidden if no cast data is available
-    console.log('View on Farcaster not available for global flashes');
-  };
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4 font-mono bg-black min-h-screen">
