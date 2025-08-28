@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { InvadersFunApi, type GlobalFlash } from "~/lib/api.invaders.fun/flashes";
@@ -11,6 +12,7 @@ interface GlobalFlashesProps {
 }
 
 export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
+  const router = useRouter();
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [trendingCities, setTrendingCities] = useState<{city: string, count: number}[]>([]);
   const [allCities, setAllCities] = useState<string[]>([]);
@@ -173,7 +175,8 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
             <div
               key={`${flash.flash_id}-${index}`}
               ref={index === flashes.length - 10 ? lastFlashRef : null}
-              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
+              onClick={() => router.push(`/flash/${flash.flash_id}`)}
+              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
             >
               {/* Flash Image */}
               <div className="aspect-square overflow-hidden">
