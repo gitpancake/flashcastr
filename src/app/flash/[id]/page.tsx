@@ -28,6 +28,26 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://flashcastr.app';
     const url = `${baseUrl}/flash/${id}`;
+    const appName = process.env.NEXT_PUBLIC_FRAME_NAME || "Flashcastr";
+    const splashImageUrl = `${baseUrl}/splash.png`;
+    const iconUrl = `${baseUrl}/icon.png`;
+
+    // Frame preview metadata for Farcaster mini app
+    const framePreviewMetadata = {
+      version: "next",
+      imageUrl: imageUrl,
+      button: {
+        title: `View Flash #${flash.flash_id}`,
+        action: {
+          type: "launch_frame",
+          name: appName,
+          url: url,
+          splashImageUrl,
+          iconUrl,
+          splashBackgroundColor: "#000",
+        },
+      },
+    };
 
     return {
       title,
@@ -58,6 +78,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       },
       alternates: {
         canonical: url,
+      },
+      other: {
+        "fc:frame": JSON.stringify(framePreviewMetadata),
       },
     };
   } catch (error) {
