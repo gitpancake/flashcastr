@@ -9,6 +9,30 @@ import { Header } from "~/components/atom/Header";
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_FRAME_NAME || "Flashcastr",
   description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION || "Broadcast your Space Invader flashes.",
+  openGraph: {
+    title: process.env.NEXT_PUBLIC_FRAME_NAME || "Flashcastr",
+    description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION || "Broadcast your Space Invader flashes.",
+    url: process.env.NEXT_PUBLIC_URL || "https://flashcastr.app",
+    siteName: "Flashcastr",
+    images: [
+      {
+        url: (process.env.NEXT_PUBLIC_URL || "https://flashcastr.app") + "/frame-embed.png",
+        width: 1200,
+        height: 630,
+        alt: "Flashcastr - Space Invaders Flash Feed",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: process.env.NEXT_PUBLIC_FRAME_NAME || "Flashcastr",
+    description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION || "Broadcast your Space Invader flashes.",
+    images: [(process.env.NEXT_PUBLIC_URL || "https://flashcastr.app") + "/frame-embed.png"],
+    creator: "@flashcastr",
+    site: "@flashcastr",
+  },
 };
 
 export default async function RootLayout({
