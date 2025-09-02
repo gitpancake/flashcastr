@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import { getImageUrl } from "~/lib/help/getImageUrl";
 
 interface FlashPageClientProps {
   flash: GlobalFlash;
@@ -28,7 +29,7 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
         {/* Flash Image */}
         <div className="aspect-square overflow-hidden">
           <img
-            src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
+            src={getImageUrl(flash)}
             alt={`Flash ${flash.flash_id}`}
             className="w-full h-full object-cover"
             // eslint-disable-next-line @next/next/no-img-element

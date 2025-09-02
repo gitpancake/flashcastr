@@ -12,6 +12,7 @@ export interface FlashData {
   city: string;
   timestamp: number;
   img: string;
+  ipfs_cid?: string;
 }
 
 export interface FlashResponse {
@@ -56,6 +57,7 @@ export class FlashesApi extends BaseApi {
                 city
                 timestamp
                 img
+                ipfs_cid
               }
               cast_hash
           }
@@ -124,6 +126,7 @@ export class FlashesApi extends BaseApi {
               player
               timestamp
               img
+              ipfs_cid
             }
             cast_hash
           }

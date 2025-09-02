@@ -8,6 +8,7 @@ export interface GlobalFlash {
   player: string;
   flash_id: number;
   timestamp: number;
+  ipfs_cid?: string;
 }
 
 export interface GlobalFlashResponse {
@@ -39,6 +40,7 @@ export class InvadersFunApi {
               player
               text
               timestamp
+              ipfs_cid
             }
             hasNext
           }
@@ -95,6 +97,7 @@ export class InvadersFunApi {
             player
             flash_id
             timestamp
+            ipfs_cid
           }
         }
       `;

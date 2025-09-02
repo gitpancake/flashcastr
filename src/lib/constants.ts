@@ -9,5 +9,9 @@ export const FETCH = {
 };
 
 export const S3 = {
-  BASE_URL: "https://invader-flashes.s3.amazonaws.com",
+  BASE_URL: process.env.NEXT_PUBLIC_S3_BASE || "https://invader-flashes.s3.amazonaws.com",
+};
+
+export const IPFS = {
+  GATEWAY: process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs",
 };

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
+import { getImageUrl } from "~/lib/help/getImageUrl";
 
 type Props = {
   initialFlashes: FlashResponse[];
@@ -109,7 +110,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
               {/* Flash Image */}
               <div className="aspect-square overflow-hidden">
                 <img
-                  src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
+                  src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"

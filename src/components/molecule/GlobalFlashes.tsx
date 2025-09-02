@@ -6,6 +6,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { InvadersFunApi, type GlobalFlash } from "~/lib/api.invaders.fun/flashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
+import { getImageUrl } from "~/lib/help/getImageUrl";
 
 interface GlobalFlashesProps {
   initialFlashes?: GlobalFlash[];
@@ -181,7 +182,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
               {/* Flash Image */}
               <div className="aspect-square overflow-hidden">
                 <img
-                  src={`https://invader-flashes.s3.amazonaws.com${flash.img}`}
+                  src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"
