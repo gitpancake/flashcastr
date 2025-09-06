@@ -94,7 +94,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
 
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map(({ user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
+        {flashes.map(({ user_fid, user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
           const timestampSeconds = Math.floor(flash.timestamp / 1000);
           const timestamp = fromUnixTime(timestampSeconds);
 
@@ -102,13 +102,13 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
             <div
               key={flash.flash_id.toString()}
               ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
-              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
-              onClick={() => {
-                router.push(`/flash/${flash.flash_id}`);
-              }}
+              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
             >
-              {/* Flash Image */}
-              <div className="aspect-square overflow-hidden">
+              {/* Flash Image - Click to go to flash page */}
+              <div 
+                className="aspect-square overflow-hidden cursor-pointer"
+                onClick={() => router.push(`/flash/${flash.flash_id}`)}
+              >
                 <img
                   src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
@@ -118,8 +118,11 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
                 />
               </div>
 
-              {/* Flash Info */}
-              <div className="p-2 sm:p-3 space-y-1">
+              {/* Flash Info - Click to go to user profile */}
+              <div 
+                className="p-2 sm:p-3 space-y-1 cursor-pointer"
+                onClick={() => router.push(`/profile/${user_fid || flash.player}`)}
+              >
                 <div className="text-green-400 text-[10px] sm:text-xs font-bold">#{flash.flash_id.toLocaleString()}</div>
                 <div className="text-white text-xs sm:text-sm flex items-center gap-1">
                   {user_pfp_url && (
