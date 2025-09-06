@@ -78,25 +78,23 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
       {/* Leaderboard */}
       <div className="space-y-2">
         {/* Header - Simplified */}
-        <div className="grid grid-cols-6 sm:grid-cols-4 gap-1 sm:gap-2 p-2 sm:p-3 bg-gray-900 border border-green-400 text-green-400 text-xs font-bold">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 p-2 sm:p-3 bg-gray-900 border border-green-400 text-green-400 text-xs font-bold">
           <div className="col-span-1 text-center">RANK</div>
-          <div className="col-span-3 sm:col-span-2">PLAYER</div>
+          <div className="col-span-1">PLAYER</div>
           <div className="col-span-1 text-center">{sortBy === 'flashes' ? 'FLASHES' : 'CITIES'}</div>
-          <div className="hidden sm:block col-span-1 text-center">{sortBy === 'flashes' ? 'CITIES' : 'FLASHES'}</div>
         </div>
 
         {/* Leaderboard Entries - Simplified */}
         {sortedUsers.slice(0, 50).map((user) => {
           const isCurrentUser = user.fid === currentUserFid;
           const primaryStat = sortBy === 'flashes' ? user.flashCount : user.citiesCount;
-          const secondaryStat = sortBy === 'flashes' ? user.citiesCount : user.flashCount;
           
           return (
             <div
               key={user.fid}
               onClick={() => router.push(`/profile/${user.fid}`)}
               className={`
-                grid grid-cols-6 sm:grid-cols-4 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm cursor-pointer
+                grid grid-cols-3 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm cursor-pointer
                 ${isCurrentUser 
                   ? 'bg-green-900/50 border-green-400 text-green-400 hover:bg-green-800/50' 
                   : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500 hover:bg-gray-800'
@@ -109,7 +107,7 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
               </div>
 
               {/* Username */}
-              <div className="col-span-3 sm:col-span-2 flex items-center">
+              <div className="col-span-1 flex items-center">
                 <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded mr-1 sm:mr-2 flex-shrink-0 overflow-hidden">
                   {user.pfp_url && (
                     <img 
@@ -128,11 +126,6 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
               {/* Primary Stat */}
               <div className="col-span-1 text-center font-bold">
                 {formatFlashCount(primaryStat)}
-              </div>
-
-              {/* Secondary Stat - Desktop Only */}
-              <div className="hidden sm:block col-span-1 text-center">
-                {formatFlashCount(secondaryStat)}
               </div>
             </div>
           );
