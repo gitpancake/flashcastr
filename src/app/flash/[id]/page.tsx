@@ -1,17 +1,38 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
 import type { Metadata } from "next";
-import { InvadersFunApi } from "~/lib/api.invaders.fun/flashes";
+import { InvadersFunApi, GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import { FlashesApi, FlashData } from "~/lib/api.flashcastr.app/flashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import FlashPageClient from "./FlashPageClient";
+
+// Type guard to check if flash has text property (GlobalFlash vs FlashData)
+function hasTextProperty(flash: GlobalFlash | FlashData): flash is GlobalFlash {
+  return 'text' in flash;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   
   try {
-    const invadersApi = new InvadersFunApi();
-    const flash = await invadersApi.getGlobalFlash(Number(id));
+    // Try FlashesApi first to get Farcaster username
+    const flashcastrApi = new FlashesApi();
+    const flashResponse = await flashcastrApi.getFlashById(Number(id));
+
+    let flash;
+    let playerName;
+
+    if (flashResponse) {
+      // We have Farcaster data
+      flash = flashResponse.flash;
+      playerName = flashResponse.user_username || flashResponse.flash.player;
+    } else {
+      // Fallback to InvadersFunApi
+      const invadersApi = new InvadersFunApi();
+      flash = await invadersApi.getGlobalFlash(Number(id));
+      playerName = flash?.player;
+    }
 
     if (!flash) {
       return {
@@ -21,10 +42,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 
     const imageUrl = getImageUrl(flash);
-    const title = `Flash #${flash.flash_id} by ${flash.player} | Flashcastr`;
-    const description = flash.text 
-      ? `${flash.text} - Flash from ${flash.city} by ${flash.player}`
-      : `Space Invaders flash from ${flash.city} by ${flash.player}`;
+    const title = `Flash #${flash.flash_id} by ${playerName} | Flashcastr`;
+    const description = hasTextProperty(flash) && flash.text 
+      ? `${flash.text} - Flash from ${flash.city} by ${playerName}`
+      : `Space Invaders flash from ${flash.city} by ${playerName}`;
 
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://flashcastr.app';
     const url = `${baseUrl}/flash/${id}`;
@@ -60,7 +81,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             url: imageUrl,
             width: 800,
             height: 800,
-            alt: `Flash #${flash.flash_id} by ${flash.player}`,
+            alt: `Flash #${flash.flash_id} by ${playerName}`,
           }
         ],
         url,
@@ -96,6 +117,35 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   
   try {
+    // Try FlashesApi first to get Farcaster username
+    const flashcastrApi = new FlashesApi();
+    const flashResponse = await flashcastrApi.getFlashById(Number(id));
+
+    if (flashResponse) {
+      // We have Farcaster data, use it
+      const timestampSeconds = Math.floor(flashResponse.flash.timestamp / 1000);
+      const timestamp = fromUnixTime(timestampSeconds);
+      const timeAgo = formatTimeAgo(timestamp);
+
+      // Create a combined flash object with Farcaster username
+      const flashWithFarcaster = {
+        ...flashResponse.flash,
+        player: flashResponse.user_username || flashResponse.flash.player, // Use Farcaster username with fallback
+        text: '', // FlashData doesn't have text field, but GlobalFlash expects it
+        farcaster_username: flashResponse.user_username,
+        farcaster_pfp: flashResponse.user_pfp_url,
+        farcaster_fid: flashResponse.user_fid
+      };
+
+      return (
+        <FlashPageClient 
+          flash={flashWithFarcaster}
+          timeAgo={timeAgo}
+        />
+      );
+    }
+
+    // Fallback to InvadersFunApi if not found in FlashesApi
     const invadersApi = new InvadersFunApi();
     const flash = await invadersApi.getGlobalFlash(Number(id));
 
