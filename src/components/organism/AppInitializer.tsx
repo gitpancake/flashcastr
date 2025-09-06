@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Feed from "~/components/molecule/Feed";
 import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
@@ -25,6 +25,7 @@ interface AppInitializerProps {
 export default function AppInitializer({ initialFlashes }: AppInitializerProps) {
   const { context } = useFrame();
   const farcasterFid = context?.user?.fid;
+  const hasUserContext = !!(context?.user?.fid && context?.user?.username);
 
   const { data: appUserArray, refetch: refetchAppUser, isLoading: isLoadingUser } = useGetUser(farcasterFid);
   const appUser = appUserArray && appUserArray.length > 0 ? appUserArray[0] : undefined;
@@ -34,6 +35,22 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
+
+  const handleTabChange = (tab: NavTab) => {
+    // If achievements tab is selected but user doesn't have context, redirect to feed
+    if (tab === 'achievements' && !hasUserContext) {
+      setActiveTab('feed');
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  // If user is on achievements tab but loses context, redirect to feed
+  useEffect(() => {
+    if (activeTab === 'achievements' && !hasUserContext) {
+      setActiveTab('feed');
+    }
+  }, [activeTab, hasUserContext]);
 
   const handleSetupComplete = (_user: User) => { // eslint-disable-line @typescript-eslint/no-unused-vars
     refetchAppUser();
@@ -81,7 +98,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)

@@ -5,17 +5,21 @@ export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements';
 interface RetroNavProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
+  showAchievements?: boolean;
   className?: string;
 }
 
-export function RetroNav({ activeTab, onTabChange, className = "" }: RetroNavProps) {
+export function RetroNav({ activeTab, onTabChange, showAchievements = true, className = "" }: RetroNavProps) {
 
-  const tabs = [
+  const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
     { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
-    { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' },
   ];
+
+  const tabs = showAchievements 
+    ? [...baseTabs, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
+    : baseTabs;
 
   return (
     <div className={`w-full bg-black border-b-2 border-green-400 ${className}`}>
