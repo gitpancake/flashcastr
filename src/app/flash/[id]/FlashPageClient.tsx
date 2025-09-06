@@ -12,12 +12,20 @@ interface FlashPageClientProps {
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
   const router = useRouter();
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto p-4 font-mono bg-black min-h-screen">
       {/* Back Button */}
       <div className="mb-4">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="p-2 border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 font-bold text-xs"
         >
           [←] BACK
