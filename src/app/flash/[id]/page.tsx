@@ -16,12 +16,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   
   try {
-    // Try FlashesApi first to get Farcaster username
-    const flashcastrApi = new FlashesApi();
-    const flashResponse = await flashcastrApi.getFlashById(Number(id));
-
+    let flashResponse = null;
     let flash;
     let playerName;
+
+    // Try FlashesApi first to get Farcaster username (with error handling)
+    try {
+      const flashcastrApi = new FlashesApi();
+      flashResponse = await flashcastrApi.getFlashById(Number(id));
+    } catch (error) {
+      console.log('FlashesApi failed for metadata, falling back to InvadersFunApi:', error);
+      // Continue to fallback, don't throw
+    }
 
     if (flashResponse) {
       // We have Farcaster data
@@ -117,9 +123,16 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   
   try {
-    // Try FlashesApi first to get Farcaster username
-    const flashcastrApi = new FlashesApi();
-    const flashResponse = await flashcastrApi.getFlashById(Number(id));
+    let flashResponse = null;
+    
+    // Try FlashesApi first to get Farcaster username (with error handling)
+    try {
+      const flashcastrApi = new FlashesApi();
+      flashResponse = await flashcastrApi.getFlashById(Number(id));
+    } catch (error) {
+      console.log('FlashesApi failed, falling back to InvadersFunApi:', error);
+      // Continue to fallback, don't throw
+    }
 
     if (flashResponse) {
       // We have Farcaster data, use it
@@ -145,7 +158,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       );
     }
 
-    // Fallback to InvadersFunApi if not found in FlashesApi
+    // Fallback to InvadersFunApi if not found in FlashesApi or FlashesApi failed
     const invadersApi = new InvadersFunApi();
     const flash = await invadersApi.getGlobalFlash(Number(id));
 
