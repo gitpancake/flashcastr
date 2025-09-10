@@ -15,3 +15,8 @@ export const S3 = {
 export const IPFS = {
   GATEWAY: process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs",
 };
+
+export const FEATURES = {
+  // Map tab access via environment variable
+  ADMIN_FID: process.env.ADMIN_FID ? parseInt(process.env.ADMIN_FID) : null,
+};

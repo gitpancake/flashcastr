@@ -18,6 +18,7 @@ import { useGetFlashStats } from "~/hooks/api.flashcastrs.app/useGetFlashStats";
 import { FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { User } from "~/lib/api.flashcastr.app/users";
 import { UserProgress } from "~/lib/badges";
+import { FEATURES } from "~/lib/constants";
 import Setup from "./Setup";
 
 const SETUP_SKIPPED_STORAGE_KEY = "flashcastr_setup_skipped";
@@ -48,8 +49,9 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       setActiveTab('feed');
       return;
     }
-    // If map tab is selected but user is not FID 732, redirect to feed
-    if (tab === 'map' && farcasterFid !== 732) {
+    // If map tab is selected but user doesn't have map access, redirect to feed
+    const hasMapAccess = farcasterFid && farcasterFid === FEATURES.ADMIN_FID;
+    if (tab === 'map' && !hasMapAccess) {
       setActiveTab('feed');
       return;
     }
@@ -62,7 +64,8 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     if (activeTab === 'achievements' && !hasUserContext) {
       setActiveTab('feed');
     }
-    if (activeTab === 'map' && farcasterFid !== 732) {
+    const hasMapAccess = farcasterFid && farcasterFid === FEATURES.ADMIN_FID;
+    if (activeTab === 'map' && !hasMapAccess) {
       setActiveTab('feed');
     }
   }, [activeTab, hasUserContext, farcasterFid]);

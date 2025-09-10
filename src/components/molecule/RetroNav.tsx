@@ -1,5 +1,7 @@
 "use client";
 
+import { FEATURES } from "~/lib/constants";
+
 export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'favorites' | 'map';
 
 interface RetroNavProps {
@@ -19,8 +21,9 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
   ];
 
-  // Add map tab only for FID 732
-  const tabsWithMap = currentUserFid === 732 
+  // Add map tab only for admin user (configured via ADMIN_FID env variable)
+  const showMapTab = currentUserFid && currentUserFid === FEATURES.ADMIN_FID;
+  const tabsWithMap = showMapTab 
     ? [...baseTabs, { id: 'map' as NavTab, label: 'MAP', icon: '◉', key: 'M' }]
     : baseTabs;
 
