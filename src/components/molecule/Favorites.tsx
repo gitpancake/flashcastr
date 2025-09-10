@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { getFavorites, removeFromFavorites, type FavoriteFlash } from "~/lib/favorites";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
@@ -181,15 +182,14 @@ export function Favorites() {
 
                 {/* Flash Image */}
                 <div 
-                  className="aspect-square overflow-hidden cursor-pointer"
+                  className="aspect-square overflow-hidden cursor-pointer relative"
                   onClick={() => router.push(`/flash/${favorite.flash_id}`)}
                 >
-                  <img
+                  <Image
                     src={getImageUrl(favorite)}
                     alt={`Flash ${favorite.flash_id}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    loading="lazy"
-                    // eslint-disable-next-line @next/next/no-img-element
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
 

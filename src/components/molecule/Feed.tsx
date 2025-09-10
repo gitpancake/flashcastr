@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
@@ -106,15 +107,14 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
             >
               {/* Flash Image - Click to go to flash page */}
               <div 
-                className="aspect-square overflow-hidden cursor-pointer"
+                className="aspect-square overflow-hidden cursor-pointer relative"
                 onClick={() => router.push(`/flash/${flash.flash_id}`)}
               >
-                <img
+                <Image
                   src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  loading="lazy"
-                  // eslint-disable-next-line @next/next/no-img-element
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
 
@@ -126,11 +126,12 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
                 <div className="text-green-400 text-[10px] sm:text-xs font-bold">#{flash.flash_id.toLocaleString()}</div>
                 <div className="text-white text-xs sm:text-sm flex items-center gap-1">
                   {user_pfp_url && (
-                    <img
+                    <Image
                       src={user_pfp_url}
                       alt={user_username || flash.player}
-                      className="w-3 h-3 rounded-full"
-                      // eslint-disable-next-line @next/next/no-img-element
+                      width={12}
+                      height={12}
+                      className="rounded-full"
                     />
                   )}
                   @ {user_username || flash.player}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { formatFlashCount } from "~/lib/badges";
 
 interface LeaderboardUser {
@@ -108,13 +109,13 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
 
               {/* Username */}
               <div className="col-span-1 flex items-center">
-                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded mr-1 sm:mr-2 flex-shrink-0 overflow-hidden">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded mr-1 sm:mr-2 flex-shrink-0 overflow-hidden relative">
                   {user.pfp_url && (
-                    <img 
+                    <Image 
                       src={user.pfp_url} 
                       alt={user.username}
-                      className="w-full h-full object-cover"
-                      // eslint-disable-next-line @next/next/no-img-element
+                      fill
+                      className="object-cover"
                     />
                   )}
                 </div>

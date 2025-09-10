@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { InvadersFunApi, type GlobalFlash } from "~/lib/api.invaders.fun/flashes";
@@ -180,13 +181,12 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
               className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
             >
               {/* Flash Image */}
-              <div className="aspect-square overflow-hidden">
-                <img
+              <div className="aspect-square overflow-hidden relative">
+                <Image
                   src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  loading="lazy"
-                  // eslint-disable-next-line @next/next/no-img-element
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
 

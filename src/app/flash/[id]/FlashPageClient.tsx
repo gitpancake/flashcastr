@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import { shareToFarcaster, shareToTwitter, copyToClipboard } from "~/lib/share";
@@ -147,12 +148,12 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
       {/* Flash Card - Blown Up Version */}
       <div className="bg-black border-2 border-green-400 overflow-hidden relative">
         {/* Flash Image */}
-        <div className="aspect-square overflow-hidden">
-          <img
+        <div className="aspect-square overflow-hidden relative">
+          <Image
             src={getImageUrl(flash)}
             alt={`Flash ${flash.flash_id}`}
-            className="w-full h-full object-cover"
-            // eslint-disable-next-line @next/next/no-img-element
+            fill
+            className="object-cover"
           />
         </div>
 
