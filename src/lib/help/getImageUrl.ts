@@ -1,7 +1,7 @@
 import { IPFS, S3 } from "~/lib/constants";
 
 interface FlashImageData {
-  img: string;
+  img?: string;
   ipfs_cid?: string;
 }
 
@@ -16,5 +16,5 @@ export function getImageUrl(flash: FlashImageData): string {
   }
   
   // Fallback to S3 URL
-  return `${S3.BASE_URL}${flash.img}`;
+  return `${S3.BASE_URL}${flash.img || ''}`;
 }
