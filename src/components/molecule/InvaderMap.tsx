@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import type { Map as LeafletMap } from "leaflet";
 
 // Import Leaflet CSS in the component
 import "leaflet/dist/leaflet.css";
@@ -54,8 +55,28 @@ function isInViewport(invader: InvaderLocation, bounds: { north: number; south: 
 export function InvaderMap() {
   const [allInvaders, setAllInvaders] = useState<InvaderLocation[]>([]);
   const [visibleInvaders, setVisibleInvaders] = useState<InvaderLocation[]>([]);
+  const [filteredInvaders, setFilteredInvaders] = useState<InvaderLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [showAllCities, setShowAllCities] = useState(false);
+  const [map, setMap] = useState<LeafletMap | null>(null);
+  
+  // Popular cities with coordinates for navigation
+  const popularCities = useMemo(() => [
+    { name: "Paris", lat: 48.8566, lng: 2.3522 },
+    { name: "London", lat: 51.5074, lng: -0.1278 },
+    { name: "New York", lat: 40.7128, lng: -74.0060 },
+    { name: "Tokyo", lat: 35.6762, lng: 139.6503 },
+    { name: "Barcelona", lat: 41.3851, lng: 2.1734 },
+    { name: "Rome", lat: 41.9028, lng: 12.4964 },
+    { name: "Amsterdam", lat: 52.3676, lng: 4.9041 },
+    { name: "Berlin", lat: 52.5200, lng: 13.4050 },
+    { name: "Los Angeles", lat: 34.0522, lng: -118.2437 },
+    { name: "Madrid", lat: 40.4168, lng: -3.7038 },
+    { name: "Milan", lat: 45.4642, lng: 9.1900 },
+    { name: "Brussels", lat: 50.8503, lng: 4.3517 }
+  ], []);
 
   useEffect(() => {
     // Load invader data
@@ -64,7 +85,8 @@ export function InvaderMap() {
         const response = await fetch("/data/json/invaders.json");
         const data = await response.json();
         setAllInvaders(data);
-        setVisibleInvaders(data); // Initially show all invaders
+        setFilteredInvaders(data); // Initially show all invaders
+        setVisibleInvaders(data);
       } catch (error) {
         console.error("Failed to load invader data:", error);
       } finally {
@@ -91,11 +113,31 @@ export function InvaderMap() {
     loadLeaflet();
   }, []);
 
-  // Handle viewport changes to filter visible invaders
+  // Handle city navigation
+  const handleCitySelect = useCallback((cityName: string) => {
+    if (selectedCity === cityName) {
+      // Deselect city - show all invaders and zoom out
+      setSelectedCity(null);
+      if (map && allInvaders.length > 0) {
+        const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
+        const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
+        map.setView([centerLat, centerLng], 2); // Zoom out to show all
+      }
+    } else {
+      // Select new city and navigate to it
+      setSelectedCity(cityName);
+      const city = popularCities.find(c => c.name === cityName);
+      if (city && map) {
+        map.setView([city.lat, city.lng], 12); // Zoom to city level
+      }
+    }
+  }, [selectedCity, map, allInvaders, popularCities]);
+
+  // Handle viewport changes to filter visible invaders from filtered set
   const handleViewportChange = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
-    const filtered = allInvaders.filter(invader => isInViewport(invader, bounds));
+    const filtered = filteredInvaders.filter(invader => isInViewport(invader, bounds));
     setVisibleInvaders(filtered);
-  }, [allInvaders]);
+  }, [filteredInvaders]);
 
   if (isLoading || !leafletLoaded) {
     return (
@@ -131,11 +173,106 @@ export function InvaderMap() {
           INVADER LOCATIONS MAP
         </div>
         <div className="text-gray-400 text-sm">
-          SHOWING {visibleInvaders.length} OF {allInvaders.length} SPACE INVADER{allInvaders.length !== 1 ? "S" : ""}
+          {selectedCity 
+            ? `NAVIGATED TO ${selectedCity.toUpperCase()} • SHOWING ${visibleInvaders.length} OF ${allInvaders.length} INVADERS`
+            : `SHOWING ${visibleInvaders.length} OF ${allInvaders.length} SPACE INVADER${allInvaders.length !== 1 ? "S" : ""} WORLDWIDE`
+          }
         </div>
-        {visibleInvaders.length < allInvaders.length && (
+        {visibleInvaders.length < allInvaders.length && !selectedCity && (
           <div className="text-cyan-400 text-xs mt-1">
             ZOOM OUT OR PAN TO SEE MORE INVADERS
+          </div>
+        )}
+        {selectedCity && (
+          <div className="text-cyan-400 text-xs mt-1">
+            CLICK &quot;{selectedCity.toUpperCase()}&quot; AGAIN OR &quot;SHOW ALL&quot; TO RETURN TO GLOBAL VIEW
+          </div>
+        )}
+      </div>
+
+      {/* City Filter */}
+      <div className="mb-4 bg-gray-900 border border-green-400 p-2">
+        <div className="text-green-400 text-xs font-bold mb-2">NAVIGATE TO CITY</div>
+        
+        {/* Trending Cities */}
+        <div className="mb-2">
+          <div className="text-gray-400 text-[9px] mb-1">POPULAR:</div>
+          <div className="flex flex-wrap gap-1">
+            {popularCities.slice(0, 6).map((city) => (
+              <button
+                key={city.name}
+                onClick={() => handleCitySelect(city.name)}
+                className={`
+                  px-2 py-1 text-[10px] border transition-all duration-200
+                  ${selectedCity === city.name 
+                    ? 'bg-green-400 text-black border-green-400' 
+                    : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
+                  }
+                `}
+              >
+                {city.name.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Controls Row */}
+        <div className="flex gap-1 items-center flex-wrap">
+          <button
+            onClick={() => {
+              setSelectedCity(null);
+              if (map && allInvaders.length > 0) {
+                const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
+                const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
+                map.setView([centerLat, centerLng], 2);
+              }
+            }}
+            className={`
+              px-2 py-1 text-[10px] border transition-all duration-200
+              ${selectedCity === null 
+                ? 'bg-green-400 text-black border-green-400' 
+                : 'bg-transparent text-green-400 border-gray-600 hover:border-green-400'
+              }
+            `}
+          >
+            SHOW ALL
+          </button>
+          
+          <button
+            onClick={() => setShowAllCities(!showAllCities)}
+            className={`
+              px-2 py-1 text-[10px] border transition-all duration-200
+              ${showAllCities 
+                ? 'bg-cyan-400 text-black border-cyan-400' 
+                : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
+              }
+            `}
+          >
+            {showAllCities ? 'HIDE' : 'MORE CITIES'}
+          </button>
+        </div>
+
+        {/* All Cities (when expanded) */}
+        {showAllCities && (
+          <div className="mt-2 pt-2 border-t border-gray-700">
+            <div className="text-gray-400 text-[9px] mb-1">ALL CITIES:</div>
+            <div className="flex flex-wrap gap-1">
+              {popularCities.slice(6).map((city) => (
+                <button
+                  key={city.name}
+                  onClick={() => handleCitySelect(city.name)}
+                  className={`
+                    px-2 py-1 text-[10px] border transition-all duration-200
+                    ${selectedCity === city.name 
+                      ? 'bg-green-400 text-black border-green-400' 
+                      : 'bg-transparent text-green-400 border-gray-600 hover:border-green-400'
+                    }
+                  `}
+                >
+                  {city.name.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -145,9 +282,10 @@ export function InvaderMap() {
         <div style={{ height: "500px", width: "100%" }}>
           <MapContainer
             center={[centerLat, centerLng]}
-            zoom={10}
+            zoom={2}
             style={{ height: "100%", width: "100%" }}
             className="leaflet-container-dark"
+            ref={setMap}
           >
             <MapEventHandler onViewportChange={handleViewportChange} />
             <TileLayer
