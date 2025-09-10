@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 
@@ -25,6 +25,10 @@ const Popup = dynamic(
   () => import("react-leaflet").then((mod) => mod.Popup),
   { ssr: false }
 );
+const MapEventHandler = dynamic(
+  () => import("./MapEventHandler").then((mod) => ({ default: mod.MapEventHandler })),
+  { ssr: false }
+);
 
 interface InvaderLocation {
   i: number;
@@ -36,8 +40,20 @@ interface InvaderLocation {
   t: string;
 }
 
+// Helper function to check if coordinates are within viewport bounds
+function isInViewport(invader: InvaderLocation, bounds: { north: number; south: number; east: number; west: number }) {
+  return (
+    invader.l.lat >= bounds.south &&
+    invader.l.lat <= bounds.north &&
+    invader.l.lng >= bounds.west &&
+    invader.l.lng <= bounds.east
+  );
+}
+
+
 export function InvaderMap() {
-  const [invaders, setInvaders] = useState<InvaderLocation[]>([]);
+  const [allInvaders, setAllInvaders] = useState<InvaderLocation[]>([]);
+  const [visibleInvaders, setVisibleInvaders] = useState<InvaderLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
 
@@ -47,7 +63,8 @@ export function InvaderMap() {
       try {
         const response = await fetch("/data/json/invaders.json");
         const data = await response.json();
-        setInvaders(data);
+        setAllInvaders(data);
+        setVisibleInvaders(data); // Initially show all invaders
       } catch (error) {
         console.error("Failed to load invader data:", error);
       } finally {
@@ -74,6 +91,12 @@ export function InvaderMap() {
     loadLeaflet();
   }, []);
 
+  // Handle viewport changes to filter visible invaders
+  const handleViewportChange = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
+    const filtered = allInvaders.filter(invader => isInViewport(invader, bounds));
+    setVisibleInvaders(filtered);
+  }, [allInvaders]);
+
   if (isLoading || !leafletLoaded) {
     return (
       <div className="flex justify-center items-center h-96 bg-black text-green-400 font-mono">
@@ -85,7 +108,7 @@ export function InvaderMap() {
     );
   }
 
-  if (invaders.length === 0) {
+  if (allInvaders.length === 0) {
     return (
       <div className="flex justify-center items-center h-96 bg-black text-green-400 font-mono">
         <div className="text-center">
@@ -97,8 +120,8 @@ export function InvaderMap() {
   }
 
   // Calculate center point from all invaders
-  const centerLat = invaders.reduce((sum, inv) => sum + inv.l.lat, 0) / invaders.length;
-  const centerLng = invaders.reduce((sum, inv) => sum + inv.l.lng, 0) / invaders.length;
+  const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
+  const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
@@ -108,8 +131,13 @@ export function InvaderMap() {
           INVADER LOCATIONS MAP
         </div>
         <div className="text-gray-400 text-sm">
-          TRACKING {invaders.length} SPACE INVADER{invaders.length !== 1 ? "S" : ""} WORLDWIDE
+          SHOWING {visibleInvaders.length} OF {allInvaders.length} SPACE INVADER{allInvaders.length !== 1 ? "S" : ""}
         </div>
+        {visibleInvaders.length < allInvaders.length && (
+          <div className="text-cyan-400 text-xs mt-1">
+            ZOOM OUT OR PAN TO SEE MORE INVADERS
+          </div>
+        )}
       </div>
 
       {/* Map Container */}
@@ -121,11 +149,12 @@ export function InvaderMap() {
             style={{ height: "100%", width: "100%" }}
             className="leaflet-container-dark"
           >
+            <MapEventHandler onViewportChange={handleViewportChange} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {invaders.map((invader) => (
+            {visibleInvaders.map((invader) => (
               <Marker
                 key={invader.i}
                 position={[invader.l.lat, invader.l.lng]}
