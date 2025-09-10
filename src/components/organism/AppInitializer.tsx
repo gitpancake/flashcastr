@@ -8,6 +8,7 @@ import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
 import { Favorites } from "~/components/molecule/Favorites";
+import { InvaderMap } from "~/components/molecule/InvaderMap";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
@@ -47,15 +48,24 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       setActiveTab('feed');
       return;
     }
+    // If map tab is selected but user is not FID 732, redirect to feed
+    if (tab === 'map' && farcasterFid !== 732) {
+      setActiveTab('feed');
+      return;
+    }
     setActiveTab(tab);
   };
 
   // If user is on achievements tab but loses context, redirect to feed
+  // If user is on map tab but is not FID 732, redirect to feed
   useEffect(() => {
     if (activeTab === 'achievements' && !hasUserContext) {
       setActiveTab('feed');
     }
-  }, [activeTab, hasUserContext]);
+    if (activeTab === 'map' && farcasterFid !== 732) {
+      setActiveTab('feed');
+    }
+  }, [activeTab, hasUserContext, farcasterFid]);
 
   // Add global keyboard shortcuts
   useKeyboardShortcuts({
@@ -106,6 +116,8 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
         return <Leaderboard users={leaderboardUsers} currentUserFid={farcasterFid} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
+      case 'map':
+        return <InvaderMap />;
       default:
         return <Feed initialFlashes={initialFlashes} />;
     }
@@ -113,7 +125,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} currentUserFid={farcasterFid} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)

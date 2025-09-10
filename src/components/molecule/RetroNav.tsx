@@ -1,15 +1,16 @@
 "use client";
 
-export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'favorites';
+export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'favorites' | 'map';
 
 interface RetroNavProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   showAchievements?: boolean;
   className?: string;
+  currentUserFid?: number;
 }
 
-export function RetroNav({ activeTab, onTabChange, showAchievements = true, className = "" }: RetroNavProps) {
+export function RetroNav({ activeTab, onTabChange, showAchievements = true, className = "", currentUserFid }: RetroNavProps) {
 
   const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
@@ -18,9 +19,14 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
   ];
 
-  const tabs = showAchievements 
-    ? [...baseTabs, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
+  // Add map tab only for FID 732
+  const tabsWithMap = currentUserFid === 732 
+    ? [...baseTabs, { id: 'map' as NavTab, label: 'MAP', icon: '◉', key: 'M' }]
     : baseTabs;
+
+  const tabs = showAchievements 
+    ? [...tabsWithMap, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
+    : tabsWithMap;
 
   return (
     <div className={`w-full bg-black border-b-2 border-green-400 ${className}`}>
