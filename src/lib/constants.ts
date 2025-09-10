@@ -17,6 +17,6 @@ export const IPFS = {
 };
 
 export const FEATURES = {
-  // Map tab access via environment variable
-  ADMIN_FID: process.env.ADMIN_FID ? parseInt(process.env.ADMIN_FID) : null,
+  // Map tab access via environment variable (NEXT_PUBLIC_ prefix for client-side access)
+  ADMIN_FID: process.env.NEXT_PUBLIC_ADMIN_FID ? parseInt(process.env.NEXT_PUBLIC_ADMIN_FID) : null,
 };
