@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import type { Map as LeafletMap } from "leaflet";
 import { useFrame } from "~/components/providers/FrameProvider";
-import { addToWishlist, removeFromWishlist, markAsFound, getInvaderStatus, getWishlistStats } from "~/lib/wishlist";
+import { useMapData } from "~/hooks/useMapData";
 
 // Import Leaflet CSS in the component
 import "leaflet/dist/leaflet.css";
@@ -54,10 +54,10 @@ function isInViewport(invader: InvaderLocation, bounds: { north: number; south: 
 }
 
 // Create custom colored markers based on status
-function createCustomIcon(status: 'want_to_find' | 'found' | null) {
+function createCustomIcon(status: 'hunt' | 'saved' | null) {
   const colors = {
-    'want_to_find': '#FFD700', // Gold
-    'found': '#10B981', // Green  
+    'hunt': '#FFD700', // Gold
+    'saved': '#10B981', // Green  
     'unmarked': '#3B82F6' // Blue
   };
   
@@ -93,65 +93,54 @@ function createCustomIcon(status: 'want_to_find' | 'found' | null) {
 }
 
 
-// Wishlist Button Component
-function WishlistButton({ invader, fid, onStatusChange, currentStatus }: { 
+// Hunt/Saved Button Component
+function InvaderActionButton({ 
+  invader, 
+  fid, 
+  currentStatus,
+  onAddToHunt,
+  onRemoveFromHunt,
+  onMarkAsFound,
+  onRemoveFromSaved
+}: { 
   invader: InvaderLocation; 
   fid: number | undefined;
-  onStatusChange?: () => void;
-  currentStatus: 'want_to_find' | 'found' | null;
+  currentStatus: 'hunt' | 'saved' | null;
+  onAddToHunt: (invader: any) => Promise<any>;
+  onRemoveFromHunt: (invaderId: string) => Promise<any>;
+  onMarkAsFound: (invaderId: string) => Promise<any>;
+  onRemoveFromSaved: (invaderId: string) => Promise<any>;
 }) {
-  const [status, setStatus] = useState<'want_to_find' | 'found' | null>(currentStatus);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  // Update status when prop changes
-  useEffect(() => {
-    setStatus(currentStatus);
-  }, [currentStatus]);
+  if (!fid) return null; // Only show for logged-in users
 
-  const handleToggleWishlist = async () => {
-    if (!fid) {
-      console.warn('No FID available for wishlist operation');
-      return;
-    }
+  const handleAction = async () => {
+    if (loading) return;
     
-    console.log(`[DEBUG] Wishlist operation for ${invader.n} with FID ${fid}, current status:`, status);
+    setLoading(true);
+    setError(false);
     
     try {
-      if (status === null) {
-        // Add to wishlist
-        console.log(`[DEBUG] Adding ${invader.n} to wishlist for FID ${fid}`);
-        const result = await addToWishlist(fid, invader);
-        console.log('[DEBUG] Add to wishlist result:', result);
-        setStatus('want_to_find');
-      } else if (status === 'want_to_find') {
-        // Mark as found
-        console.log(`[DEBUG] Marking ${invader.n} as found for FID ${fid}`);
-        const result = await markAsFound(fid, invader.n);
-        console.log('[DEBUG] Mark as found result:', result);
-        setStatus('found');
+      if (currentStatus === null) {
+        // Add to hunt list
+        await onAddToHunt(invader);
+      } else if (currentStatus === 'hunt') {
+        // Mark as found (move from hunt to saved)
+        await onMarkAsFound(invader.n);
       } else {
-        // Remove from wishlist
-        console.log(`[DEBUG] Removing ${invader.n} from wishlist for FID ${fid}`);
-        const result = await removeFromWishlist(fid, invader.n);
-        console.log('[DEBUG] Remove from wishlist result:', result);
-        setStatus(null);
+        // Remove from saved list
+        await onRemoveFromSaved(invader.n);
       }
-      
-      // Notify parent of status change
-      if (onStatusChange) {
-        onStatusChange();
-      }
-      
-      setError(false);
     } catch (error) {
-      console.error('Error updating wishlist:', error);
-      console.error('Error details:', error);
+      console.error('Error updating invader status:', error);
       setError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!fid) return null; // Only show for logged-in users
-  
   if (error) {
     return (
       <button
@@ -165,24 +154,32 @@ function WishlistButton({ invader, fid, onStatusChange, currentStatus }: {
   }
 
   const getButtonConfig = () => {
-    switch (status) {
+    if (loading) {
+      return {
+        text: 'UPDATING...',
+        className: 'bg-gray-600 text-white border-gray-600 cursor-wait',
+        icon: '[...]'
+      };
+    }
+
+    switch (currentStatus) {
       case null:
         return {
-          text: '+ ADD TO HUNT LIST',
+          text: 'ADD TO HUNT',
           className: 'bg-green-400 text-black border-green-400 hover:bg-green-300',
-          icon: '[&gt;]'
+          icon: '[+]'
         };
-      case 'want_to_find':
+      case 'hunt':
         return {
-          text: '[*] MARK AS FOUND',
+          text: 'MARK FOUND',
           className: 'bg-yellow-500 text-black border-yellow-500 hover:bg-yellow-400',
           icon: '[*]'
         };
-      case 'found':
+      case 'saved':
         return {
-          text: '[*] FOUND',
+          text: 'REMOVE',
           className: 'bg-gray-600 text-white border-gray-600 hover:bg-red-500 hover:text-white',
-          icon: '[*]'
+          icon: '[X]'
         };
     }
   };
@@ -191,12 +188,12 @@ function WishlistButton({ invader, fid, onStatusChange, currentStatus }: {
 
   return (
     <button
-      onClick={handleToggleWishlist}
+      onClick={handleAction}
+      disabled={loading}
       className={`
         w-full mt-2 px-2 py-1 text-[10px] font-bold border transition-all duration-200
         ${config.className}
       `}
-      title={status === 'found' ? 'Click to remove from hunt list' : ''}
     >
       {config.icon} {config.text}
     </button>
@@ -226,9 +223,20 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [showAllCities, setShowAllCities] = useState(false);
   const [map, setMap] = useState<LeafletMap | null>(null);
-  const [wishlistStats, setWishlistStats] = useState({ totalWanted: 0, totalFound: 0, totalItems: 0, completionRate: 0 });
   const [activeView, setActiveView] = useState<MapView>('geo');
-  const [invaderStatuses, setInvaderStatuses] = useState<Record<string, 'want_to_find' | 'found' | null>>({});
+  
+  // Use the new clean map data hook
+  const {
+    huntList,
+    savedList,
+    statusMap,
+    loading: mapDataLoading,
+    error: mapDataError,
+    addToHuntList,
+    removeFromHuntList,
+    markInvaderAsFound,
+    removeFromSavedList,
+  } = useMapData(farcasterFid);
   
   // Popular cities with coordinates for navigation
   const popularCities = useMemo(() => [
@@ -281,58 +289,22 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     loadLeaflet();
   }, []);
 
-  // Load wishlist once and derive statuses from it
-  useEffect(() => {
-    if (farcasterFid && allInvaders.length > 0) {
-      const loadWishlistData = async () => {
-        try {
-          console.log(`[DEBUG] Loading wishlist data for FID ${farcasterFid}`);
-          
-          // Load the entire wishlist in one request
-          const wishlist = await getWishlist(farcasterFid);
-          console.log(`[DEBUG] Loaded wishlist with ${wishlist.items.length} items`);
-          
-          // Update stats
-          setWishlistStats({
-            totalWanted: wishlist.stats.total_wanted,
-            totalFound: wishlist.stats.total_found,
-            totalItems: wishlist.items.length,
-            completionRate: wishlist.items.length > 0 ? (wishlist.stats.total_found / wishlist.items.length) * 100 : 0
-          });
-
-          // Create status map from wishlist items
-          const statusMap: Record<string, 'want_to_find' | 'found' | null> = {};
-          wishlist.items.forEach(item => {
-            statusMap[item.invader_id] = item.status;
-          });
-          
-          console.log(`[DEBUG] Created status map with ${Object.keys(statusMap).length} entries`);
-          setInvaderStatuses(statusMap);
-        } catch (error) {
-          console.error('Error loading wishlist data:', error);
-        }
-      };
-      
-      loadWishlistData();
-    }
-  }, [farcasterFid, allInvaders]);
-
   // Filter invaders based on active view
   useEffect(() => {
     let filtered = allInvaders;
     
     if (activeView === 'hunt') {
-      // Show only invaders that are marked as "want_to_find"
-      filtered = allInvaders.filter(invader => invaderStatuses[invader.n] === 'want_to_find');
+      // Show only invaders that are in hunt list
+      filtered = allInvaders.filter(invader => statusMap[invader.n] === 'hunt');
     } else if (activeView === 'saved') {
-      // Show only invaders that are marked as "found"  
-      filtered = allInvaders.filter(invader => invaderStatuses[invader.n] === 'found');
+      // Show only invaders that are saved/found
+      filtered = allInvaders.filter(invader => statusMap[invader.n] === 'saved');
     }
     // 'geo' shows all invaders (default)
     
     setFilteredInvaders(filtered);
     setVisibleInvaders(filtered);
-  }, [activeView, allInvaders, invaderStatuses]);
+  }, [activeView, allInvaders, statusMap]);
 
   // Handle city navigation
   const handleCitySelect = useCallback((cityName: string) => {
@@ -414,9 +386,9 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
             : `SHOWING ${visibleInvaders.length} OF ${allInvaders.length} SPACE INVADER${allInvaders.length !== 1 ? "S" : ""} WORLDWIDE`
           }
         </div>
-        {farcasterFid && wishlistStats.totalItems > 0 && (
+        {farcasterFid && (huntList || savedList) && (
           <div className="text-cyan-400 text-xs mb-2">
-            [&gt;] YOUR HUNT: {wishlistStats.totalWanted} TO FIND • [*] {wishlistStats.totalFound} FOUND • {wishlistStats.completionRate}% COMPLETE
+            [&gt;] YOUR HUNT: {huntList?.stats.total || 0} TO FIND • [*] {savedList?.stats.total || 0} FOUND • {huntList && savedList ? Math.round((savedList.stats.total / (huntList.stats.total + savedList.stats.total)) * 100) || 0 : 0}% COMPLETE
           </div>
         )}
         {visibleInvaders.length < allInvaders.length && !selectedCity && (
@@ -533,7 +505,7 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {visibleInvaders.map((invader) => {
-              const status = invaderStatuses[invader.n] || null;
+              const status = statusMap[invader.n] || null;
               const customIcon = createCustomIcon(status);
               
               return (
@@ -559,33 +531,14 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                       LAT: {invader.l.lat.toFixed(6)}<br />
                       LNG: {invader.l.lng.toFixed(6)}
                     </div>
-                    <WishlistButton 
+                    <InvaderActionButton 
                       invader={invader} 
                       fid={farcasterFid} 
                       currentStatus={status}
-                      onStatusChange={async () => {
-                        if (farcasterFid) {
-                          try {
-                            // Reload the entire wishlist to get updated stats and statuses
-                            const wishlist = await getWishlist(farcasterFid);
-                            setWishlistStats({
-                              totalWanted: wishlist.stats.total_wanted,
-                              totalFound: wishlist.stats.total_found,
-                              totalItems: wishlist.items.length,
-                              completionRate: wishlist.items.length > 0 ? (wishlist.stats.total_found / wishlist.items.length) * 100 : 0
-                            });
-                            
-                            // Update status map
-                            const statusMap: Record<string, 'want_to_find' | 'found' | null> = {};
-                            wishlist.items.forEach(item => {
-                              statusMap[item.invader_id] = item.status;
-                            });
-                            setInvaderStatuses(statusMap);
-                          } catch (error) {
-                            console.error('Error updating wishlist stats:', error);
-                          }
-                        }
-                      }} 
+                      onAddToHunt={addToHuntList}
+                      onRemoveFromHunt={removeFromHuntList}
+                      onMarkAsFound={markInvaderAsFound}
+                      onRemoveFromSaved={removeFromSavedList}
                     />
                   </div>
                 </Popup>
@@ -638,9 +591,9 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
           </button>
         </div>
         <div className="text-center text-gray-400 text-xs mt-2">
-          {activeView === 'geo' && 'ALL INVADERS • GOLD: HUNT • GREEN: FOUND • BLUE: UNMARKED'}
+          {activeView === 'geo' && 'ALL INVADERS • GOLD: HUNT • GREEN: SAVED • BLUE: UNMARKED'}
           {activeView === 'hunt' && 'INVADERS ON YOUR HUNT LIST • CLICK TO MARK AS FOUND'}
-          {activeView === 'saved' && 'INVADERS YOU HAVE FOUND • CLICK TO REMOVE FROM HUNT'}
+          {activeView === 'saved' && 'INVADERS YOU HAVE FOUND • CLICK TO REMOVE'}
         </div>
       </div>
 
