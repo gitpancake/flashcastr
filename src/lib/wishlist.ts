@@ -1,5 +1,5 @@
 // Invader Hunt Wishlist Management
-// Stores user's wishlist against their Farcaster ID
+// Stores user's wishlist in Redis via API endpoints
 
 export interface WishlistItem {
   invader_id: string; // e.g., "TK_132"
@@ -23,27 +23,39 @@ export interface UserWishlist {
   };
 }
 
-// LocalStorage key pattern
+// LocalStorage key pattern for fallback
 const WISHLIST_KEY = (fid: number) => `invader_wishlist_${fid}`;
 
-// Get user's wishlist from localStorage (will migrate to Redis API later)
-export function getWishlist(fid: number): UserWishlist {
-  if (typeof window === 'undefined') return getEmptyWishlist(fid);
-  
+// Get user's wishlist from Redis via API with localStorage fallback
+export async function getWishlist(fid: number): Promise<UserWishlist> {
   try {
-    const stored = localStorage.getItem(WISHLIST_KEY(fid));
-    if (!stored) return getEmptyWishlist(fid);
-    
-    const parsed = JSON.parse(stored) as UserWishlist;
-    return parsed;
+    const response = await fetch(`/api/wishlist?fid=${fid}`);
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('API request failed');
+    }
   } catch (error) {
-    console.error('Error loading wishlist:', error);
-    return getEmptyWishlist(fid);
+    console.error('Error loading wishlist from API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    if (typeof window === 'undefined') return getEmptyWishlist(fid);
+    
+    try {
+      const stored = localStorage.getItem(WISHLIST_KEY(fid));
+      if (!stored) return getEmptyWishlist(fid);
+      
+      const parsed = JSON.parse(stored) as UserWishlist;
+      return parsed;
+    } catch (localError) {
+      console.error('Error loading wishlist from localStorage:', localError);
+      return getEmptyWishlist(fid);
+    }
   }
 }
 
-// Save user's wishlist to localStorage
-export function saveWishlist(wishlist: UserWishlist): void {
+// Save user's wishlist to localStorage (fallback only)
+function saveWishlistLocal(wishlist: UserWishlist): void {
   if (typeof window === 'undefined') return;
   
   try {
@@ -60,8 +72,8 @@ export function saveWishlist(wishlist: UserWishlist): void {
   }
 }
 
-// Add invader to wishlist
-export function addToWishlist(
+// Add invader to wishlist via API with localStorage fallback
+export async function addToWishlist(
   fid: number, 
   invader: { 
     i: number; 
@@ -69,69 +81,151 @@ export function addToWishlist(
     l: { lat: number; lng: number }; 
     t: string; 
   }
-): UserWishlist {
-  const wishlist = getWishlist(fid);
-  
-  // Check if already in wishlist
-  const existingIndex = wishlist.items.findIndex(item => item.invader_id === invader.n);
-  
-  if (existingIndex === -1) {
-    // Add new item
-    const newItem: WishlistItem = {
-      invader_id: invader.n,
-      invader_name: invader.n,
-      photo_url: invader.t,
-      coordinates: {
-        lat: invader.l.lat,
-        lng: invader.l.lng
+): Promise<UserWishlist> {
+  try {
+    const response = await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      added_date: new Date().toISOString(),
-      status: 'want_to_find'
-    };
+      body: JSON.stringify({
+        fid,
+        action: 'add',
+        invader
+      }),
+    });
     
-    wishlist.items.push(newItem);
-  } else {
-    // Update existing item to want_to_find if it was marked found
-    wishlist.items[existingIndex].status = 'want_to_find';
-    wishlist.items[existingIndex].added_date = new Date().toISOString();
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('API request failed');
+    }
+  } catch (error) {
+    console.error('Error adding to wishlist via API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const wishlist = await getWishlist(fid);
+    
+    // Check if already in wishlist
+    const existingIndex = wishlist.items.findIndex(item => item.invader_id === invader.n);
+    
+    if (existingIndex === -1) {
+      // Add new item
+      const newItem: WishlistItem = {
+        invader_id: invader.n,
+        invader_name: invader.n,
+        photo_url: invader.t,
+        coordinates: {
+          lat: invader.l.lat,
+          lng: invader.l.lng
+        },
+        added_date: new Date().toISOString(),
+        status: 'want_to_find'
+      };
+      
+      wishlist.items.push(newItem);
+    } else {
+      // Update existing item to want_to_find if it was marked found
+      wishlist.items[existingIndex].status = 'want_to_find';
+      wishlist.items[existingIndex].added_date = new Date().toISOString();
+    }
+    
+    saveWishlistLocal(wishlist);
+    return wishlist;
   }
-  
-  saveWishlist(wishlist);
-  return wishlist;
 }
 
-// Remove invader from wishlist
-export function removeFromWishlist(fid: number, invaderId: string): UserWishlist {
-  const wishlist = getWishlist(fid);
-  wishlist.items = wishlist.items.filter(item => item.invader_id !== invaderId);
-  saveWishlist(wishlist);
-  return wishlist;
-}
-
-// Mark invader as found
-export function markAsFound(fid: number, invaderId: string): UserWishlist {
-  const wishlist = getWishlist(fid);
-  const item = wishlist.items.find(item => item.invader_id === invaderId);
-  
-  if (item) {
-    item.status = 'found';
+// Remove invader from wishlist via API with localStorage fallback
+export async function removeFromWishlist(fid: number, invaderId: string): Promise<UserWishlist> {
+  try {
+    const response = await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fid,
+        action: 'remove',
+        invaderId
+      }),
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('API request failed');
+    }
+  } catch (error) {
+    console.error('Error removing from wishlist via API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const wishlist = await getWishlist(fid);
+    wishlist.items = wishlist.items.filter(item => item.invader_id !== invaderId);
+    saveWishlistLocal(wishlist);
+    return wishlist;
   }
-  
-  saveWishlist(wishlist);
-  return wishlist;
 }
 
-// Check if invader is in wishlist
-export function isInWishlist(fid: number, invaderId: string): boolean {
-  const wishlist = getWishlist(fid);
-  return wishlist.items.some(item => item.invader_id === invaderId);
+// Mark invader as found via API with localStorage fallback
+export async function markAsFound(fid: number, invaderId: string): Promise<UserWishlist> {
+  try {
+    const response = await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fid,
+        action: 'mark_found',
+        invaderId
+      }),
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('API request failed');
+    }
+  } catch (error) {
+    console.error('Error marking as found via API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const wishlist = await getWishlist(fid);
+    const item = wishlist.items.find(item => item.invader_id === invaderId);
+    
+    if (item) {
+      item.status = 'found';
+    }
+    
+    saveWishlistLocal(wishlist);
+    return wishlist;
+  }
 }
 
-// Get invader status
-export function getInvaderStatus(fid: number, invaderId: string): 'want_to_find' | 'found' | null {
-  const wishlist = getWishlist(fid);
-  const item = wishlist.items.find(item => item.invader_id === invaderId);
-  return item ? item.status : null;
+// Check if invader is in wishlist (legacy function, use getInvaderStatus instead)
+export async function isInWishlist(fid: number, invaderId: string): Promise<boolean> {
+  const status = await getInvaderStatus(fid, invaderId);
+  return status !== null;
+}
+
+// Get invader status via API with localStorage fallback
+export async function getInvaderStatus(fid: number, invaderId: string): Promise<'want_to_find' | 'found' | null> {
+  try {
+    const response = await fetch(`/api/wishlist?fid=${fid}&invaderId=${invaderId}`);
+    if (response.ok) {
+      const result = await response.json();
+      return result.status;
+    } else {
+      throw new Error('API request failed');
+    }
+  } catch (error) {
+    console.error('Error getting invader status via API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const wishlist = await getWishlist(fid);
+    const item = wishlist.items.find(item => item.invader_id === invaderId);
+    return item ? item.status : null;
+  }
 }
 
 // Helper to create empty wishlist
@@ -147,15 +241,32 @@ function getEmptyWishlist(fid: number): UserWishlist {
   };
 }
 
-// Get wishlist stats for display
-export function getWishlistStats(fid: number) {
-  const wishlist = getWishlist(fid);
-  return {
-    totalWanted: wishlist.stats.total_wanted,
-    totalFound: wishlist.stats.total_found,
-    totalItems: wishlist.items.length,
-    completionRate: wishlist.stats.total_wanted > 0 
-      ? Math.round((wishlist.stats.total_found / (wishlist.stats.total_wanted + wishlist.stats.total_found)) * 100)
-      : 0
-  };
+// Get wishlist stats via API with localStorage fallback
+export async function getWishlistStats(fid: number): Promise<{
+  totalWanted: number;
+  totalFound: number;
+  totalItems: number;
+  completionRate: number;
+}> {
+  try {
+    const response = await fetch(`/api/wishlist?fid=${fid}&stats=true`);
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('API request failed');
+    }
+  } catch (error) {
+    console.error('Error getting wishlist stats via API, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const wishlist = await getWishlist(fid);
+    return {
+      totalWanted: wishlist.stats.total_wanted,
+      totalFound: wishlist.stats.total_found,
+      totalItems: wishlist.items.length,
+      completionRate: wishlist.stats.total_wanted > 0 
+        ? Math.round((wishlist.stats.total_found / (wishlist.stats.total_wanted + wishlist.stats.total_found)) * 100)
+        : 0
+    };
+  }
 }

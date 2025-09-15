@@ -20,11 +20,19 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
   // Load wishlist data
   useEffect(() => {
     if (farcasterFid) {
-      const wishlist = getWishlist(farcasterFid);
-      setWishlistItems(wishlist.items);
+      const loadWishlist = async () => {
+        try {
+          const wishlist = await getWishlist(farcasterFid);
+          setWishlistItems(wishlist.items);
+          
+          const wishlistStats = await getWishlistStats(farcasterFid);
+          setStats(wishlistStats);
+        } catch (error) {
+          console.error('Error loading wishlist:', error);
+        }
+      };
       
-      const wishlistStats = getWishlistStats(farcasterFid);
-      setStats(wishlistStats);
+      loadWishlist();
     }
   }, [farcasterFid]);
 
@@ -35,26 +43,36 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
   });
 
   // Handle item actions
-  const handleMarkAsFound = (invaderId: string) => {
+  const handleMarkAsFound = async (invaderId: string) => {
     if (!farcasterFid) return;
     
-    markAsFound(farcasterFid, invaderId);
-    
-    // Reload data
-    const wishlist = getWishlist(farcasterFid);
-    setWishlistItems(wishlist.items);
-    setStats(getWishlistStats(farcasterFid));
+    try {
+      await markAsFound(farcasterFid, invaderId);
+      
+      // Reload data
+      const wishlist = await getWishlist(farcasterFid);
+      setWishlistItems(wishlist.items);
+      const wishlistStats = await getWishlistStats(farcasterFid);
+      setStats(wishlistStats);
+    } catch (error) {
+      console.error('Error marking as found:', error);
+    }
   };
 
-  const handleRemoveFromWishlist = (invaderId: string) => {
+  const handleRemoveFromWishlist = async (invaderId: string) => {
     if (!farcasterFid) return;
     
-    removeFromWishlist(farcasterFid, invaderId);
-    
-    // Reload data
-    const wishlist = getWishlist(farcasterFid);
-    setWishlistItems(wishlist.items);
-    setStats(getWishlistStats(farcasterFid));
+    try {
+      await removeFromWishlist(farcasterFid, invaderId);
+      
+      // Reload data
+      const wishlist = await getWishlist(farcasterFid);
+      setWishlistItems(wishlist.items);
+      const wishlistStats = await getWishlistStats(farcasterFid);
+      setStats(wishlistStats);
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+    }
   };
 
   const handleNavigate = (item: WishlistItem) => {

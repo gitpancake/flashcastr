@@ -64,30 +64,43 @@ function WishlistButton({ invader, fid, onStatusChange }: {
 
   useEffect(() => {
     if (fid) {
-      setStatus(getInvaderStatus(fid, invader.n));
+      const loadStatus = async () => {
+        try {
+          const status = await getInvaderStatus(fid, invader.n);
+          setStatus(status);
+        } catch (error) {
+          console.error('Error loading invader status:', error);
+        }
+      };
+      
+      loadStatus();
     }
   }, [fid, invader.n]);
 
-  const handleToggleWishlist = () => {
+  const handleToggleWishlist = async () => {
     if (!fid) return;
     
-    if (status === null) {
-      // Add to wishlist
-      addToWishlist(fid, invader);
-      setStatus('want_to_find');
-    } else if (status === 'want_to_find') {
-      // Mark as found
-      markAsFound(fid, invader.n);
-      setStatus('found');
-    } else {
-      // Remove from wishlist
-      removeFromWishlist(fid, invader.n);
-      setStatus(null);
-    }
-    
-    // Notify parent of status change
-    if (onStatusChange) {
-      onStatusChange();
+    try {
+      if (status === null) {
+        // Add to wishlist
+        await addToWishlist(fid, invader);
+        setStatus('want_to_find');
+      } else if (status === 'want_to_find') {
+        // Mark as found
+        await markAsFound(fid, invader.n);
+        setStatus('found');
+      } else {
+        // Remove from wishlist
+        await removeFromWishlist(fid, invader.n);
+        setStatus(null);
+      }
+      
+      // Notify parent of status change
+      if (onStatusChange) {
+        onStatusChange();
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
     }
   };
 
@@ -209,7 +222,16 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   // Update wishlist stats when fid changes
   useEffect(() => {
     if (farcasterFid) {
-      setWishlistStats(getWishlistStats(farcasterFid));
+      const loadStats = async () => {
+        try {
+          const stats = await getWishlistStats(farcasterFid);
+          setWishlistStats(stats);
+        } catch (error) {
+          console.error('Error loading wishlist stats:', error);
+        }
+      };
+      
+      loadStats();
     }
   }, [farcasterFid]);
 
@@ -436,9 +458,14 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                     <WishlistButton 
                       invader={invader} 
                       fid={farcasterFid} 
-                      onStatusChange={() => {
+                      onStatusChange={async () => {
                         if (farcasterFid) {
-                          setWishlistStats(getWishlistStats(farcasterFid));
+                          try {
+                            const stats = await getWishlistStats(farcasterFid);
+                            setWishlistStats(stats);
+                          } catch (error) {
+                            console.error('Error updating wishlist stats:', error);
+                          }
                         }
                       }} 
                     />
