@@ -34,3 +34,12 @@
 .leaflet-container-dark .leaflet-popup-close-button:hover {
   color: #fff !important;
 }
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

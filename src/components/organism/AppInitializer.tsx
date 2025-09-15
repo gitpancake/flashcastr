@@ -7,9 +7,7 @@ import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
-import { Favorites } from "~/components/molecule/Favorites";
 import { InvaderMap } from "~/components/molecule/InvaderMap";
-import { WishlistView } from "~/components/molecule/WishlistView";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
@@ -102,11 +100,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     }
   };
 
-  // Handle navigation from wishlist to map
-  const handleNavigateToInvader = (lat: number, lng: number, invaderId: string) => {
-    setMapTargetLocation({ lat, lng, invaderId });
-    setActiveTab('map');
-  };
 
   if (showSetupFlow) {
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;

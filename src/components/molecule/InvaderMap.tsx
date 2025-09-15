@@ -72,14 +72,21 @@ function createCustomIcon(status: 'want_to_find' | 'found' | null) {
     </svg>
   `;
   
-  if (typeof window !== 'undefined' && window.L) {
-    return window.L.divIcon({
-      html: svgIcon,
-      className: 'custom-marker',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-      popupAnchor: [0, -10]
-    });
+  if (typeof window !== 'undefined') {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const L = require('leaflet');
+      return L.divIcon({
+        html: svgIcon,
+        className: 'custom-marker',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10]
+      });
+    } catch {
+      console.warn('Leaflet not available for custom markers');
+      return null;
+    }
   }
   
   return null;
