@@ -9,6 +9,7 @@ import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
 import { Favorites } from "~/components/molecule/Favorites";
 import { InvaderMap } from "~/components/molecule/InvaderMap";
+import { WishlistView } from "~/components/molecule/WishlistView";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
@@ -42,6 +43,13 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  
+  // Map navigation state for wishlist integration
+  const [mapTargetLocation, setMapTargetLocation] = useState<{
+    lat: number;
+    lng: number;
+    invaderId: string;
+  } | null>(null);
 
   const handleTabChange = (tab: NavTab) => {
     // If achievements tab is selected but user doesn't have context, redirect to feed
@@ -93,6 +101,12 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     }
   };
 
+  // Handle navigation from wishlist to map
+  const handleNavigateToInvader = (lat: number, lng: number, invaderId: string) => {
+    setMapTargetLocation({ lat, lng, invaderId });
+    setActiveTab('map');
+  };
+
   if (showSetupFlow) {
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
   }
@@ -115,12 +129,14 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
         return <GlobalFlashes />;
       case 'favorites':
         return <Favorites />;
+      case 'wishlist':
+        return <WishlistView onNavigateToInvader={handleNavigateToInvader} />;
       case 'leaderboard':
         return <Leaderboard users={leaderboardUsers} currentUserFid={farcasterFid} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
       case 'map':
-        return <InvaderMap />;
+        return <InvaderMap targetLocation={mapTargetLocation} onLocationTargeted={() => setMapTargetLocation(null)} />;
       default:
         return <Feed initialFlashes={initialFlashes} />;
     }

@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import type { Map as LeafletMap } from "leaflet";
+import { useFrame } from "~/components/providers/FrameProvider";
+import { addToWishlist, removeFromWishlist, markAsFound, getInvaderStatus, getWishlistStats } from "~/lib/wishlist";
 
 // Import Leaflet CSS in the component
 import "leaflet/dist/leaflet.css";
@@ -52,7 +54,97 @@ function isInViewport(invader: InvaderLocation, bounds: { north: number; south: 
 }
 
 
-export function InvaderMap() {
+// Wishlist Button Component
+function WishlistButton({ invader, fid, onStatusChange }: { 
+  invader: InvaderLocation; 
+  fid: number | undefined;
+  onStatusChange?: () => void;
+}) {
+  const [status, setStatus] = useState<'want_to_find' | 'found' | null>(null);
+
+  useEffect(() => {
+    if (fid) {
+      setStatus(getInvaderStatus(fid, invader.n));
+    }
+  }, [fid, invader.n]);
+
+  const handleToggleWishlist = () => {
+    if (!fid) return;
+    
+    if (status === null) {
+      // Add to wishlist
+      addToWishlist(fid, invader);
+      setStatus('want_to_find');
+    } else if (status === 'want_to_find') {
+      // Mark as found
+      markAsFound(fid, invader.n);
+      setStatus('found');
+    } else {
+      // Remove from wishlist
+      removeFromWishlist(fid, invader.n);
+      setStatus(null);
+    }
+    
+    // Notify parent of status change
+    if (onStatusChange) {
+      onStatusChange();
+    }
+  };
+
+  if (!fid) return null; // Only show for logged-in users
+
+  const getButtonConfig = () => {
+    switch (status) {
+      case null:
+        return {
+          text: '+ ADD TO HUNT LIST',
+          className: 'bg-green-400 text-black border-green-400 hover:bg-green-300',
+          icon: '🎯'
+        };
+      case 'want_to_find':
+        return {
+          text: '✓ MARK AS FOUND',
+          className: 'bg-yellow-500 text-black border-yellow-500 hover:bg-yellow-400',
+          icon: '✅'
+        };
+      case 'found':
+        return {
+          text: '✓ FOUND',
+          className: 'bg-gray-600 text-white border-gray-600 hover:bg-red-500 hover:text-white',
+          icon: '✅'
+        };
+    }
+  };
+
+  const config = getButtonConfig();
+
+  return (
+    <button
+      onClick={handleToggleWishlist}
+      className={`
+        w-full mt-2 px-2 py-1 text-[10px] font-bold border transition-all duration-200
+        ${config.className}
+      `}
+      title={status === 'found' ? 'Click to remove from hunt list' : ''}
+    >
+      {config.icon} {config.text}
+    </button>
+  );
+}
+
+interface InvaderMapProps {
+  targetLocation?: {
+    lat: number;
+    lng: number;
+    invaderId: string;
+  } | null;
+  onLocationTargeted?: () => void;
+}
+
+export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapProps = {}) {
+  const { context } = useFrame();
+  const farcasterFid = context?.user?.fid;
+  
   const [allInvaders, setAllInvaders] = useState<InvaderLocation[]>([]);
   const [visibleInvaders, setVisibleInvaders] = useState<InvaderLocation[]>([]);
   const [filteredInvaders, setFilteredInvaders] = useState<InvaderLocation[]>([]);
@@ -61,6 +153,7 @@ export function InvaderMap() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [showAllCities, setShowAllCities] = useState(false);
   const [map, setMap] = useState<LeafletMap | null>(null);
+  const [wishlistStats, setWishlistStats] = useState({ totalWanted: 0, totalFound: 0, totalItems: 0, completionRate: 0 });
   
   // Popular cities with coordinates for navigation
   const popularCities = useMemo(() => [
@@ -113,6 +206,13 @@ export function InvaderMap() {
     loadLeaflet();
   }, []);
 
+  // Update wishlist stats when fid changes
+  useEffect(() => {
+    if (farcasterFid) {
+      setWishlistStats(getWishlistStats(farcasterFid));
+    }
+  }, [farcasterFid]);
+
   // Handle city navigation
   const handleCitySelect = useCallback((cityName: string) => {
     if (selectedCity === cityName) {
@@ -132,6 +232,20 @@ export function InvaderMap() {
       }
     }
   }, [selectedCity, map, allInvaders, popularCities]);
+
+  // Handle target location from wishlist navigation
+  useEffect(() => {
+    if (targetLocation && map && onLocationTargeted) {
+      // Navigate to the target location
+      map.setView([targetLocation.lat, targetLocation.lng], 16); // Close zoom for specific invader
+      
+      // Find and highlight the specific invader (future enhancement: could open popup automatically)
+      // For now, just navigate to the location
+      
+      // Clear the target location
+      onLocationTargeted();
+    }
+  }, [targetLocation, map, onLocationTargeted]);
 
   // Handle viewport changes to filter visible invaders from filtered set
   const handleViewportChange = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
@@ -172,12 +286,17 @@ export function InvaderMap() {
         <div className="text-green-400 text-lg sm:text-xl font-bold mb-2">
           INVADER LOCATIONS MAP
         </div>
-        <div className="text-gray-400 text-sm">
+        <div className="text-gray-400 text-sm mb-2">
           {selectedCity 
             ? `NAVIGATED TO ${selectedCity.toUpperCase()} • SHOWING ${visibleInvaders.length} OF ${allInvaders.length} INVADERS`
             : `SHOWING ${visibleInvaders.length} OF ${allInvaders.length} SPACE INVADER${allInvaders.length !== 1 ? "S" : ""} WORLDWIDE`
           }
         </div>
+        {farcasterFid && wishlistStats.totalItems > 0 && (
+          <div className="text-cyan-400 text-xs mb-2">
+            🎯 YOUR HUNT: {wishlistStats.totalWanted} TO FIND • ✅ {wishlistStats.totalFound} FOUND • {wishlistStats.completionRate}% COMPLETE
+          </div>
+        )}
         {visibleInvaders.length < allInvaders.length && !selectedCity && (
           <div className="text-cyan-400 text-xs mt-1">
             ZOOM OUT OR PAN TO SEE MORE INVADERS
@@ -309,11 +428,20 @@ export function InvaderMap() {
                       height={200}
                       className="mb-2 rounded border"
                     />
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-gray-600 mb-2">
                       ID: {invader.i}<br />
                       LAT: {invader.l.lat.toFixed(6)}<br />
                       LNG: {invader.l.lng.toFixed(6)}
                     </div>
+                    <WishlistButton 
+                      invader={invader} 
+                      fid={farcasterFid} 
+                      onStatusChange={() => {
+                        if (farcasterFid) {
+                          setWishlistStats(getWishlistStats(farcasterFid));
+                        }
+                      }} 
+                    />
                   </div>
                 </Popup>
               </Marker>
