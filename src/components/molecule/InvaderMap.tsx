@@ -99,17 +99,15 @@ function InvaderActionButton({
   fid, 
   currentStatus,
   onAddToHunt,
-  onRemoveFromHunt,
   onMarkAsFound,
   onRemoveFromSaved
 }: { 
   invader: InvaderLocation; 
   fid: number | undefined;
   currentStatus: 'hunt' | 'saved' | null;
-  onAddToHunt: (invader: any) => Promise<any>;
-  onRemoveFromHunt: (invaderId: string) => Promise<any>;
-  onMarkAsFound: (invaderId: string) => Promise<any>;
-  onRemoveFromSaved: (invaderId: string) => Promise<any>;
+  onAddToHunt: (invader: InvaderLocation) => Promise<unknown>;
+  onMarkAsFound: (invaderId: string) => Promise<unknown>;
+  onRemoveFromSaved: (invaderId: string) => Promise<unknown>;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -230,10 +228,7 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     huntList,
     savedList,
     statusMap,
-    loading: mapDataLoading,
-    error: mapDataError,
     addToHuntList,
-    removeFromHuntList,
     markInvaderAsFound,
     removeFromSavedList,
   } = useMapData(farcasterFid);
@@ -536,7 +531,6 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                       fid={farcasterFid} 
                       currentStatus={status}
                       onAddToHunt={addToHuntList}
-                      onRemoveFromHunt={removeFromHuntList}
                       onMarkAsFound={markInvaderAsFound}
                       onRemoveFromSaved={removeFromSavedList}
                     />
