@@ -2,7 +2,7 @@
 
 import { FEATURES } from "~/lib/constants";
 
-export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'favorites' | 'map' | 'wishlist';
+export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map' | 'favorites' | 'wishlist';
 
 interface RetroNavProps {
   activeTab: NavTab;
@@ -17,8 +17,6 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
   const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
     { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
-    { id: 'favorites' as NavTab, label: 'SAVED', icon: '*', key: 'S' },
-    { id: 'wishlist' as NavTab, label: 'HUNT', icon: 'H', key: 'H' },
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
   ];
 
