@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Feed from "~/components/molecule/Feed";
 import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
@@ -52,7 +52,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     invaderId: string;
   } | null>(null);
 
-  const handleTabChange = (tab: NavTab) => {
+  const handleTabChange = useCallback((tab: NavTab) => {
     // If achievements tab is selected but user doesn't have context, redirect to feed
     if (tab === 'achievements' && !hasUserContext) {
       setActiveTab('feed');
@@ -65,7 +65,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       return;
     }
     setActiveTab(tab);
-  };
+  }, [hasUserContext, farcasterFid]);
 
   useEffect(() => {
     registerTabHandler(handleTabChange);
