@@ -2,7 +2,7 @@
 
 import { FEATURES } from "~/lib/constants";
 
-export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map' | 'favorites' | 'wishlist';
+export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map';
 
 interface RetroNavProps {
   activeTab: NavTab;

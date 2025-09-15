@@ -20,7 +20,6 @@ import { FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { User } from "~/lib/api.flashcastr.app/users";
 import { UserProgress } from "~/lib/badges";
 import { FEATURES } from "~/lib/constants";
-import { registerTabHandler, unregisterTabHandler } from "~/lib/navigation";
 import Setup from "./Setup";
 
 const SETUP_SKIPPED_STORAGE_KEY = "flashcastr_setup_skipped";
@@ -67,10 +66,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     setActiveTab(tab);
   }, [hasUserContext, farcasterFid]);
 
-  useEffect(() => {
-    registerTabHandler(handleTabChange);
-    return () => unregisterTabHandler();
-  }, [handleTabChange]);
 
   // If user is on achievements tab but loses context, redirect to feed
   // If user is on map tab but is not FID 732, redirect to feed
@@ -133,10 +128,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
         return <Feed initialFlashes={initialFlashes} />;
       case 'global':
         return <GlobalFlashes />;
-      case 'favorites':
-        return <Favorites />;
-      case 'wishlist':
-        return <WishlistView onNavigateToInvader={handleNavigateToInvader} />;
       case 'leaderboard':
         return <Leaderboard users={leaderboardUsers} currentUserFid={farcasterFid} />;
       case 'achievements':

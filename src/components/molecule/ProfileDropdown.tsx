@@ -3,9 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useFrame } from "../providers/FrameProvider";
-import { navigateToTab } from "~/lib/navigation";
-
-type NavTab = 'favorites' | 'wishlist';
 
 interface ProfileDropdownProps {
   className?: string;
@@ -29,19 +26,13 @@ export function ProfileDropdown({ className = "" }: ProfileDropdownProps) {
 
   if (!context) return null;
 
-  const handleNavigation = (action: 'profile' | NavTab) => {
+  const handleNavigation = () => {
     setIsOpen(false);
-    if (action === 'profile') {
-      window.location.href = '/profile';
-    } else {
-      navigateToTab(action);
-    }
+    window.location.href = '/profile';
   };
 
   const menuItems = [
     { id: 'profile', label: 'PROFILE', key: 'P', action: 'profile' as const },
-    { id: 'hunt', label: 'HUNT', key: 'H', action: 'wishlist' as const },
-    { id: 'saved', label: 'SAVED', key: 'S', action: 'favorites' as const },
   ];
 
   return (
@@ -64,7 +55,7 @@ export function ProfileDropdown({ className = "" }: ProfileDropdownProps) {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => handleNavigation(item.action)}
+              onClick={handleNavigation}
               className="block w-full text-left px-3 py-2 text-green-400 hover:bg-gray-800 text-xs transition-colors duration-200 border-b border-gray-700 last:border-b-0"
             >
               [{item.key}] {item.label}

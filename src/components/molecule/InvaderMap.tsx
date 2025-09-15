@@ -53,6 +53,38 @@ function isInViewport(invader: InvaderLocation, bounds: { north: number; south: 
   );
 }
 
+// Create custom colored markers based on status
+function createCustomIcon(status: 'want_to_find' | 'found' | null) {
+  const colors = {
+    'want_to_find': '#FFD700', // Gold
+    'found': '#10B981', // Green  
+    'unmarked': '#3B82F6' // Blue
+  };
+  
+  const statusKey = status === null ? 'unmarked' : status;
+  const color = colors[statusKey];
+  
+  // Create small SVG marker
+  const svgIcon = `
+    <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="8" fill="${color}" stroke="#000" stroke-width="2"/>
+      <circle cx="10" cy="10" r="4" fill="#000"/>
+    </svg>
+  `;
+  
+  if (typeof window !== 'undefined' && window.L) {
+    return window.L.divIcon({
+      html: svgIcon,
+      className: 'custom-marker',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -10]
+    });
+  }
+  
+  return null;
+}
+
 
 // Wishlist Button Component
 function WishlistButton({ invader, fid, onStatusChange }: { 
@@ -163,6 +195,8 @@ function WishlistButton({ invader, fid, onStatusChange }: {
   );
 }
 
+type MapView = 'geo' | 'hunt' | 'saved';
+
 interface InvaderMapProps {
   targetLocation?: {
     lat: number;
@@ -185,6 +219,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   const [showAllCities, setShowAllCities] = useState(false);
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [wishlistStats, setWishlistStats] = useState({ totalWanted: 0, totalFound: 0, totalItems: 0, completionRate: 0 });
+  const [activeView, setActiveView] = useState<MapView>('geo');
+  const [invaderStatuses, setInvaderStatuses] = useState<Record<string, 'want_to_find' | 'found' | null>>({});
   
   // Popular cities with coordinates for navigation
   const popularCities = useMemo(() => [
@@ -237,21 +273,56 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     loadLeaflet();
   }, []);
 
-  // Update wishlist stats when fid changes
+  // Update wishlist stats and invader statuses when fid changes
   useEffect(() => {
-    if (farcasterFid) {
-      const loadStats = async () => {
+    if (farcasterFid && allInvaders.length > 0) {
+      const loadStatsAndStatuses = async () => {
         try {
           const stats = await getWishlistStats(farcasterFid);
           setWishlistStats(stats);
+
+          // Load status for each invader
+          const statusPromises = allInvaders.map(async (invader) => {
+            try {
+              const status = await getInvaderStatus(farcasterFid, invader.n);
+              return { id: invader.n, status };
+            } catch (error) {
+              console.error(`Error loading status for ${invader.n}:`, error);
+              return { id: invader.n, status: null };
+            }
+          });
+
+          const statuses = await Promise.all(statusPromises);
+          const statusMap: Record<string, 'want_to_find' | 'found' | null> = {};
+          statuses.forEach(({ id, status }) => {
+            statusMap[id] = status;
+          });
+          setInvaderStatuses(statusMap);
         } catch (error) {
           console.error('Error loading wishlist stats:', error);
         }
       };
       
-      loadStats();
+      loadStatsAndStatuses();
     }
-  }, [farcasterFid]);
+  }, [farcasterFid, allInvaders]);
+
+  // Filter invaders based on active view
+  useEffect(() => {
+    let filtered = allInvaders;
+    
+    if (activeView === 'hunt') {
+      // Show only invaders that are marked as "want_to_find"
+      filtered = allInvaders.filter(invader => invaderStatuses[invader.n] === 'want_to_find');
+    } else if (activeView === 'saved') {
+      // Show only invaders that are marked as "found"  
+      filtered = allInvaders.filter(invader => invaderStatuses[invader.n] === 'found');
+    }
+    // 'geo' shows all invaders (default)
+    
+    setFilteredInvaders(filtered);
+    setVisibleInvaders(filtered);
+  }, [activeView, allInvaders, invaderStatuses]);
 
   // Handle city navigation
   const handleCitySelect = useCallback((cityName: string) => {
@@ -348,6 +419,54 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
             CLICK &quot;{selectedCity.toUpperCase()}&quot; AGAIN OR &quot;SHOW ALL&quot; TO RETURN TO GLOBAL VIEW
           </div>
         )}
+      </div>
+
+      {/* View Switcher */}
+      <div className="mb-4 bg-gray-900 border border-green-400 p-2">
+        <div className="text-green-400 text-xs font-bold mb-2">MAP VIEW</div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setActiveView('geo')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'geo' 
+                ? 'bg-green-400 text-black border-green-400' 
+                : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
+              }
+            `}
+          >
+            [G] GEO
+          </button>
+          <button
+            onClick={() => setActiveView('hunt')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'hunt' 
+                ? 'bg-yellow-400 text-black border-yellow-400' 
+                : 'bg-transparent text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black'
+              }
+            `}
+          >
+            [H] HUNT
+          </button>
+          <button
+            onClick={() => setActiveView('saved')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'saved' 
+                ? 'bg-cyan-400 text-black border-cyan-400' 
+                : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
+              }
+            `}
+          >
+            [S] SAVED
+          </button>
+        </div>
+        <div className="text-gray-400 text-xs mt-2">
+          {activeView === 'geo' && 'ALL INVADERS • GOLD: HUNT • GREEN: FOUND • BLUE: UNMARKED'}
+          {activeView === 'hunt' && 'INVADERS ON YOUR HUNT LIST • CLICK TO MARK AS FOUND'}
+          {activeView === 'saved' && 'INVADERS YOU HAVE FOUND • CLICK TO REMOVE FROM HUNT'}
+        </div>
       </div>
 
       {/* City Filter */}
@@ -451,11 +570,16 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {visibleInvaders.map((invader) => (
-              <Marker
-                key={invader.i}
-                position={[invader.l.lat, invader.l.lng]}
-              >
+            {visibleInvaders.map((invader) => {
+              const status = invaderStatuses[invader.n] || null;
+              const customIcon = createCustomIcon(status);
+              
+              return (
+                <Marker
+                  key={invader.i}
+                  position={[invader.l.lat, invader.l.lng]}
+                  icon={customIcon || undefined}
+                >
                 <Popup>
                   <div className="text-center font-mono">
                     <div className="font-bold text-green-600 mb-2">
@@ -481,6 +605,13 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                           try {
                             const stats = await getWishlistStats(farcasterFid);
                             setWishlistStats(stats);
+                            
+                            // Reload this specific invader's status
+                            const newStatus = await getInvaderStatus(farcasterFid, invader.n);
+                            setInvaderStatuses(prev => ({
+                              ...prev,
+                              [invader.n]: newStatus
+                            }));
                           } catch (error) {
                             console.error('Error updating wishlist stats:', error);
                           }
@@ -490,7 +621,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                   </div>
                 </Popup>
               </Marker>
-            ))}
+              );
+            })}
           </MapContainer>
         </div>
       </div>
