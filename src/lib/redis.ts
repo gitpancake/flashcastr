@@ -172,3 +172,144 @@ export async function closeRedisConnection() {
     client = null;
   }
 }
+
+// ================== FAVORITES MANAGEMENT ==================
+
+export interface FavoriteFlash {
+  flash_id: number;
+  player: string;
+  city: string;
+  timestamp: number;
+  img?: string;
+  ipfs_cid?: string;
+  text?: string;
+  addedAt: number;
+}
+
+export interface UserFavorites {
+  fid: number;
+  favorites: FavoriteFlash[];
+  stats: {
+    total_count: number;
+    last_updated: string;
+  };
+}
+
+// Redis key pattern for favorites
+const FAVORITES_KEY = (fid: number) => `favorites:${fid}`;
+
+// Get user's favorites from Redis
+export async function getFavoritesFromRedis(fid: number): Promise<UserFavorites> {
+  try {
+    const client = await getRedisClient();
+    const stored = await client.get(FAVORITES_KEY(fid));
+    
+    if (!stored) {
+      return getEmptyFavorites(fid);
+    }
+    
+    const parsed = JSON.parse(stored) as UserFavorites;
+    return parsed;
+  } catch (error) {
+    console.error('Error loading favorites from Redis:', error);
+    return getEmptyFavorites(fid);
+  }
+}
+
+// Save user's favorites to Redis
+export async function saveFavoritesToRedis(favorites: UserFavorites): Promise<void> {
+  try {
+    const client = await getRedisClient();
+    
+    // Update stats
+    favorites.stats = {
+      total_count: favorites.favorites.length,
+      last_updated: new Date().toISOString()
+    };
+    
+    await client.set(FAVORITES_KEY(favorites.fid), JSON.stringify(favorites));
+  } catch (error) {
+    console.error('Error saving favorites to Redis:', error);
+    throw error;
+  }
+}
+
+// Add flash to favorites in Redis
+export async function addToFavoritesRedis(fid: number, flash: Omit<FavoriteFlash, 'addedAt'>): Promise<boolean> {
+  try {
+    const userFavorites = await getFavoritesFromRedis(fid);
+    
+    // Check if already in favorites
+    const exists = userFavorites.favorites.some(fav => fav.flash_id === flash.flash_id);
+    if (exists) {
+      return false; // Already exists
+    }
+    
+    // Add new favorite
+    const newFavorite: FavoriteFlash = {
+      ...flash,
+      addedAt: Date.now()
+    };
+    
+    userFavorites.favorites.push(newFavorite);
+    await saveFavoritesToRedis(userFavorites);
+    return true;
+  } catch (error) {
+    console.error('Error adding to favorites in Redis:', error);
+    throw error;
+  }
+}
+
+// Remove flash from favorites in Redis
+export async function removeFromFavoritesRedis(fid: number, flashId: number): Promise<boolean> {
+  try {
+    const userFavorites = await getFavoritesFromRedis(fid);
+    const originalLength = userFavorites.favorites.length;
+    
+    userFavorites.favorites = userFavorites.favorites.filter(fav => fav.flash_id !== flashId);
+    
+    if (userFavorites.favorites.length === originalLength) {
+      return false; // Item wasn't found
+    }
+    
+    await saveFavoritesToRedis(userFavorites);
+    return true;
+  } catch (error) {
+    console.error('Error removing from favorites in Redis:', error);
+    throw error;
+  }
+}
+
+// Check if flash is in favorites
+export async function isFavoriteRedis(fid: number, flashId: number): Promise<boolean> {
+  try {
+    const userFavorites = await getFavoritesFromRedis(fid);
+    return userFavorites.favorites.some(fav => fav.flash_id === flashId);
+  } catch (error) {
+    console.error('Error checking favorite status in Redis:', error);
+    return false;
+  }
+}
+
+// Get favorites count from Redis
+export async function getFavoritesCountRedis(fid: number): Promise<number> {
+  try {
+    const userFavorites = await getFavoritesFromRedis(fid);
+    return userFavorites.favorites.length;
+  } catch (error) {
+    console.error('Error getting favorites count from Redis:', error);
+    return 0;
+  }
+}
+
+// Helper to create empty favorites
+function getEmptyFavorites(fid: number): UserFavorites {
+  return {
+    fid,
+    favorites: [],
+    stats: {
+      total_count: 0,
+      last_updated: new Date().toISOString()
+    }
+  };
+}

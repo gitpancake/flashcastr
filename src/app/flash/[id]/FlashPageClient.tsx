@@ -7,6 +7,7 @@ import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import { shareToFarcaster, shareToTwitter, copyToClipboard } from "~/lib/share";
 import { addToFavorites, removeFromFavorites, isFavorite } from "~/lib/favorites";
+import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
 
 interface FlashPageClientProps {
@@ -16,13 +17,26 @@ interface FlashPageClientProps {
 
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
   const router = useRouter();
+  const { context } = useFrame();
+  const farcasterFid = context?.user?.fid;
+  
   const [isInFavorites, setIsInFavorites] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
-    setIsInFavorites(isFavorite(flash.flash_id));
-  }, [flash.flash_id]);
+    const checkFavoriteStatus = async () => {
+      try {
+        const isFav = await isFavorite(flash.flash_id, farcasterFid);
+        setIsInFavorites(isFav);
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      }
+    };
+    
+    checkFavoriteStatus();
+  }, [flash.flash_id, farcasterFid]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -32,21 +46,30 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     }
   };
 
-  const handleFavoriteToggle = () => {
-    const success = isInFavorites 
-      ? removeFromFavorites(flash.flash_id)
-      : addToFavorites({
-          flash_id: flash.flash_id,
-          player: flash.player,
-          city: flash.city,
-          timestamp: flash.timestamp,
-          img: flash.img,
-          ipfs_cid: flash.ipfs_cid,
-          text: flash.text,
-        });
+  const handleFavoriteToggle = async () => {
+    if (favoriteLoading) return;
+    
+    setFavoriteLoading(true);
+    try {
+      const success = isInFavorites 
+        ? await removeFromFavorites(flash.flash_id, farcasterFid)
+        : await addToFavorites({
+            flash_id: flash.flash_id,
+            player: flash.player,
+            city: flash.city,
+            timestamp: flash.timestamp,
+            img: flash.img,
+            ipfs_cid: flash.ipfs_cid,
+            text: flash.text,
+          }, farcasterFid);
 
-    if (success) {
-      setIsInFavorites(!isInFavorites);
+      if (success) {
+        setIsInFavorites(!isInFavorites);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -87,14 +110,32 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
         {/* Favorite Button */}
         <button
           onClick={handleFavoriteToggle}
+          disabled={favoriteLoading || !farcasterFid}
           className={`p-2 border-2 transition-all duration-200 font-bold text-xs ${
-            isInFavorites
+            !farcasterFid
+              ? 'border-gray-700 text-gray-600 cursor-not-allowed'
+              : favoriteLoading
+              ? 'border-gray-600 text-gray-500'
+              : isInFavorites
               ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10'
               : 'border-gray-600 text-gray-400 hover:border-yellow-400 hover:text-yellow-400'
           }`}
-          title={isInFavorites ? 'Remove from favorites' : 'Add to favorites'}
+          title={
+            !farcasterFid 
+              ? 'Sign in with Farcaster to save flashes' 
+              : favoriteLoading
+              ? 'Loading...'
+              : isInFavorites 
+              ? 'Remove from favorites' 
+              : 'Add to favorites'
+          }
         >
-          {isInFavorites ? '[★] SAVED' : '[☆] SAVE'}
+          {favoriteLoading 
+            ? '[...] LOADING'
+            : isInFavorites 
+            ? '[*] SAVED' 
+            : '[+] SAVE'
+          }
         </button>
 
         {/* Share Button */}
@@ -116,7 +157,7 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
                 }}
                 className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
               >
-                [🟪] FARCASTER
+                [FC] FARCASTER
               </button>
               <button
                 onClick={() => {
@@ -125,13 +166,13 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
                 }}
                 className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
               >
-                [🐦] TWITTER
+                [TW] TWITTER
               </button>
               <button
                 onClick={handleCopyLink}
                 className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
               >
-                [📋] COPY LINK
+                [CP] COPY LINK
               </button>
             </div>
           )}
@@ -141,7 +182,7 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
       {/* Copy Success Message */}
       {copySuccess && (
         <div className="mb-4 p-2 bg-green-900 border border-green-400 text-green-400 text-xs">
-          ✓ COPIED TO CLIPBOARD
+          [OK] COPIED TO CLIPBOARD
         </div>
       )}
 

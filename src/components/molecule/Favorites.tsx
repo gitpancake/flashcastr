@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getFavorites, removeFromFavorites, type FavoriteFlash } from "~/lib/favorites";
+import { useFrame } from "~/components/providers/FrameProvider";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { fromUnixTime } from "date-fns";
@@ -12,17 +13,28 @@ import SearchBar from "./SearchBar";
 
 export function Favorites() {
   const router = useRouter();
+  const { context } = useFrame();
+  const farcasterFid = context?.user?.fid;
+  
   const [favorites, setFavorites] = useState<FavoriteFlash[]>([]);
   const [filteredFavorites, setFilteredFavorites] = useState<FavoriteFlash[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'city' | 'player'>('newest');
+  const [loading, setLoading] = useState(true);
 
   // Load favorites on mount
   useEffect(() => {
-    const loadFavorites = () => {
-      const favs = getFavorites();
-      setFavorites(favs);
-      setFilteredFavorites(favs);
+    const loadFavorites = async () => {
+      setLoading(true);
+      try {
+        const favs = await getFavorites(farcasterFid);
+        setFavorites(favs);
+        setFilteredFavorites(favs);
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadFavorites();
@@ -32,7 +44,7 @@ export function Favorites() {
     window.addEventListener('focus', handleFocus);
     
     return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+  }, [farcasterFid]);
 
   // Filter and sort favorites
   useEffect(() => {
@@ -67,12 +79,16 @@ export function Favorites() {
     setFilteredFavorites(filtered);
   }, [favorites, searchTerm, sortBy]);
 
-  const handleRemoveFromFavorites = (flashId: number, event: React.MouseEvent) => {
+  const handleRemoveFromFavorites = async (flashId: number, event: React.MouseEvent) => {
     event.stopPropagation();
-    const success = removeFromFavorites(flashId);
-    if (success) {
-      const updatedFavorites = favorites.filter(fav => fav.flash_id !== flashId);
-      setFavorites(updatedFavorites);
+    try {
+      const success = await removeFromFavorites(flashId, farcasterFid);
+      if (success) {
+        const updatedFavorites = favorites.filter(fav => fav.flash_id !== flashId);
+        setFavorites(updatedFavorites);
+      }
+    } catch (error) {
+      console.error('Error removing from favorites:', error);
     }
   };
 
@@ -90,6 +106,33 @@ export function Favorites() {
       console.error('Export failed:', error);
     }
   };
+
+  // Show sign-in prompt if no farcaster context
+  if (!farcasterFid) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-96 bg-black text-white p-4 font-mono">
+        <div className="text-center max-w-md">
+          <h1 className="text-green-400 text-2xl mb-4">SAVED FLASHES</h1>
+          <p className="text-gray-300 mb-4">Sign in with Farcaster to save and sync your favorite flashes across devices.</p>
+          <div className="text-gray-500 text-sm">
+            <p>Save flashes you want to revisit and export collections!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-96 bg-black text-white p-4 font-mono">
+        <div className="text-center">
+          <h1 className="text-green-400 text-2xl mb-4">SAVED FLASHES</h1>
+          <p className="text-gray-300">Loading your saved flashes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
@@ -240,7 +283,7 @@ export function Favorites() {
           SHOWING {filteredFavorites.length} OF {favorites.length} SAVED FLASHES
         </div>
         {searchTerm && <div>FILTERED BY: &quot;{searchTerm}&quot;</div>}
-        <div className="mt-2">DATA STORED LOCALLY IN BROWSER</div>
+        <div className="mt-2">{farcasterFid ? 'DATA SYNCED ACROSS DEVICES' : 'DATA STORED LOCALLY IN BROWSER'}</div>
       </div>
     </div>
   );
