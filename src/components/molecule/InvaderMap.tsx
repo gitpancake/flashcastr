@@ -428,54 +428,6 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
         )}
       </div>
 
-      {/* View Switcher */}
-      <div className="mb-4 bg-gray-900 border border-green-400 p-2">
-        <div className="text-green-400 text-xs font-bold mb-2">MAP VIEW</div>
-        <div className="flex gap-1">
-          <button
-            onClick={() => setActiveView('geo')}
-            className={`
-              px-3 py-2 text-sm border transition-all duration-200
-              ${activeView === 'geo' 
-                ? 'bg-green-400 text-black border-green-400' 
-                : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
-              }
-            `}
-          >
-            [G] GEO
-          </button>
-          <button
-            onClick={() => setActiveView('hunt')}
-            className={`
-              px-3 py-2 text-sm border transition-all duration-200
-              ${activeView === 'hunt' 
-                ? 'bg-yellow-400 text-black border-yellow-400' 
-                : 'bg-transparent text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black'
-              }
-            `}
-          >
-            [H] HUNT
-          </button>
-          <button
-            onClick={() => setActiveView('saved')}
-            className={`
-              px-3 py-2 text-sm border transition-all duration-200
-              ${activeView === 'saved' 
-                ? 'bg-cyan-400 text-black border-cyan-400' 
-                : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
-              }
-            `}
-          >
-            [S] SAVED
-          </button>
-        </div>
-        <div className="text-gray-400 text-xs mt-2">
-          {activeView === 'geo' && 'ALL INVADERS • GOLD: HUNT • GREEN: FOUND • BLUE: UNMARKED'}
-          {activeView === 'hunt' && 'INVADERS ON YOUR HUNT LIST • CLICK TO MARK AS FOUND'}
-          {activeView === 'saved' && 'INVADERS YOU HAVE FOUND • CLICK TO REMOVE FROM HUNT'}
-        </div>
-      </div>
-
       {/* City Filter */}
       <div className="mb-4 bg-gray-900 border border-green-400 p-2">
         <div className="text-green-400 text-xs font-bold mb-2">NAVIGATE TO CITY</div>
@@ -631,6 +583,54 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
               );
             })}
           </MapContainer>
+        </div>
+      </div>
+
+      {/* View Switcher */}
+      <div className="mt-4 bg-gray-900 border border-green-400 p-2">
+        <div className="text-green-400 text-xs font-bold mb-2">MAP VIEW</div>
+        <div className="flex gap-1 justify-center">
+          <button
+            onClick={() => setActiveView('geo')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'geo' 
+                ? 'bg-green-400 text-black border-green-400' 
+                : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
+              }
+            `}
+          >
+            [G] GEO
+          </button>
+          <button
+            onClick={() => setActiveView('hunt')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'hunt' 
+                ? 'bg-yellow-400 text-black border-yellow-400' 
+                : 'bg-transparent text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black'
+              }
+            `}
+          >
+            [H] HUNT
+          </button>
+          <button
+            onClick={() => setActiveView('saved')}
+            className={`
+              px-3 py-2 text-sm border transition-all duration-200
+              ${activeView === 'saved' 
+                ? 'bg-cyan-400 text-black border-cyan-400' 
+                : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
+              }
+            `}
+          >
+            [S] SAVED
+          </button>
+        </div>
+        <div className="text-center text-gray-400 text-xs mt-2">
+          {activeView === 'geo' && 'ALL INVADERS • GOLD: HUNT • GREEN: FOUND • BLUE: UNMARKED'}
+          {activeView === 'hunt' && 'INVADERS ON YOUR HUNT LIST • CLICK TO MARK AS FOUND'}
+          {activeView === 'saved' && 'INVADERS YOU HAVE FOUND • CLICK TO REMOVE FROM HUNT'}
         </div>
       </div>
 
