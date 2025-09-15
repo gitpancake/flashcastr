@@ -196,7 +196,7 @@ export function Favorites() {
               className="px-3 py-1 text-xs border border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black transition-all duration-200"
               title="Export as image grid"
             >
-              [📸] EXPORT ({filteredFavorites.length})
+              [EX] EXPORT ({filteredFavorites.length})
             </button>
           )}
         </div>
@@ -256,7 +256,7 @@ export function Favorites() {
                     {formatTimeAgo(timestamp)}
                   </div>
                   <div className="text-yellow-600 text-[9px] sm:text-xs">
-                    ★ SAVED {formatTimeAgo(fromUnixTime(favorite.addedAt / 1000))}
+                    [*] SAVED {formatTimeAgo(fromUnixTime(favorite.addedAt / 1000))}
                   </div>
                 </div>
               </div>
@@ -271,7 +271,7 @@ export function Favorites() {
           <div className="text-gray-500 text-sm mt-2">
             {searchTerm 
               ? `No saved flashes match &quot;${searchTerm}&quot;`
-              : 'Start saving flashes by clicking the [☆ SAVE] button on any flash page'
+              : 'Start saving flashes by clicking the [+] SAVE button on any flash page'
             }
           </div>
         </div>

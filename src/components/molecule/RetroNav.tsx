@@ -17,8 +17,8 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
   const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
     { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
-    { id: 'favorites' as NavTab, label: 'SAVED', icon: '★', key: 'S' },
-    { id: 'wishlist' as NavTab, label: 'HUNT', icon: '🎯', key: 'H' },
+    { id: 'favorites' as NavTab, label: 'SAVED', icon: '*', key: 'S' },
+    { id: 'wishlist' as NavTab, label: 'HUNT', icon: 'H', key: 'H' },
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
   ];
 

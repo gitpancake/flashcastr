@@ -112,19 +112,19 @@ function WishlistButton({ invader, fid, onStatusChange }: {
         return {
           text: '+ ADD TO HUNT LIST',
           className: 'bg-green-400 text-black border-green-400 hover:bg-green-300',
-          icon: '🎯'
+          icon: '[&gt;]'
         };
       case 'want_to_find':
         return {
-          text: '✓ MARK AS FOUND',
+          text: '[*] MARK AS FOUND',
           className: 'bg-yellow-500 text-black border-yellow-500 hover:bg-yellow-400',
-          icon: '✅'
+          icon: '[*]'
         };
       case 'found':
         return {
-          text: '✓ FOUND',
+          text: '[*] FOUND',
           className: 'bg-gray-600 text-white border-gray-600 hover:bg-red-500 hover:text-white',
-          icon: '✅'
+          icon: '[*]'
         };
     }
   };
@@ -241,9 +241,9 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
       // Deselect city - show all invaders and zoom out
       setSelectedCity(null);
       if (map && allInvaders.length > 0) {
-        const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
-        const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
-        map.setView([centerLat, centerLng], 2); // Zoom out to show all
+        // Reset to London view
+        const london = popularCities.find(city => city.name === "London")!;
+        map.setView([london.lat, london.lng], 12);
       }
     } else {
       // Select new city and navigate to it
@@ -297,9 +297,10 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     );
   }
 
-  // Calculate center point from all invaders
-  const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
-  const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
+  // Default to London coordinates
+  const london = popularCities.find(city => city.name === "London")!;
+  const centerLat = london.lat;
+  const centerLng = london.lng;
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
@@ -316,7 +317,7 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
         </div>
         {farcasterFid && wishlistStats.totalItems > 0 && (
           <div className="text-cyan-400 text-xs mb-2">
-            🎯 YOUR HUNT: {wishlistStats.totalWanted} TO FIND • ✅ {wishlistStats.totalFound} FOUND • {wishlistStats.completionRate}% COMPLETE
+            [&gt;] YOUR HUNT: {wishlistStats.totalWanted} TO FIND • [*] {wishlistStats.totalFound} FOUND • {wishlistStats.completionRate}% COMPLETE
           </div>
         )}
         {visibleInvaders.length < allInvaders.length && !selectedCity && (
@@ -363,9 +364,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
             onClick={() => {
               setSelectedCity(null);
               if (map && allInvaders.length > 0) {
-                const centerLat = allInvaders.reduce((sum, inv) => sum + inv.l.lat, 0) / allInvaders.length;
-                const centerLng = allInvaders.reduce((sum, inv) => sum + inv.l.lng, 0) / allInvaders.length;
-                map.setView([centerLat, centerLng], 2);
+                const london = popularCities.find(city => city.name === "London")!;
+                map.setView([london.lat, london.lng], 12);
               }
             }}
             className={`
@@ -423,7 +423,7 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
         <div style={{ height: "500px", width: "100%" }}>
           <MapContainer
             center={[centerLat, centerLng]}
-            zoom={2}
+            zoom={12}
             style={{ height: "100%", width: "100%" }}
             className="leaflet-container-dark"
             ref={setMap}

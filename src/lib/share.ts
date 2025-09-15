@@ -6,12 +6,12 @@ export interface ShareOptions {
 }
 
 export function generateShareText({ flash, currentUrl }: ShareOptions): string {
-  const text = `🎯 Space Invaders Flash #${flash.flash_id}
+  const text = `[>] Space Invaders Flash #${flash.flash_id}
 
-📸 by @${flash.player}
-📍 ${flash.city}${flash.text ? `\n💭 "${flash.text}"` : ''}
+[IMG] by @${flash.player}
+[LOC] ${flash.city}${flash.text ? `\n[TXT] "${flash.text}"` : ''}
 
-Check it out on Flashcastr 👾
+Check it out on Flashcastr
 ${currentUrl}`;
 
   return text;

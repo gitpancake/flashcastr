@@ -106,7 +106,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
           {stats.totalItems > 0 ? (
             <div>
               <div className="mb-2">
-                🎯 {stats.totalWanted} TO FIND • ✅ {stats.totalFound} FOUND • {stats.completionRate}% COMPLETE
+                [&gt;] {stats.totalWanted} TO FIND • [*] {stats.totalFound} FOUND • {stats.completionRate}% COMPLETE
               </div>
               {stats.completionRate > 0 && (
                 <div className="w-full bg-gray-700 rounded-full h-2 max-w-md mx-auto">
@@ -178,7 +178,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
                   : 'bg-yellow-500 text-black'
                 }
               `}>
-                {item.status === 'found' ? '✅ FOUND' : '🎯 TO FIND'}
+                {item.status === 'found' ? '[*] FOUND' : '[&gt;] TO FIND'}
               </div>
 
               {/* Invader Image - Clickable to navigate */}
@@ -227,7 +227,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
                       onClick={() => handleMarkAsFound(item.invader_id)}
                       className="flex-1 px-2 py-1 text-[10px] font-bold border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200"
                     >
-                      ✅ FOUND
+                      [*] FOUND
                     </button>
                   )}
                   

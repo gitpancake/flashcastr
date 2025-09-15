@@ -110,7 +110,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcuts = {}) {
 
 function showKeyboardShortcutsHelp() {
   const helpText = `
-🎯 FLASHCASTR KEYBOARD SHORTCUTS
+[>] FLASHCASTR KEYBOARD SHORTCUTS
 
 NAVIGATION:
 Ctrl/Cmd + H    →  Home

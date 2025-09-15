@@ -313,7 +313,7 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
 
             {signupProgress === "username_search_found" && (
               <div className="text-center mb-4">
-                <div className="text-green-400 text-xs mb-3">✓ FOUND: &quot;{searchedUsername}&quot;</div>
+                <div className="text-green-400 text-xs mb-3">[*] FOUND: &quot;{searchedUsername}&quot;</div>
                 <div className="space-y-2">
                   <button 
                     onClick={handleProceedToInitiateSignup} 
