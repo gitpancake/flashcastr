@@ -94,46 +94,46 @@ function createCustomIcon(status: 'want_to_find' | 'found' | null) {
 
 
 // Wishlist Button Component
-function WishlistButton({ invader, fid, onStatusChange }: { 
+function WishlistButton({ invader, fid, onStatusChange, currentStatus }: { 
   invader: InvaderLocation; 
   fid: number | undefined;
   onStatusChange?: () => void;
+  currentStatus: 'want_to_find' | 'found' | null;
 }) {
-  const [status, setStatus] = useState<'want_to_find' | 'found' | null>(null);
+  const [status, setStatus] = useState<'want_to_find' | 'found' | null>(currentStatus);
   const [error, setError] = useState(false);
 
+  // Update status when prop changes
   useEffect(() => {
-    if (fid) {
-      const loadStatus = async () => {
-        try {
-          const status = await getInvaderStatus(fid, invader.n);
-          setStatus(status);
-          setError(false);
-        } catch (error) {
-          console.error('Error loading invader status:', error);
-          setError(true);
-        }
-      };
-      
-      loadStatus();
-    }
-  }, [fid, invader.n]);
+    setStatus(currentStatus);
+  }, [currentStatus]);
 
   const handleToggleWishlist = async () => {
-    if (!fid) return;
+    if (!fid) {
+      console.warn('No FID available for wishlist operation');
+      return;
+    }
+    
+    console.log(`[DEBUG] Wishlist operation for ${invader.n} with FID ${fid}, current status:`, status);
     
     try {
       if (status === null) {
         // Add to wishlist
-        await addToWishlist(fid, invader);
+        console.log(`[DEBUG] Adding ${invader.n} to wishlist for FID ${fid}`);
+        const result = await addToWishlist(fid, invader);
+        console.log('[DEBUG] Add to wishlist result:', result);
         setStatus('want_to_find');
       } else if (status === 'want_to_find') {
         // Mark as found
-        await markAsFound(fid, invader.n);
+        console.log(`[DEBUG] Marking ${invader.n} as found for FID ${fid}`);
+        const result = await markAsFound(fid, invader.n);
+        console.log('[DEBUG] Mark as found result:', result);
         setStatus('found');
       } else {
         // Remove from wishlist
-        await removeFromWishlist(fid, invader.n);
+        console.log(`[DEBUG] Removing ${invader.n} from wishlist for FID ${fid}`);
+        const result = await removeFromWishlist(fid, invader.n);
+        console.log('[DEBUG] Remove from wishlist result:', result);
         setStatus(null);
       }
       
@@ -145,6 +145,7 @@ function WishlistButton({ invader, fid, onStatusChange }: {
       setError(false);
     } catch (error) {
       console.error('Error updating wishlist:', error);
+      console.error('Error details:', error);
       setError(true);
     }
   };
@@ -280,37 +281,39 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     loadLeaflet();
   }, []);
 
-  // Update wishlist stats and invader statuses when fid changes
+  // Load wishlist once and derive statuses from it
   useEffect(() => {
     if (farcasterFid && allInvaders.length > 0) {
-      const loadStatsAndStatuses = async () => {
+      const loadWishlistData = async () => {
         try {
-          const stats = await getWishlistStats(farcasterFid);
-          setWishlistStats(stats);
-
-          // Load status for each invader
-          const statusPromises = allInvaders.map(async (invader) => {
-            try {
-              const status = await getInvaderStatus(farcasterFid, invader.n);
-              return { id: invader.n, status };
-            } catch (error) {
-              console.error(`Error loading status for ${invader.n}:`, error);
-              return { id: invader.n, status: null };
-            }
+          console.log(`[DEBUG] Loading wishlist data for FID ${farcasterFid}`);
+          
+          // Load the entire wishlist in one request
+          const wishlist = await getWishlist(farcasterFid);
+          console.log(`[DEBUG] Loaded wishlist with ${wishlist.items.length} items`);
+          
+          // Update stats
+          setWishlistStats({
+            totalWanted: wishlist.stats.total_wanted,
+            totalFound: wishlist.stats.total_found,
+            totalItems: wishlist.items.length,
+            completionRate: wishlist.items.length > 0 ? (wishlist.stats.total_found / wishlist.items.length) * 100 : 0
           });
 
-          const statuses = await Promise.all(statusPromises);
+          // Create status map from wishlist items
           const statusMap: Record<string, 'want_to_find' | 'found' | null> = {};
-          statuses.forEach(({ id, status }) => {
-            statusMap[id] = status;
+          wishlist.items.forEach(item => {
+            statusMap[item.invader_id] = item.status;
           });
+          
+          console.log(`[DEBUG] Created status map with ${Object.keys(statusMap).length} entries`);
           setInvaderStatuses(statusMap);
         } catch (error) {
-          console.error('Error loading wishlist stats:', error);
+          console.error('Error loading wishlist data:', error);
         }
       };
       
-      loadStatsAndStatuses();
+      loadWishlistData();
     }
   }, [farcasterFid, allInvaders]);
 
@@ -559,18 +562,25 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                     <WishlistButton 
                       invader={invader} 
                       fid={farcasterFid} 
+                      currentStatus={status}
                       onStatusChange={async () => {
                         if (farcasterFid) {
                           try {
-                            const stats = await getWishlistStats(farcasterFid);
-                            setWishlistStats(stats);
+                            // Reload the entire wishlist to get updated stats and statuses
+                            const wishlist = await getWishlist(farcasterFid);
+                            setWishlistStats({
+                              totalWanted: wishlist.stats.total_wanted,
+                              totalFound: wishlist.stats.total_found,
+                              totalItems: wishlist.items.length,
+                              completionRate: wishlist.items.length > 0 ? (wishlist.stats.total_found / wishlist.items.length) * 100 : 0
+                            });
                             
-                            // Reload this specific invader's status
-                            const newStatus = await getInvaderStatus(farcasterFid, invader.n);
-                            setInvaderStatuses(prev => ({
-                              ...prev,
-                              [invader.n]: newStatus
-                            }));
+                            // Update status map
+                            const statusMap: Record<string, 'want_to_find' | 'found' | null> = {};
+                            wishlist.items.forEach(item => {
+                              statusMap[item.invader_id] = item.status;
+                            });
+                            setInvaderStatuses(statusMap);
                           } catch (error) {
                             console.error('Error updating wishlist stats:', error);
                           }

@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { fid, action, invader, invaderId } = body;
 
+    console.log(`[DEBUG] Wishlist API POST request - FID: ${fid}, Action: ${action}, InvaderID: ${invaderId || (invader ? invader.n : 'none')}`);
+
     if (!fid) {
       return NextResponse.json({ error: 'FID is required' }, { status: 400 });
     }
@@ -69,6 +71,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invader data is required for add action' }, { status: 400 });
         }
         wishlist = await addToWishlistRedis(fidNumber, invader);
+        console.log(`[DEBUG] Successfully added ${invader.n} to wishlist for FID ${fidNumber}`);
         break;
 
       case 'mark_found':
@@ -76,6 +79,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invader ID is required for mark_found action' }, { status: 400 });
         }
         wishlist = await markAsFoundRedis(fidNumber, invaderId);
+        console.log(`[DEBUG] Successfully marked ${invaderId} as found for FID ${fidNumber}`);
         break;
 
       case 'remove':
@@ -83,12 +87,14 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invader ID is required for remove action' }, { status: 400 });
         }
         wishlist = await removeFromWishlistRedis(fidNumber, invaderId);
+        console.log(`[DEBUG] Successfully removed ${invaderId} from wishlist for FID ${fidNumber}`);
         break;
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
+    console.log(`[DEBUG] Returning wishlist with ${wishlist.items.length} items`);
     return NextResponse.json(wishlist);
   } catch (error) {
     console.error('Error updating wishlist:', error);

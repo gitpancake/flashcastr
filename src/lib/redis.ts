@@ -8,8 +8,11 @@ let client: ReturnType<typeof createClient> | null = null;
 export async function getRedisClient() {
   if (!client) {
     if (!process.env.REDIS_URL) {
+      console.error('[DEBUG] REDIS_URL environment variable is not set');
       throw new Error('REDIS_URL environment variable is not set');
     }
+    
+    console.log(`[DEBUG] Connecting to Redis at: ${process.env.REDIS_URL.replace(/\/\/.*@/, '//***@')}`);
     
     client = createClient({
       url: process.env.REDIS_URL,
@@ -17,6 +20,10 @@ export async function getRedisClient() {
 
     client.on('error', (err) => {
       console.error('Redis Client Error:', err);
+    });
+
+    client.on('connect', () => {
+      console.log('[DEBUG] Redis client connected successfully');
     });
 
     await client.connect();
