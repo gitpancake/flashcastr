@@ -24,14 +24,17 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteError, setFavoriteError] = useState(false);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {
         const isFav = await isFavorite(flash.flash_id, farcasterFid);
         setIsInFavorites(isFav);
+        setFavoriteError(false);
       } catch (error) {
         console.error('Error checking favorite status:', error);
+        setFavoriteError(true);
       }
     };
     
@@ -65,9 +68,11 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
 
       if (success) {
         setIsInFavorites(!isInFavorites);
+        setFavoriteError(false);
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      setFavoriteError(true);
     } finally {
       setFavoriteLoading(false);
     }
@@ -110,10 +115,12 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
         {/* Favorite Button */}
         <button
           onClick={handleFavoriteToggle}
-          disabled={favoriteLoading || !farcasterFid}
+          disabled={favoriteLoading || !farcasterFid || favoriteError}
           className={`p-2 border-2 transition-all duration-200 font-bold text-xs ${
             !farcasterFid
               ? 'border-gray-700 text-gray-600 cursor-not-allowed'
+              : favoriteError
+              ? 'border-red-400 text-red-400 cursor-not-allowed'
               : favoriteLoading
               ? 'border-gray-600 text-gray-500'
               : isInFavorites
@@ -123,6 +130,8 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
           title={
             !farcasterFid 
               ? 'Sign in with Farcaster to save flashes' 
+              : favoriteError
+              ? 'System temporarily unavailable'
               : favoriteLoading
               ? 'Loading...'
               : isInFavorites 
@@ -130,7 +139,9 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
               : 'Add to favorites'
           }
         >
-          {favoriteLoading 
+          {favoriteError
+            ? '[!] ERROR'
+            : favoriteLoading 
             ? '[...] LOADING'
             : isInFavorites 
             ? '[*] SAVED' 

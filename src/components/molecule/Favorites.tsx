@@ -21,17 +21,20 @@ export function Favorites() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'city' | 'player'>('newest');
   const [loading, setLoading] = useState(true);
+  const [systemError, setSystemError] = useState(false);
 
   // Load favorites on mount
   useEffect(() => {
     const loadFavorites = async () => {
       setLoading(true);
+      setSystemError(false);
       try {
         const favs = await getFavorites(farcasterFid);
         setFavorites(favs);
         setFilteredFavorites(favs);
       } catch (error) {
         console.error('Error loading favorites:', error);
+        setSystemError(true);
       } finally {
         setLoading(false);
       }
@@ -89,6 +92,7 @@ export function Favorites() {
       }
     } catch (error) {
       console.error('Error removing from favorites:', error);
+      setSystemError(true);
     }
   };
 
@@ -129,6 +133,25 @@ export function Favorites() {
         <div className="text-center">
           <h1 className="text-green-400 text-2xl mb-4">SAVED FLASHES</h1>
           <p className="text-gray-300">Loading your saved flashes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show system error state
+  if (systemError) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-96 bg-black text-white p-4 font-mono">
+        <div className="text-center max-w-md">
+          <h1 className="text-red-400 text-2xl mb-4">SYSTEM DOWN</h1>
+          <p className="text-gray-300 mb-4">Saved flashes system is temporarily unavailable.</p>
+          <p className="text-gray-500 text-sm mb-4">Check back later.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 text-sm"
+          >
+            [R] RETRY
+          </button>
         </div>
       </div>
     );

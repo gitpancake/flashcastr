@@ -61,6 +61,7 @@ function WishlistButton({ invader, fid, onStatusChange }: {
   onStatusChange?: () => void;
 }) {
   const [status, setStatus] = useState<'want_to_find' | 'found' | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (fid) {
@@ -68,8 +69,10 @@ function WishlistButton({ invader, fid, onStatusChange }: {
         try {
           const status = await getInvaderStatus(fid, invader.n);
           setStatus(status);
+          setError(false);
         } catch (error) {
           console.error('Error loading invader status:', error);
+          setError(true);
         }
       };
       
@@ -99,12 +102,27 @@ function WishlistButton({ invader, fid, onStatusChange }: {
       if (onStatusChange) {
         onStatusChange();
       }
+      
+      setError(false);
     } catch (error) {
       console.error('Error updating wishlist:', error);
+      setError(true);
     }
   };
 
   if (!fid) return null; // Only show for logged-in users
+  
+  if (error) {
+    return (
+      <button
+        disabled
+        className="w-full mt-2 px-2 py-1 text-[10px] font-bold border border-red-400 text-red-400 cursor-not-allowed"
+        title="System temporarily unavailable"
+      >
+        [!] ERROR
+      </button>
+    );
+  }
 
   const getButtonConfig = () => {
     switch (status) {

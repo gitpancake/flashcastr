@@ -16,11 +16,15 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'want_to_find' | 'found'>('all');
   const [stats, setStats] = useState({ totalWanted: 0, totalFound: 0, totalItems: 0, completionRate: 0 });
+  const [loading, setLoading] = useState(true);
+  const [systemError, setSystemError] = useState(false);
 
   // Load wishlist data
   useEffect(() => {
     if (farcasterFid) {
       const loadWishlist = async () => {
+        setLoading(true);
+        setSystemError(false);
         try {
           const wishlist = await getWishlist(farcasterFid);
           setWishlistItems(wishlist.items);
@@ -29,6 +33,9 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
           setStats(wishlistStats);
         } catch (error) {
           console.error('Error loading wishlist:', error);
+          setSystemError(true);
+        } finally {
+          setLoading(false);
         }
       };
       
@@ -56,6 +63,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
       setStats(wishlistStats);
     } catch (error) {
       console.error('Error marking as found:', error);
+      setSystemError(true);
     }
   };
 
@@ -72,6 +80,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
       setStats(wishlistStats);
     } catch (error) {
       console.error('Error removing from wishlist:', error);
+      setSystemError(true);
     }
   };
 
@@ -90,6 +99,37 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
           <div className="text-gray-500 text-sm">
             <p>Save invaders you want to find and track your progress!</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-96 bg-black text-white p-4 font-mono">
+        <div className="text-center">
+          <h1 className="text-green-400 text-2xl mb-4">HUNT LIST</h1>
+          <p className="text-gray-300">Loading your hunt list...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show system error state
+  if (systemError) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-96 bg-black text-white p-4 font-mono">
+        <div className="text-center max-w-md">
+          <h1 className="text-red-400 text-2xl mb-4">SYSTEM DOWN</h1>
+          <p className="text-gray-300 mb-4">Hunt list system is temporarily unavailable.</p>
+          <p className="text-gray-500 text-sm mb-4">Check back later.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 text-sm"
+          >
+            [R] RETRY
+          </button>
         </div>
       </div>
     );
