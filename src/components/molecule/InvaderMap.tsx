@@ -54,10 +54,11 @@ function isInViewport(invader: InvaderLocation, bounds: { north: number; south: 
 }
 
 // Create custom colored markers based on status
-function createCustomIcon(status: 'hunt' | 'saved' | null) {
+function createCustomIcon(status: 'hunt' | 'alive' | 'dead' | null) {
   const colors = {
     'hunt': '#FFD700', // Gold
-    'saved': '#10B981', // Green  
+    'alive': '#10B981', // Green  
+    'dead': '#EF4444', // Red
     'unmarked': '#3B82F6' // Blue
   };
   
@@ -99,14 +100,16 @@ function InvaderActionButton({
   fid, 
   currentStatus,
   onAddToHunt,
-  onMarkAsFound,
+  onMarkAlive,
+  onMarkDead,
   onRemoveFromSaved
 }: { 
   invader: InvaderLocation; 
   fid: number | undefined;
-  currentStatus: 'hunt' | 'saved' | null;
+  currentStatus: 'hunt' | 'alive' | 'dead' | null;
   onAddToHunt: (invader: InvaderLocation) => Promise<unknown>;
-  onMarkAsFound: (invaderId: string) => Promise<unknown>;
+  onMarkAlive: (invaderId: string) => Promise<unknown>;
+  onMarkDead: (invaderId: string) => Promise<unknown>;
   onRemoveFromSaved: (invaderId: string) => Promise<unknown>;
 }) {
   const [loading, setLoading] = useState(false);
@@ -114,25 +117,56 @@ function InvaderActionButton({
 
   if (!fid) return null; // Only show for logged-in users
 
-  const handleAction = async () => {
+  const handleAddToHunt = async () => {
     if (loading) return;
-    
     setLoading(true);
     setError(false);
-    
     try {
-      if (currentStatus === null) {
-        // Add to hunt list
-        await onAddToHunt(invader);
-      } else if (currentStatus === 'hunt') {
-        // Mark as found (move from hunt to saved)
-        await onMarkAsFound(invader.n);
-      } else {
-        // Remove from saved list
-        await onRemoveFromSaved(invader.n);
-      }
+      await onAddToHunt(invader);
     } catch (error) {
-      console.error('Error updating invader status:', error);
+      console.error('Error adding to hunt:', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAlive = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError(false);
+    try {
+      await onMarkAlive(invader.n);
+    } catch (error) {
+      console.error('Error marking alive:', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkDead = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError(false);
+    try {
+      await onMarkDead(invader.n);
+    } catch (error) {
+      console.error('Error marking dead:', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError(false);
+    try {
+      await onRemoveFromSaved(invader.n);
+    } catch (error) {
+      console.error('Error removing:', error);
       setError(true);
     } finally {
       setLoading(false);
@@ -151,54 +185,64 @@ function InvaderActionButton({
     );
   }
 
-  const getButtonConfig = () => {
-    if (loading) {
-      return {
-        text: 'UPDATING...',
-        className: 'bg-gray-600 text-white border-gray-600 cursor-wait',
-        icon: '[...]'
-      };
-    }
+  if (loading) {
+    return (
+      <button
+        disabled
+        className="w-full mt-2 px-2 py-1 text-[10px] font-bold border border-gray-600 text-white bg-gray-600 cursor-wait"
+      >
+        [...] UPDATING...
+      </button>
+    );
+  }
 
-    switch (currentStatus) {
-      case null:
-        return {
-          text: 'ADD TO HUNT',
-          className: 'bg-green-400 text-black border-green-400 hover:bg-green-300',
-          icon: '[+]'
-        };
-      case 'hunt':
-        return {
-          text: 'MARK FOUND',
-          className: 'bg-yellow-500 text-black border-yellow-500 hover:bg-yellow-400',
-          icon: '[*]'
-        };
-      case 'saved':
-        return {
-          text: 'REMOVE',
-          className: 'bg-gray-600 text-white border-gray-600 hover:bg-red-500 hover:text-white',
-          icon: '[X]'
-        };
-    }
-  };
-
-  const config = getButtonConfig();
-
-  return (
-    <button
-      onClick={handleAction}
-      disabled={loading}
-      className={`
-        w-full mt-2 px-2 py-1 text-[10px] font-bold border transition-all duration-200
-        ${config.className}
-      `}
-    >
-      {config.icon} {config.text}
-    </button>
-  );
+  // Show different buttons based on status
+  switch (currentStatus) {
+    case null:
+      return (
+        <button
+          onClick={handleAddToHunt}
+          className="w-full mt-2 px-2 py-1 text-[10px] font-bold border border-green-400 bg-green-400 text-black hover:bg-green-300 transition-all duration-200"
+        >
+          [+] ADD TO HUNT
+        </button>
+      );
+    
+    case 'hunt':
+      return (
+        <div className="mt-2 space-y-1">
+          <button
+            onClick={handleMarkAlive}
+            className="w-full px-2 py-1 text-[10px] font-bold border border-green-400 bg-green-400 text-black hover:bg-green-300 transition-all duration-200"
+          >
+            [✓] MARK ALIVE
+          </button>
+          <button
+            onClick={handleMarkDead}
+            className="w-full px-2 py-1 text-[10px] font-bold border border-red-400 bg-red-400 text-black hover:bg-red-300 transition-all duration-200"
+          >
+            [✗] MARK DEAD
+          </button>
+        </div>
+      );
+    
+    case 'alive':
+    case 'dead':
+      return (
+        <button
+          onClick={handleRemove}
+          className="w-full mt-2 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-600 text-white hover:bg-red-500 hover:border-red-500 transition-all duration-200"
+        >
+          [X] REMOVE
+        </button>
+      );
+    
+    default:
+      return null;
+  }
 }
 
-type MapView = 'geo' | 'hunt' | 'saved';
+type MapView = 'geo' | 'hunt' | 'alive' | 'dead';
 
 interface InvaderMapProps {
   targetLocation?: {
@@ -227,7 +271,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   const {
     statusMap,
     addToHuntList,
-    markInvaderAsFound,
+    markInvaderAsAlive,
+    markInvaderAsDead,
     removeFromSavedList,
   } = useMapData(farcasterFid);
   
@@ -289,9 +334,12 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     if (activeView === 'hunt') {
       // Show only invaders that are in hunt list
       filtered = allInvaders.filter(invader => statusMap[invader.n] === 'hunt');
-    } else if (activeView === 'saved') {
-      // Show only invaders that are saved/found
-      filtered = allInvaders.filter(invader => statusMap[invader.n] === 'saved');
+    } else if (activeView === 'alive') {
+      // Show only invaders marked as alive
+      filtered = allInvaders.filter(invader => statusMap[invader.n] === 'alive');
+    } else if (activeView === 'dead') {
+      // Show only invaders marked as dead
+      filtered = allInvaders.filter(invader => statusMap[invader.n] === 'dead');
     }
     // 'geo' shows all invaders (default)
     
@@ -502,7 +550,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                       fid={farcasterFid} 
                       currentStatus={status}
                       onAddToHunt={addToHuntList}
-                      onMarkAsFound={markInvaderAsFound}
+                      onMarkAlive={markInvaderAsAlive}
+                      onMarkDead={markInvaderAsDead}
                       onRemoveFromSaved={removeFromSavedList}
                     />
                   </div>
@@ -542,16 +591,28 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
               [H] HUNT
             </button>
             <button
-              onClick={() => setActiveView('saved')}
+              onClick={() => setActiveView('alive')}
               className={`
                 px-2 py-1 text-xs border transition-all duration-200 min-w-[60px]
-                ${activeView === 'saved' 
-                  ? 'bg-cyan-400 text-black border-cyan-400' 
-                  : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
+                ${activeView === 'alive' 
+                  ? 'bg-green-400 text-black border-green-400' 
+                  : 'bg-transparent text-green-400 border-green-400 hover:bg-green-400 hover:text-black'
                 }
               `}
             >
-              [S] SAVED
+              [A] ALIVE
+            </button>
+            <button
+              onClick={() => setActiveView('dead')}
+              className={`
+                px-2 py-1 text-xs border transition-all duration-200 min-w-[60px]
+                ${activeView === 'dead' 
+                  ? 'bg-red-400 text-black border-red-400' 
+                  : 'bg-transparent text-red-400 border-red-400 hover:bg-red-400 hover:text-black'
+                }
+              `}
+            >
+              [D] DEAD
             </button>
           </div>
         </div>

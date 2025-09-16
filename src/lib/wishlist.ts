@@ -10,7 +10,7 @@ export interface WishlistItem {
     lng: number;
   };
   added_date: string; // ISO date string
-  status: 'want_to_find' | 'found'; // Future: can expand to other statuses
+  status: 'want_to_find' | 'alive' | 'dead'; // Expanded to support alive/dead tracking
 }
 
 export interface UserWishlist {

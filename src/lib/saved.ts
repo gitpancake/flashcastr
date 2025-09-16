@@ -9,6 +9,7 @@ export interface SavedItem {
     lng: number;
   };
   added_date: string;
+  status: 'alive' | 'dead';
 }
 
 export interface SavedList {
@@ -29,8 +30,8 @@ export async function getSavedList(fid: number): Promise<SavedList> {
   return await response.json();
 }
 
-// Mark invader as found (move from hunt to saved)
-export async function markAsFound(fid: number, invaderId: string): Promise<SavedList> {
+// Mark invader as alive
+export async function markAsAlive(fid: number, invaderId: string): Promise<SavedList> {
   const response = await fetch('/api/saved', {
     method: 'POST',
     headers: {
@@ -38,13 +39,34 @@ export async function markAsFound(fid: number, invaderId: string): Promise<Saved
     },
     body: JSON.stringify({
       fid,
-      action: 'mark_found',
+      action: 'mark_alive',
       invaderId
     }),
   });
   
   if (!response.ok) {
-    throw new Error(`Failed to mark as found: ${response.status}`);
+    throw new Error(`Failed to mark as alive: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+// Mark invader as dead
+export async function markAsDead(fid: number, invaderId: string): Promise<SavedList> {
+  const response = await fetch('/api/saved', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fid,
+      action: 'mark_dead',
+      invaderId
+    }),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to mark as dead: ${response.status}`);
   }
   
   return await response.json();

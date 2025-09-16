@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getHuntList, addToHunt, removeFromHunt, HuntList } from '~/lib/hunt';
-import { getSavedList, markAsFound, removeFromSaved, SavedList } from '~/lib/saved';
+import { getSavedList, markAsAlive, markAsDead, removeFromSaved, SavedList } from '~/lib/saved';
 
-export type InvaderStatus = 'hunt' | 'saved' | null;
+export type InvaderStatus = 'hunt' | 'alive' | 'dead' | null;
 
 interface MapDataState {
   huntList: HuntList | null;
@@ -40,8 +40,9 @@ export function useMapData(fid: number | undefined) {
       huntList.items.forEach(item => {
         statusMap[item.invader_id] = 'hunt';
       });
+      // SavedList contains items with status 'alive' or 'dead'
       savedList.items.forEach(item => {
-        statusMap[item.invader_id] = 'saved';
+        statusMap[item.invader_id] = item.status; // Use actual status from the item
       });
 
       setState({
@@ -119,13 +120,13 @@ export function useMapData(fid: number | undefined) {
     }
   }, [fid]);
 
-  // Mark as found (move from hunt to saved)
-  const markInvaderAsFound = useCallback(async (invaderId: string) => {
+  // Mark as alive (move from hunt to saved)
+  const markInvaderAsAlive = useCallback(async (invaderId: string) => {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Marking ${invaderId} as found`);
-      const updatedSavedList = await markAsFound(fid, invaderId);
+      console.log(`[DEBUG] Marking ${invaderId} as alive`);
+      const updatedSavedList = await markAsAlive(fid, invaderId);
       
       // Also update hunt list by removing the item
       const updatedHuntList = state.huntList ? {
@@ -143,13 +144,48 @@ export function useMapData(fid: number | undefined) {
         savedList: updatedSavedList,
         statusMap: {
           ...prev.statusMap,
-          [invaderId]: 'saved'
+          [invaderId]: 'alive'
         }
       }));
       
       return updatedSavedList;
     } catch (error) {
-      console.error('Error marking as found:', error);
+      console.error('Error marking as alive:', error);
+      throw error;
+    }
+  }, [fid, state.huntList]);
+
+  // Mark as dead (move from hunt to saved)
+  const markInvaderAsDead = useCallback(async (invaderId: string) => {
+    if (!fid) throw new Error('FID required');
+
+    try {
+      console.log(`[DEBUG] Marking ${invaderId} as dead`);
+      const updatedSavedList = await markAsDead(fid, invaderId);
+      
+      // Also update hunt list by removing the item
+      const updatedHuntList = state.huntList ? {
+        ...state.huntList,
+        items: state.huntList.items.filter(item => item.invader_id !== invaderId),
+        stats: {
+          ...state.huntList.stats,
+          total: state.huntList.items.filter(item => item.invader_id !== invaderId).length
+        }
+      } : null;
+      
+      setState(prev => ({
+        ...prev,
+        huntList: updatedHuntList,
+        savedList: updatedSavedList,
+        statusMap: {
+          ...prev.statusMap,
+          [invaderId]: 'dead'
+        }
+      }));
+      
+      return updatedSavedList;
+    } catch (error) {
+      console.error('Error marking as dead:', error);
       throw error;
     }
   }, [fid, state.huntList]);
@@ -184,7 +220,8 @@ export function useMapData(fid: number | undefined) {
     ...state,
     addToHuntList,
     removeFromHuntList,
-    markInvaderAsFound,
+    markInvaderAsAlive,
+    markInvaderAsDead,
     removeFromSavedList,
     refresh: loadInitialData,
   };

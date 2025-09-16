@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
   getWishlistFromRedis, 
-  markAsFoundRedis, 
+  markAsAliveRedis,
+  markAsDeadRedis, 
   removeFromWishlistRedis,
 } from '~/lib/redis';
 
@@ -22,8 +23,8 @@ export async function GET(request: NextRequest) {
   try {
     const wishlist = await getWishlistFromRedis(fidNumber);
     
-    // Return only saved items (found)
-    const savedItems = wishlist.items.filter(item => item.status === 'found');
+    // Return only saved items (alive or dead)
+    const savedItems = wishlist.items.filter(item => item.status === 'alive' || item.status === 'dead');
     
     return NextResponse.json({
       fid: fidNumber,
@@ -63,9 +64,14 @@ export async function POST(request: NextRequest) {
     let wishlist;
 
     switch (action) {
-      case 'mark_found':
-        wishlist = await markAsFoundRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully marked ${invaderId} as found for FID ${fidNumber}`);
+      case 'mark_alive':
+        wishlist = await markAsAliveRedis(fidNumber, invaderId);
+        console.log(`[DEBUG] Successfully marked ${invaderId} as alive for FID ${fidNumber}`);
+        break;
+
+      case 'mark_dead':
+        wishlist = await markAsDeadRedis(fidNumber, invaderId);
+        console.log(`[DEBUG] Successfully marked ${invaderId} as dead for FID ${fidNumber}`);
         break;
 
       case 'remove':
@@ -77,8 +83,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    // Return only saved items
-    const savedItems = wishlist.items.filter(item => item.status === 'found');
+    // Return only saved items (alive or dead)
+    const savedItems = wishlist.items.filter(item => item.status === 'alive' || item.status === 'dead');
     
     return NextResponse.json({
       fid: fidNumber,

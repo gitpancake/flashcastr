@@ -121,12 +121,24 @@ export async function removeFromWishlistRedis(fid: number, invaderId: string): P
 }
 
 // Mark invader as found in Redis
-export async function markAsFoundRedis(fid: number, invaderId: string): Promise<UserWishlist> {
+export async function markAsAliveRedis(fid: number, invaderId: string): Promise<UserWishlist> {
   const wishlist = await getWishlistFromRedis(fid);
   const item = wishlist.items.find(item => item.invader_id === invaderId);
   
   if (item) {
-    item.status = 'found';
+    item.status = 'alive';
+  }
+  
+  await saveWishlistToRedis(wishlist);
+  return wishlist;
+}
+
+export async function markAsDeadRedis(fid: number, invaderId: string): Promise<UserWishlist> {
+  const wishlist = await getWishlistFromRedis(fid);
+  const item = wishlist.items.find(item => item.invader_id === invaderId);
+  
+  if (item) {
+    item.status = 'dead';
   }
   
   await saveWishlistToRedis(wishlist);
@@ -140,7 +152,7 @@ export async function isInWishlistRedis(fid: number, invaderId: string): Promise
 }
 
 // Get invader status from Redis
-export async function getInvaderStatusRedis(fid: number, invaderId: string): Promise<'want_to_find' | 'found' | null> {
+export async function getInvaderStatusRedis(fid: number, invaderId: string): Promise<'want_to_find' | 'alive' | 'dead' | null> {
   const wishlist = await getWishlistFromRedis(fid);
   const item = wishlist.items.find(item => item.invader_id === invaderId);
   return item ? item.status : null;
