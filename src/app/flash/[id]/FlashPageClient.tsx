@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import { shareToFarcaster, shareToTwitter, copyToClipboard } from "~/lib/share";
-import { addToFavorites, removeFromFavorites, isFavorite } from "~/lib/favorites";
-import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
 
 interface FlashPageClientProps {
@@ -17,29 +15,10 @@ interface FlashPageClientProps {
 
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
   const router = useRouter();
-  const { context } = useFrame();
-  const farcasterFid = context?.user?.fid;
   
-  const [isInFavorites, setIsInFavorites] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
-  const [favoriteError, setFavoriteError] = useState(false);
 
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      try {
-        const isFav = await isFavorite(flash.flash_id, farcasterFid);
-        setIsInFavorites(isFav);
-        setFavoriteError(false);
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-        setFavoriteError(true);
-      }
-    };
-    
-    checkFavoriteStatus();
-  }, [flash.flash_id, farcasterFid]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -49,34 +28,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     }
   };
 
-  const handleFavoriteToggle = async () => {
-    if (favoriteLoading) return;
-    
-    setFavoriteLoading(true);
-    try {
-      const success = isInFavorites 
-        ? await removeFromFavorites(flash.flash_id, farcasterFid)
-        : await addToFavorites({
-            flash_id: flash.flash_id,
-            player: flash.player,
-            city: flash.city,
-            timestamp: flash.timestamp,
-            img: flash.img,
-            ipfs_cid: flash.ipfs_cid,
-            text: flash.text,
-          }, farcasterFid);
-
-      if (success) {
-        setIsInFavorites(!isInFavorites);
-        setFavoriteError(false);
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      setFavoriteError(true);
-    } finally {
-      setFavoriteLoading(false);
-    }
-  };
 
   const handleShare = () => {
     setShowShareMenu(!showShareMenu);
@@ -96,7 +47,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
   useKeyboardShortcuts({
     onBack: handleBack,
     onShare: handleShare,
-    onFavorite: handleFavoriteToggle,
   });
 
   return (
@@ -112,42 +62,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
 
         <div className="flex-1"></div>
 
-        {/* Favorite Button */}
-        <button
-          onClick={handleFavoriteToggle}
-          disabled={favoriteLoading || !farcasterFid || favoriteError}
-          className={`p-2 border-2 transition-all duration-200 font-bold text-xs ${
-            !farcasterFid
-              ? 'border-gray-700 text-gray-600 cursor-not-allowed'
-              : favoriteError
-              ? 'border-red-400 text-red-400 cursor-not-allowed'
-              : favoriteLoading
-              ? 'border-gray-600 text-gray-500'
-              : isInFavorites
-              ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10'
-              : 'border-gray-600 text-gray-400 hover:border-yellow-400 hover:text-yellow-400'
-          }`}
-          title={
-            !farcasterFid 
-              ? 'Sign in with Farcaster to save flashes' 
-              : favoriteError
-              ? 'System temporarily unavailable'
-              : favoriteLoading
-              ? 'Loading...'
-              : isInFavorites 
-              ? 'Remove from favorites' 
-              : 'Add to favorites'
-          }
-        >
-          {favoriteError
-            ? '[!] ERROR'
-            : favoriteLoading 
-            ? '[...] LOADING'
-            : isInFavorites 
-            ? '[*] SAVED' 
-            : '[+] SAVE'
-          }
-        </button>
 
         {/* Share Button */}
         <div className="relative">

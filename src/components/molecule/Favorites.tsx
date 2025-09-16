@@ -294,7 +294,7 @@ export function Favorites() {
           <div className="text-gray-500 text-sm mt-2">
             {searchTerm 
               ? `No saved flashes match &quot;${searchTerm}&quot;`
-              : 'Start saving flashes by clicking the [+] SAVE button on any flash page'
+              : 'Use the map to track invaders you want to hunt or mark as found'
             }
           </div>
         </div>
