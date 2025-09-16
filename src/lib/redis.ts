@@ -191,7 +191,7 @@ const EXPERIMENTAL_USERS_KEY = 'experimental_users';
 export async function getExperimentalUsersRedis(): Promise<number[]> {
   try {
     const redis = await getRedisClient();
-    const users = await redis.smembers(EXPERIMENTAL_USERS_KEY);
+    const users = await redis.sMembers(EXPERIMENTAL_USERS_KEY);
     return Array.isArray(users) ? users.map(fid => parseInt(fid as string, 10)).filter(fid => !isNaN(fid)) : [];
   } catch (error) {
     console.error('Error getting experimental users:', error);
@@ -203,7 +203,7 @@ export async function getExperimentalUsersRedis(): Promise<number[]> {
 export async function addExperimentalUserRedis(fid: number): Promise<boolean> {
   try {
     const redis = await getRedisClient();
-    const result = await redis.sadd(EXPERIMENTAL_USERS_KEY, fid.toString());
+    const result = await redis.sAdd(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1; // Returns 1 if added, 0 if already exists
   } catch (error) {
     console.error('Error adding experimental user:', error);
@@ -215,7 +215,7 @@ export async function addExperimentalUserRedis(fid: number): Promise<boolean> {
 export async function removeExperimentalUserRedis(fid: number): Promise<boolean> {
   try {
     const redis = await getRedisClient();
-    const result = await redis.srem(EXPERIMENTAL_USERS_KEY, fid.toString());
+    const result = await redis.sRem(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1; // Returns 1 if removed, 0 if didn't exist
   } catch (error) {
     console.error('Error removing experimental user:', error);
@@ -227,7 +227,7 @@ export async function removeExperimentalUserRedis(fid: number): Promise<boolean>
 export async function isExperimentalUserRedis(fid: number): Promise<boolean> {
   try {
     const redis = await getRedisClient();
-    const result = await redis.sismember(EXPERIMENTAL_USERS_KEY, fid.toString());
+    const result = await redis.sIsMember(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1;
   } catch (error) {
     console.error('Error checking experimental user:', error);
