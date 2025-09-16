@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const response = await fetch(neynarUrl, {
       headers: {
         'Accept': 'application/json',
-        'Api-Key': neynarApiKey,
+        'x-api-key': neynarApiKey,
       },
     });
 
