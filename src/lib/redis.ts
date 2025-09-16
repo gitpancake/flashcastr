@@ -184,6 +184,57 @@ export async function getWishlistStatsRedis(fid: number) {
   };
 }
 
+// Experimental Users Management
+const EXPERIMENTAL_USERS_KEY = 'experimental_users';
+
+// Get all experimental users
+export async function getExperimentalUsersRedis(): Promise<number[]> {
+  try {
+    const redis = await getRedisClient();
+    const users = await redis.smembers(EXPERIMENTAL_USERS_KEY);
+    return users.map(fid => parseInt(fid, 10)).filter(fid => !isNaN(fid));
+  } catch (error) {
+    console.error('Error getting experimental users:', error);
+    return [];
+  }
+}
+
+// Add user to experimental users
+export async function addExperimentalUserRedis(fid: number): Promise<boolean> {
+  try {
+    const redis = await getRedisClient();
+    const result = await redis.sadd(EXPERIMENTAL_USERS_KEY, fid.toString());
+    return result === 1; // Returns 1 if added, 0 if already exists
+  } catch (error) {
+    console.error('Error adding experimental user:', error);
+    return false;
+  }
+}
+
+// Remove user from experimental users
+export async function removeExperimentalUserRedis(fid: number): Promise<boolean> {
+  try {
+    const redis = await getRedisClient();
+    const result = await redis.srem(EXPERIMENTAL_USERS_KEY, fid.toString());
+    return result === 1; // Returns 1 if removed, 0 if didn't exist
+  } catch (error) {
+    console.error('Error removing experimental user:', error);
+    return false;
+  }
+}
+
+// Check if user is experimental
+export async function isExperimentalUserRedis(fid: number): Promise<boolean> {
+  try {
+    const redis = await getRedisClient();
+    const result = await redis.sismember(EXPERIMENTAL_USERS_KEY, fid.toString());
+    return result === 1;
+  } catch (error) {
+    console.error('Error checking experimental user:', error);
+    return false;
+  }
+}
+
 // Cleanup Redis connection
 export async function closeRedisConnection() {
   if (client) {

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useFrame } from "../providers/FrameProvider";
+import { FEATURES } from "~/lib/constants";
 
 interface ProfileDropdownProps {
   className?: string;
@@ -26,13 +27,16 @@ export function ProfileDropdown({ className = "" }: ProfileDropdownProps) {
 
   if (!context) return null;
 
-  const handleNavigation = () => {
+  const handleNavigation = (path: string) => {
     setIsOpen(false);
-    window.location.href = '/profile';
+    window.location.href = path;
   };
 
+  const isAdmin = context.user.fid === FEATURES.ADMIN_FID;
+
   const menuItems = [
-    { id: 'profile', label: 'PROFILE', key: 'P', action: 'profile' as const },
+    { id: 'profile', label: 'PROFILE', key: 'P', path: '/profile' },
+    ...(isAdmin ? [{ id: 'admin', label: 'ADMIN', key: 'A', path: '/admin' }] : []),
   ];
 
   return (
@@ -55,7 +59,7 @@ export function ProfileDropdown({ className = "" }: ProfileDropdownProps) {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={handleNavigation}
+              onClick={() => handleNavigation(item.path)}
               className="block w-full text-left px-3 py-2 text-green-400 hover:bg-gray-800 text-xs transition-colors duration-200 border-b border-gray-700 last:border-b-0"
             >
               [{item.key}] {item.label}

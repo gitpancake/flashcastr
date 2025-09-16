@@ -11,13 +11,13 @@ import { InvaderMap } from "~/components/molecule/InvaderMap";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
+import { useExperimentalAccess } from "~/hooks/useExperimentalAccess";
 import { useGetUser } from "~/hooks/api.flashcastrs.app/useGetUser";
 import { useGetLeaderboard } from "~/hooks/api.flashcastrs.app/useGetLeaderboard";
 import { useGetFlashStats } from "~/hooks/api.flashcastrs.app/useGetFlashStats";
 import { FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { User } from "~/lib/api.flashcastr.app/users";
 import { UserProgress } from "~/lib/badges";
-import { FEATURES } from "~/lib/constants";
 import Setup from "./Setup";
 
 const SETUP_SKIPPED_STORAGE_KEY = "flashcastr_setup_skipped";
@@ -36,6 +36,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   
   const { data: leaderboardUsers = [] } = useGetLeaderboard();
   const { data: flashStats } = useGetFlashStats(farcasterFid);
+  const { hasAccess: hasExperimentalAccess } = useExperimentalAccess(farcasterFid);
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
@@ -55,27 +56,25 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       setActiveTab('feed');
       return;
     }
-    // If map tab is selected but user doesn't have map access, redirect to feed
-    const hasMapAccess = farcasterFid && farcasterFid === FEATURES.ADMIN_FID;
-    if (tab === 'map' && !hasMapAccess) {
+    // If map tab is selected but user doesn't have experimental access, redirect to feed
+    if (tab === 'map' && !hasExperimentalAccess) {
       setActiveTab('feed');
       return;
     }
     setActiveTab(tab);
-  }, [hasUserContext, farcasterFid]);
+  }, [hasUserContext, hasExperimentalAccess]);
 
 
   // If user is on achievements tab but loses context, redirect to feed
-  // If user is on map tab but is not FID 732, redirect to feed
+  // If user is on map tab but doesn't have experimental access, redirect to feed
   useEffect(() => {
     if (activeTab === 'achievements' && !hasUserContext) {
       setActiveTab('feed');
     }
-    const hasMapAccess = farcasterFid && farcasterFid === FEATURES.ADMIN_FID;
-    if (activeTab === 'map' && !hasMapAccess) {
+    if (activeTab === 'map' && !hasExperimentalAccess) {
       setActiveTab('feed');
     }
-  }, [activeTab, hasUserContext, farcasterFid]);
+  }, [activeTab, hasUserContext, hasExperimentalAccess]);
 
   // Add global keyboard shortcuts
   useKeyboardShortcuts({
@@ -134,7 +133,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} currentUserFid={farcasterFid} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} currentUserFid={farcasterFid} hasExperimentalAccess={hasExperimentalAccess} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)

@@ -1,6 +1,5 @@
 "use client";
 
-import { FEATURES } from "~/lib/constants";
 
 export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map';
 
@@ -10,9 +9,10 @@ interface RetroNavProps {
   showAchievements?: boolean;
   className?: string;
   currentUserFid?: number;
+  hasExperimentalAccess?: boolean;
 }
 
-export function RetroNav({ activeTab, onTabChange, showAchievements = true, className = "", currentUserFid }: RetroNavProps) {
+export function RetroNav({ activeTab, onTabChange, showAchievements = true, className = "", hasExperimentalAccess = false }: RetroNavProps) {
 
   const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
@@ -20,9 +20,8 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
   ];
 
-  // Add map tab only for admin user (configured via ADMIN_FID env variable)
-  const showMapTab = currentUserFid && currentUserFid === FEATURES.ADMIN_FID;
-  const tabsWithMap = showMapTab 
+  // Add map tab for experimental users (admin or experimental users)
+  const tabsWithMap = hasExperimentalAccess 
     ? [...baseTabs, { id: 'map' as NavTab, label: 'MAP', icon: '◉', key: 'M' }]
     : baseTabs;
 
