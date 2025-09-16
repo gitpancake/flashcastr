@@ -17,6 +17,7 @@ interface SearchResponse {
   success: boolean;
   users: SearchUser[];
   query: string;
+  error?: string;
 }
 
 interface AdminPanelProps {
@@ -30,11 +31,6 @@ export function AdminPanel({ adminFid }: AdminPanelProps) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Load experimental users on mount
-  useEffect(() => {
-    loadExperimentalUsers();
-  }, [loadExperimentalUsers]);
 
   const loadExperimentalUsers = useCallback(async () => {
     try {
@@ -55,6 +51,11 @@ export function AdminPanel({ adminFid }: AdminPanelProps) {
       setLoading(false);
     }
   }, [adminFid]);
+
+  // Load experimental users on mount
+  useEffect(() => {
+    loadExperimentalUsers();
+  }, [loadExperimentalUsers]);
 
   const searchUsers = async () => {
     if (!searchQuery.trim() || searchQuery.trim().length < 2) {
@@ -179,7 +180,6 @@ export function AdminPanel({ adminFid }: AdminPanelProps) {
             <SearchBar
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by username..."
             />
           </div>
           <button

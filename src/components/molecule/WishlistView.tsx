@@ -213,12 +213,12 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
               {/* Status Badge */}
               <div className={`
                 absolute top-2 right-2 px-2 py-1 text-[10px] font-bold rounded z-10
-                ${item.status === 'found' 
+                ${item.status === 'alive' || item.status === 'dead'
                   ? 'bg-green-400 text-black' 
                   : 'bg-yellow-500 text-black'
                 }
               `}>
-                {item.status === 'found' ? '[*] FOUND' : '[&gt;] TO FIND'}
+                {item.status === 'alive' ? '[*] ALIVE' : item.status === 'dead' ? '[X] DEAD' : '[&gt;] TO FIND'}
               </div>
 
               {/* Invader Image - Clickable to navigate */}

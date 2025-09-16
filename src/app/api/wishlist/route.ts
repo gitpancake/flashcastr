@@ -3,7 +3,7 @@ import {
   getWishlistFromRedis, 
   addToWishlistRedis, 
   removeFromWishlistRedis, 
-  markAsFoundRedis, 
+  markAsAliveRedis, 
   getInvaderStatusRedis,
   getWishlistStatsRedis 
 } from '~/lib/redis';
@@ -78,8 +78,9 @@ export async function POST(request: NextRequest) {
         if (!invaderId) {
           return NextResponse.json({ error: 'Invader ID is required for mark_found action' }, { status: 400 });
         }
-        wishlist = await markAsFoundRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully marked ${invaderId} as found for FID ${fidNumber}`);
+        // Legacy support: mark_found now defaults to marking as alive
+        wishlist = await markAsAliveRedis(fidNumber, invaderId);
+        console.log(`[DEBUG] Successfully marked ${invaderId} as alive for FID ${fidNumber}`);
         break;
 
       case 'remove':

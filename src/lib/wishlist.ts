@@ -111,7 +111,7 @@ export async function isInWishlist(fid: number, invaderId: string): Promise<bool
 }
 
 // Get invader status via API
-export async function getInvaderStatus(fid: number, invaderId: string): Promise<'want_to_find' | 'found' | null> {
+export async function getInvaderStatus(fid: number, invaderId: string): Promise<'want_to_find' | 'alive' | 'dead' | null> {
   const response = await fetch(`/api/wishlist?fid=${fid}&invaderId=${invaderId}`);
   if (!response.ok) {
     throw new Error(`Failed to get invader status: ${response.status}`);

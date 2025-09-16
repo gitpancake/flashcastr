@@ -61,7 +61,7 @@ export async function saveWishlistToRedis(wishlist: UserWishlist): Promise<void>
     // Update stats
     wishlist.stats = {
       total_wanted: wishlist.items.filter(item => item.status === 'want_to_find').length,
-      total_found: wishlist.items.filter(item => item.status === 'found').length,
+      total_found: wishlist.items.filter(item => item.status === 'alive' || item.status === 'dead').length,
       last_updated: new Date().toISOString()
     };
     
@@ -192,7 +192,7 @@ export async function getExperimentalUsersRedis(): Promise<number[]> {
   try {
     const redis = await getRedisClient();
     const users = await redis.smembers(EXPERIMENTAL_USERS_KEY);
-    return users.map(fid => parseInt(fid, 10)).filter(fid => !isNaN(fid));
+    return Array.isArray(users) ? users.map(fid => parseInt(fid as string, 10)).filter(fid => !isNaN(fid)) : [];
   } catch (error) {
     console.error('Error getting experimental users:', error);
     return [];
