@@ -6,7 +6,7 @@ interface NeynarUser {
   username: string;
   display_name: string;
   pfp_url: string;
-  verified_addresses: {
+  verified_addresses?: {
     eth_addresses: string[];
     sol_addresses: string[];
   };
@@ -45,6 +45,9 @@ export async function GET(request: NextRequest) {
 
     const neynarUrl = `https://api.neynar.com/v2/farcaster/user/search?q=${encodeURIComponent(query.trim())}&limit=10`;
     
+    console.log(`[DEBUG] Searching for users with query: "${query}"`);
+    console.log(`[DEBUG] Neynar API URL: ${neynarUrl}`);
+    
     const response = await fetch(neynarUrl, {
       headers: {
         'Accept': 'application/json',
@@ -52,12 +55,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    console.log(`[DEBUG] Neynar API response status: ${response.status}`);
+
     if (!response.ok) {
-      console.error('Neynar API error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Neynar API error:', response.status, response.statusText, errorText);
       return NextResponse.json({ error: 'Search service error' }, { status: 500 });
     }
 
     const data: NeynarSearchResponse = await response.json();
+    console.log(`[DEBUG] Neynar API response:`, JSON.stringify(data, null, 2));
+
+    // Validate response structure
+    if (!data.result || !Array.isArray(data.result.users)) {
+      console.error('Unexpected Neynar API response structure:', data);
+      return NextResponse.json({ error: 'Invalid search response format' }, { status: 500 });
+    }
 
     // Transform Neynar users to our format
     const users = data.result.users.map(user => ({
@@ -65,9 +78,11 @@ export async function GET(request: NextRequest) {
       username: user.username,
       displayName: user.display_name,
       pfpUrl: user.pfp_url,
-      followerCount: user.follower_count,
-      followingCount: user.following_count,
+      followerCount: user.follower_count || 0,
+      followingCount: user.following_count || 0,
     }));
+
+    console.log(`[DEBUG] Transformed ${users.length} users for query "${query}"`);
 
     return NextResponse.json({
       success: true,
