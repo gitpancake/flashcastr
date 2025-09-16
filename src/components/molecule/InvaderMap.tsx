@@ -225,8 +225,6 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   
   // Use the new clean map data hook
   const {
-    huntList,
-    savedList,
     statusMap,
     addToHuntList,
     markInvaderAsFound,
@@ -370,33 +368,6 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <div className="text-green-400 text-lg sm:text-xl font-bold mb-2">
-          INVADER LOCATIONS MAP
-        </div>
-        <div className="text-gray-400 text-sm mb-2">
-          {selectedCity 
-            ? `NAVIGATED TO ${selectedCity.toUpperCase()} • SHOWING ${visibleInvaders.length} OF ${allInvaders.length} INVADERS`
-            : `SHOWING ${visibleInvaders.length} OF ${allInvaders.length} SPACE INVADER${allInvaders.length !== 1 ? "S" : ""} WORLDWIDE`
-          }
-        </div>
-        {farcasterFid && (huntList || savedList) && (
-          <div className="text-cyan-400 text-xs mb-2">
-            [&gt;] YOUR HUNT: {huntList?.stats.total || 0} TO FIND • [*] {savedList?.stats.total || 0} FOUND • {huntList && savedList ? Math.round((savedList.stats.total / (huntList.stats.total + savedList.stats.total)) * 100) || 0 : 0}% COMPLETE
-          </div>
-        )}
-        {visibleInvaders.length < allInvaders.length && !selectedCity && (
-          <div className="text-cyan-400 text-xs mt-1">
-            ZOOM OUT OR PAN TO SEE MORE INVADERS
-          </div>
-        )}
-        {selectedCity && (
-          <div className="text-cyan-400 text-xs mt-1">
-            CLICK &quot;{selectedCity.toUpperCase()}&quot; AGAIN OR &quot;SHOW ALL&quot; TO RETURN TO GLOBAL VIEW
-          </div>
-        )}
-      </div>
 
       {/* City Filter */}
       <div className="mb-4 bg-gray-900 border border-green-400 p-2">
