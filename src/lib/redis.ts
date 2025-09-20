@@ -1,6 +1,7 @@
 // Redis utilities for wishlist management
 import { createClient } from 'redis';
 import { WishlistItem, UserWishlist } from './wishlist';
+import { getLocalImagePath } from './getImagePath';
 
 // Create Redis client
 let client: ReturnType<typeof createClient> | null = null;
@@ -92,7 +93,7 @@ export async function addToWishlistRedis(
     const newItem: WishlistItem = {
       invader_id: invader.n,
       invader_name: invader.n,
-      photo_url: invader.t,
+      photo_url: getLocalImagePath(invader),
       coordinates: {
         lat: invader.l.lat,
         lng: invader.l.lng

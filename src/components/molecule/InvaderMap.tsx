@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { Map as LeafletMap } from "leaflet";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useMapData } from "~/hooks/useMapData";
+import { getLocalImagePath } from "~/lib/getImagePath";
 
 // Import Leaflet CSS in the component
 import "leaflet/dist/leaflet.css";
@@ -534,7 +535,7 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                       {invader.n}
                     </div>
                     <Image
-                      src={invader.t}
+                      src={getLocalImagePath(invader)}
                       alt={invader.n}
                       width={200}
                       height={200}
