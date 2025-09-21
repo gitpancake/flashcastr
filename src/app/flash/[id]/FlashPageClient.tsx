@@ -8,8 +8,15 @@ import { getImageUrl } from "~/lib/help/getImageUrl";
 import { shareToFarcaster, shareToTwitter, copyToClipboard } from "~/lib/share";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
 
+// Extended flash interface to handle Farcaster data
+interface ExtendedFlash extends GlobalFlash {
+  farcaster_username?: string;
+  farcaster_pfp?: string;
+  farcaster_fid?: number;
+}
+
 interface FlashPageClientProps {
-  flash: GlobalFlash;
+  flash: ExtendedFlash;
   timeAgo: string;
 }
 
@@ -123,41 +130,39 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
           />
         </div>
 
-        {/* Flash Info */}
+        {/* Flash Info - Match Feed UI */}
         <div className="p-4 space-y-3 bg-gray-900">
           <div className="text-green-400 text-lg font-bold">
-            #{flash.flash_id}
+            #{flash.flash_id.toLocaleString()}
           </div>
           
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="text-gray-400 text-sm">PLAYER:</div>
-              <div className="text-white text-sm">
-                @ {flash.player}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="text-gray-400 text-sm">CITY:</div>
-              <div className="text-white text-sm">
-                {">"} {flash.city}
-              </div>
-            </div>
-            
-            {flash.text && (
-              <div className="flex items-start gap-2">
-                <div className="text-gray-400 text-sm">TEXT:</div>
-                <div className="text-gray-300 text-sm leading-relaxed">
-                  {flash.text}
-                </div>
-              </div>
+          {/* Clickable User Info - Match Feed Design */}
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 -mx-2 rounded transition-colors duration-200"
+            onClick={() => {
+              const fid = flash.farcaster_fid || flash.player;
+              router.push(`/profile/${fid}`);
+            }}
+          >
+            {flash.farcaster_pfp && (
+              <Image
+                src={flash.farcaster_pfp}
+                alt={flash.farcaster_username || flash.player}
+                width={20}
+                height={20}
+                className="rounded-full"
+              />
             )}
-            
-            <div className="flex items-center gap-2">
-              <div className="text-gray-400 text-sm">TIME:</div>
-              <div className="text-gray-500 text-sm">{timeAgo}</div>
+            <div className="text-white text-sm">
+              @ {flash.farcaster_username || flash.player}
             </div>
           </div>
+          
+          <div className="text-gray-400 text-sm">
+            {">"} {flash.city}
+          </div>
+          
+          <div className="text-gray-500 text-sm">{timeAgo}</div>
         </div>
 
         {/* Glow effect */}
