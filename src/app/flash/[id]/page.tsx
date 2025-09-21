@@ -143,7 +143,6 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       // Create a combined flash object with Farcaster username
       const flashWithFarcaster = {
         ...flashResponse.flash,
-        player: flashResponse.user_username || flashResponse.flash.player, // Use Farcaster username with fallback
         text: '', // FlashData doesn't have text field, but GlobalFlash expects it
         farcaster_username: flashResponse.user_username,
         farcaster_pfp: flashResponse.user_pfp_url,
