@@ -29,10 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       // Continue to fallback, don't throw
     }
 
-    if (flashResponse) {
+    if (flashResponse && flashResponse.user_username) {
       // We have Farcaster data
       flash = flashResponse.flash;
-      playerName = flashResponse.user_username || flashResponse.flash.player;
+      playerName = flashResponse.user_username;
     } else {
       // Fallback to InvadersFunApi
       const invadersApi = new InvadersFunApi();
@@ -129,12 +129,15 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
     try {
       const flashcastrApi = new FlashesApi();
       flashResponse = await flashcastrApi.getFlashById(Number(id));
+      if (!flashResponse) {
+        console.log(`Flash ${id}: Not found in FlashesApi, falling back to InvadersFunApi`);
+      }
     } catch (error) {
       console.log('FlashesApi failed, falling back to InvadersFunApi:', error);
       // Continue to fallback, don't throw
     }
 
-    if (flashResponse) {
+    if (flashResponse && flashResponse.user_username) {
       // We have Farcaster data, use it
       const timestampSeconds = Math.floor(flashResponse.flash.timestamp / 1000);
       const timestamp = fromUnixTime(timestampSeconds);
@@ -148,6 +151,8 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
         farcaster_pfp: flashResponse.user_pfp_url,
         farcaster_fid: flashResponse.user_fid
       };
+
+      console.log(`Flash ${id}: Using Farcaster data for user ${flashResponse.user_username} (FID: ${flashResponse.user_fid})`);
 
       return (
         <FlashPageClient 
@@ -175,6 +180,8 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
     const timestampSeconds = Math.floor(flash.timestamp / 1000);
     const timestamp = fromUnixTime(timestampSeconds);
     const timeAgo = formatTimeAgo(timestamp);
+
+    console.log(`Flash ${id}: Using InvadersFunApi fallback for player ${flash.player}`);
 
     return (
       <FlashPageClient 
