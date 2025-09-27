@@ -32,6 +32,19 @@ interface GlobalFlashApiResponse {
   flash_count?: string;
 }
 
+interface FlashcastrFlashResponse {
+  flash_id: string;
+  flash: {
+    flash_id: string;
+    city: string;
+    player: string;
+    img: string;
+    ipfs_cid?: string;
+    text?: string;
+    timestamp: string;
+  };
+}
+
 
 export class GlobalFlashesApi extends BaseApi {
   public async getGlobalFlashes(
@@ -171,6 +184,52 @@ export class GlobalFlashesApi extends BaseApi {
             };
           }
         }
+
+        // If not found in globalFlashes, try the flashes query (Flashcastr users)
+        console.log(`Flash ${flash_id}: Not found in globalFlashes, trying flashes query...`);
+
+        try {
+          const flashcastrResponse = await this.api.post("/graphql", {
+            query: `
+              query Flashes($page: Int, $limit: Int) {
+                flashes(page: $page, limit: $limit) {
+                  flash_id
+                  flash {
+                    flash_id
+                    city
+                    player
+                    img
+                    ipfs_cid
+                    text
+                    timestamp
+                  }
+                }
+              }
+            `,
+            variables: { page: 1, limit: 100 },
+          });
+
+          const flashcastrFlashes = flashcastrResponse.data.data.flashes || [];
+          const flashcastrFlash = flashcastrFlashes.find((item: FlashcastrFlashResponse) =>
+            parseInt(item.flash_id, 10) === flash_id
+          );
+
+          if (flashcastrFlash) {
+            console.log(`Flash ${flash_id}: Found in Flashcastr flashes query`);
+            return {
+              flash_id: parseInt(flashcastrFlash.flash.flash_id, 10),
+              city: flashcastrFlash.flash.city,
+              player: flashcastrFlash.flash.player,
+              img: flashcastrFlash.flash.img,
+              ipfs_cid: flashcastrFlash.flash.ipfs_cid,
+              text: flashcastrFlash.flash.text || `${flashcastrFlash.flash.city}, ${flashcastrFlash.flash.player}`,
+              timestamp: parseInt(flashcastrFlash.flash.timestamp, 10),
+            };
+          }
+        } catch (flashcastrError) {
+          console.error("Error fetching from Flashcastr flashes:", flashcastrError);
+        }
+
         return null;
       }
 
