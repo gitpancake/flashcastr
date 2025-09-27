@@ -21,6 +21,25 @@ export interface TrendingCity {
   count: number;
 }
 
+interface FlashResponse {
+  id: string;
+  flash_id: string;
+  user_fid: number;
+  user_username: string;
+  user_pfp_url: string;
+  cast_hash: string;
+  flash: {
+    flash_id: string;
+    city: string;
+    player: string;
+    img: string;
+    ipfs_cid?: string;
+    text: string;
+    timestamp: string;
+    flash_count?: string;
+  };
+}
+
 export class GlobalFlashesApi extends BaseApi {
   public async getGlobalFlashes(
     page: number = 1,
@@ -39,6 +58,12 @@ export class GlobalFlashesApi extends BaseApi {
         query: `
           query FlashesByCity($city: String, $page: Int, $limit: Int) {
             flashes(city: $city, page: $page, limit: $limit) {
+              id
+              flash_id
+              user_fid
+              user_username
+              user_pfp_url
+              cast_hash
               flash {
                 flash_id
                 city
@@ -57,15 +82,15 @@ export class GlobalFlashesApi extends BaseApi {
 
       const flashes = response.data.data.flashes || [];
 
-      // Transform to match expected interface
-      const items: GlobalFlash[] = flashes.map((item: { flash: GlobalFlash }) => ({
-        flash_id: item.flash.flash_id,
+      // Transform to match expected interface - flash_id is a string in the API
+      const items: GlobalFlash[] = flashes.map((item: FlashResponse) => ({
+        flash_id: parseInt(item.flash.flash_id, 10),
         city: item.flash.city,
         player: item.flash.player,
         img: item.flash.img,
         ipfs_cid: item.flash.ipfs_cid,
         text: item.flash.text,
-        timestamp: item.flash.timestamp,
+        timestamp: parseInt(item.flash.timestamp, 10),
       }));
 
       // For now, we'll assume there are more pages if we got a full page
@@ -99,10 +124,18 @@ export class GlobalFlashesApi extends BaseApi {
 
   public async getGlobalFlash(flash_id: number): Promise<GlobalFlash | null> {
     try {
+      // Since individual flash query might not exist, let's search through flashes
+      // We'll fetch a larger batch and look for our specific flash_id
       const response = await this.api.post("/graphql", {
         query: `
-          query Flash($flash_id: Int!) {
-            flash(flash_id: $flash_id) {
+          query FlashesByCity($page: Int, $limit: Int) {
+            flashes(page: $page, limit: $limit) {
+              id
+              flash_id
+              user_fid
+              user_username
+              user_pfp_url
+              cast_hash
               flash {
                 flash_id
                 city
@@ -116,20 +149,57 @@ export class GlobalFlashesApi extends BaseApi {
             }
           }
         `,
-        variables: { flash_id },
+        variables: { page: 1, limit: 100 },
       });
 
-      const flashData = response.data.data.flash?.flash;
-      if (!flashData) return null;
+      const flashes = response.data.data.flashes || [];
+      const targetFlash = flashes.find((item: FlashResponse) =>
+        parseInt(item.flash.flash_id, 10) === flash_id
+      );
+
+      if (!targetFlash) {
+        // Try searching more pages if not found in first 100
+        for (let page = 2; page <= 10; page++) {
+          const pageResponse = await this.api.post("/graphql", {
+            query: `
+              query FlashesByCity($page: Int, $limit: Int) {
+                flashes(page: $page, limit: $limit) {
+                  flash { flash_id city player img ipfs_cid text timestamp }
+                }
+              }
+            `,
+            variables: { page, limit: 100 },
+          });
+
+          const pageFlashes = pageResponse.data.data.flashes || [];
+          if (pageFlashes.length === 0) break;
+
+          const found = pageFlashes.find((item: FlashResponse) =>
+            parseInt(item.flash.flash_id, 10) === flash_id
+          );
+          if (found) {
+            return {
+              flash_id: parseInt(found.flash.flash_id, 10),
+              city: found.flash.city,
+              player: found.flash.player,
+              img: found.flash.img,
+              ipfs_cid: found.flash.ipfs_cid,
+              text: found.flash.text,
+              timestamp: parseInt(found.flash.timestamp, 10),
+            };
+          }
+        }
+        return null;
+      }
 
       return {
-        flash_id: flashData.flash_id,
-        city: flashData.city,
-        player: flashData.player,
-        img: flashData.img,
-        ipfs_cid: flashData.ipfs_cid,
-        text: flashData.text,
-        timestamp: flashData.timestamp,
+        flash_id: parseInt(targetFlash.flash.flash_id, 10),
+        city: targetFlash.flash.city,
+        player: targetFlash.flash.player,
+        img: targetFlash.flash.img,
+        ipfs_cid: targetFlash.flash.ipfs_cid,
+        text: targetFlash.flash.text,
+        timestamp: parseInt(targetFlash.flash.timestamp, 10),
       };
     } catch (error) {
       console.error("Error fetching global flash:", error);

@@ -22,16 +22,23 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   
   const api = useMemo(() => new GlobalFlashesApi(), []);
 
-  // Fetch trending data and all cities
+  // Fetch trending cities immediately, load all cities only when needed
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTrendingData = async () => {
       const trendingData = await api.getTrendingCities(true); // Exclude Paris
-      const cities = await api.getGlobalCities();
       setTrendingCities(trendingData);
-      setAllCities(cities.sort());
     };
-    fetchData();
+    fetchTrendingData();
   }, [api]);
+
+  // Load all cities only when user requests to see them
+  const loadAllCities = async () => {
+    if (allCities.length === 0) {
+      const cities = await api.getGlobalCities();
+      setAllCities(cities.sort());
+    }
+    setShowAllCities(true);
+  };
 
   const {
     data,
@@ -120,11 +127,11 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
           </button>
           
           <button
-            onClick={() => setShowAllCities(!showAllCities)}
+            onClick={() => showAllCities ? setShowAllCities(false) : loadAllCities()}
             className={`
               px-2 py-1 text-[10px] border transition-all duration-200
-              ${showAllCities 
-                ? 'bg-cyan-400 text-black border-cyan-400' 
+              ${showAllCities
+                ? 'bg-cyan-400 text-black border-cyan-400'
                 : 'bg-transparent text-cyan-400 border-cyan-400 hover:bg-cyan-400 hover:text-black'
               }
             `}
