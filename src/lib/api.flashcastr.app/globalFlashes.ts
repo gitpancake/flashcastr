@@ -122,7 +122,50 @@ export class GlobalFlashesApi extends BaseApi {
 
   public async getGlobalFlash(flash_id: number): Promise<GlobalFlash | null> {
     try {
-      // Search through globalFlashes to find our specific flash_id
+      // Search through flashes first (complete superset with historical data)
+      console.log(`Flash ${flash_id}: Searching in flashes query (complete dataset)...`);
+
+      const flashcastrResponse = await this.api.post("/graphql", {
+        query: `
+          query Flashes($page: Int, $limit: Int) {
+            flashes(page: $page, limit: $limit) {
+              flash_id
+              flash {
+                flash_id
+                city
+                player
+                img
+                ipfs_cid
+                text
+                timestamp
+              }
+            }
+          }
+        `,
+        variables: { page: 1, limit: 100 },
+      });
+
+      const flashcastrFlashes = flashcastrResponse.data.data.flashes || [];
+      const flashcastrFlash = flashcastrFlashes.find((item: FlashcastrFlashResponse) =>
+        parseInt(item.flash_id, 10) === flash_id
+      );
+
+      if (flashcastrFlash) {
+        console.log(`Flash ${flash_id}: Found in flashes query`);
+        return {
+          flash_id: parseInt(flashcastrFlash.flash.flash_id, 10),
+          city: flashcastrFlash.flash.city,
+          player: flashcastrFlash.flash.player,
+          img: flashcastrFlash.flash.img,
+          ipfs_cid: flashcastrFlash.flash.ipfs_cid,
+          text: flashcastrFlash.flash.text || `${flashcastrFlash.flash.city}, ${flashcastrFlash.flash.player}`,
+          timestamp: parseInt(flashcastrFlash.flash.timestamp, 10),
+        };
+      }
+
+      // If not found in flashes, try globalFlashes (recent data)
+      console.log(`Flash ${flash_id}: Not found in flashes, trying globalFlashes query...`);
+
       const response = await this.api.post("/graphql", {
         query: `
           query GlobalFlashes($page: Int, $limit: Int) {
@@ -147,7 +190,7 @@ export class GlobalFlashesApi extends BaseApi {
       );
 
       if (!targetFlash) {
-        // Try searching more pages if not found in first 100
+        // Try searching more pages in globalFlashes if not found in first 100
         for (let page = 2; page <= 10; page++) {
           const pageResponse = await this.api.post("/graphql", {
             query: `
@@ -173,6 +216,7 @@ export class GlobalFlashesApi extends BaseApi {
             parseInt(item.flash_id, 10) === flash_id
           );
           if (found) {
+            console.log(`Flash ${flash_id}: Found in globalFlashes on page ${page}`);
             return {
               flash_id: parseInt(found.flash_id, 10),
               city: found.city,
@@ -184,55 +228,10 @@ export class GlobalFlashesApi extends BaseApi {
             };
           }
         }
-
-        // If not found in globalFlashes, try the flashes query (Flashcastr users)
-        console.log(`Flash ${flash_id}: Not found in globalFlashes, trying flashes query...`);
-
-        try {
-          const flashcastrResponse = await this.api.post("/graphql", {
-            query: `
-              query Flashes($page: Int, $limit: Int) {
-                flashes(page: $page, limit: $limit) {
-                  flash_id
-                  flash {
-                    flash_id
-                    city
-                    player
-                    img
-                    ipfs_cid
-                    text
-                    timestamp
-                  }
-                }
-              }
-            `,
-            variables: { page: 1, limit: 100 },
-          });
-
-          const flashcastrFlashes = flashcastrResponse.data.data.flashes || [];
-          const flashcastrFlash = flashcastrFlashes.find((item: FlashcastrFlashResponse) =>
-            parseInt(item.flash_id, 10) === flash_id
-          );
-
-          if (flashcastrFlash) {
-            console.log(`Flash ${flash_id}: Found in Flashcastr flashes query`);
-            return {
-              flash_id: parseInt(flashcastrFlash.flash.flash_id, 10),
-              city: flashcastrFlash.flash.city,
-              player: flashcastrFlash.flash.player,
-              img: flashcastrFlash.flash.img,
-              ipfs_cid: flashcastrFlash.flash.ipfs_cid,
-              text: flashcastrFlash.flash.text || `${flashcastrFlash.flash.city}, ${flashcastrFlash.flash.player}`,
-              timestamp: parseInt(flashcastrFlash.flash.timestamp, 10),
-            };
-          }
-        } catch (flashcastrError) {
-          console.error("Error fetching from Flashcastr flashes:", flashcastrError);
-        }
-
         return null;
       }
 
+      console.log(`Flash ${flash_id}: Found in globalFlashes`);
       return {
         flash_id: parseInt(targetFlash.flash_id, 10),
         city: targetFlash.city,
