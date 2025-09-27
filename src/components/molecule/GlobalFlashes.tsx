@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
-import { InvadersFunApi, type GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import { GlobalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 
@@ -20,7 +20,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   const [allCities, setAllCities] = useState<string[]>([]);
   const [showAllCities, setShowAllCities] = useState(false);
   
-  const api = useMemo(() => new InvadersFunApi(), []);
+  const api = useMemo(() => new GlobalFlashesApi(), []);
 
   // Fetch trending data and all cities
   useEffect(() => {
@@ -41,13 +41,13 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["global-flashes", selectedCity],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam = 1 }) => {
       return await api.getGlobalFlashes(pageParam as number, 40, selectedCity);
     },
-    initialPageParam: 0,
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasNext) return undefined;
-      return allPages.reduce((acc, page) => acc + page.items.length, 0);
+      return allPages.length + 1;
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -243,7 +243,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       <div className="mt-8 text-center text-xs text-gray-500">
         <div>SHOWING {flashes.length} FLASHES</div>
         {selectedCity && <div>FILTERED BY: {selectedCity.toUpperCase()}</div>}
-        <div className="mt-2">DATA SOURCE: INVADERS.FUN</div>
+        <div className="mt-2">DATA SOURCE: FLASHCASTR.APP</div>
       </div>
     </div>
   );

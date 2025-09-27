@@ -1,4 +1,4 @@
-import { GlobalFlash } from "./api.invaders.fun/flashes";
+import { GlobalFlash } from "./api.flashcastr.app/globalFlashes";
 
 export interface ShareOptions {
   flash: GlobalFlash;

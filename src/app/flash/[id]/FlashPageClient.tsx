@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import { GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 import { shareToFarcaster, shareToTwitter, copyToClipboard } from "~/lib/share";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";

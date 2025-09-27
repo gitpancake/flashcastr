@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
 import type { Metadata } from "next";
-import { InvadersFunApi, GlobalFlash } from "~/lib/api.invaders.fun/flashes";
+import { GlobalFlashesApi, GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import { FlashesApi, FlashData } from "~/lib/api.flashcastr.app/flashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       const flashcastrApi = new FlashesApi();
       flashResponse = await flashcastrApi.getFlashById(Number(id));
     } catch (error) {
-      console.log('FlashesApi failed for metadata, falling back to InvadersFunApi:', error);
+      console.log('FlashesApi failed for metadata, falling back to GlobalFlashesApi:', error);
       // Continue to fallback, don't throw
     }
 
@@ -34,9 +34,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       flash = flashResponse.flash;
       playerName = flashResponse.user_username;
     } else {
-      // Fallback to InvadersFunApi
-      const invadersApi = new InvadersFunApi();
-      flash = await invadersApi.getGlobalFlash(Number(id));
+      // Fallback to GlobalFlashesApi
+      const globalApi = new GlobalFlashesApi();
+      flash = await globalApi.getGlobalFlash(Number(id));
       playerName = flash?.player;
     }
 
@@ -130,10 +130,10 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       const flashcastrApi = new FlashesApi();
       flashResponse = await flashcastrApi.getFlashById(Number(id));
       if (!flashResponse) {
-        console.log(`Flash ${id}: Not found in FlashesApi, falling back to InvadersFunApi`);
+        console.log(`Flash ${id}: Not found in FlashesApi, falling back to GlobalFlashesApi`);
       }
     } catch (error) {
-      console.log('FlashesApi failed, falling back to InvadersFunApi:', error);
+      console.log('FlashesApi failed, falling back to GlobalFlashesApi:', error);
       // Continue to fallback, don't throw
     }
 
@@ -162,9 +162,9 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       );
     }
 
-    // Fallback to InvadersFunApi if not found in FlashesApi or FlashesApi failed
-    const invadersApi = new InvadersFunApi();
-    const flash = await invadersApi.getGlobalFlash(Number(id));
+    // Fallback to GlobalFlashesApi if not found in FlashesApi or FlashesApi failed
+    const globalApi = new GlobalFlashesApi();
+    const flash = await globalApi.getGlobalFlash(Number(id));
 
     if (!flash) {
       console.error(`Flash not found for ID: ${id}`);
@@ -181,7 +181,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
     const timestamp = fromUnixTime(timestampSeconds);
     const timeAgo = formatTimeAgo(timestamp);
 
-    console.log(`Flash ${id}: Using InvadersFunApi fallback for player ${flash.player}`);
+    console.log(`Flash ${id}: Using GlobalFlashesApi fallback for player ${flash.player}`);
 
     return (
       <FlashPageClient 
