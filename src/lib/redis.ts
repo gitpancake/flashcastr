@@ -384,3 +384,190 @@ function getEmptyFavorites(fid: number): UserFavorites {
     }
   };
 }
+
+// ================== FLASH LINKS MANAGEMENT ==================
+
+export interface FlashLink {
+  flash_id: number;
+  invader_id: string;
+  invader_name: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  linked_date: string;
+  city: string;
+}
+
+export interface UserFlashLinks {
+  fid: number;
+  links: FlashLink[];
+  stats: {
+    total_links: number;
+    last_updated: string;
+  };
+}
+
+// Redis key pattern for flash links
+const FLASH_LINKS_KEY = (fid: number) => `flash_links:${fid}`;
+
+// Get user's flash links from Redis
+export async function getFlashLinksFromRedis(fid: number): Promise<UserFlashLinks> {
+  try {
+    const client = await getRedisClient();
+    const stored = await client.get(FLASH_LINKS_KEY(fid));
+
+    if (!stored) {
+      return getEmptyFlashLinks(fid);
+    }
+
+    const parsed = JSON.parse(stored) as UserFlashLinks;
+    return parsed;
+  } catch (error) {
+    console.error('Error loading flash links from Redis:', error);
+    return getEmptyFlashLinks(fid);
+  }
+}
+
+// Save user's flash links to Redis
+export async function saveFlashLinksToRedis(flashLinks: UserFlashLinks): Promise<void> {
+  try {
+    const client = await getRedisClient();
+
+    // Update stats
+    flashLinks.stats = {
+      total_links: flashLinks.links.length,
+      last_updated: new Date().toISOString()
+    };
+
+    await client.set(FLASH_LINKS_KEY(flashLinks.fid), JSON.stringify(flashLinks));
+  } catch (error) {
+    console.error('Error saving flash links to Redis:', error);
+    throw error;
+  }
+}
+
+// Link flash to invader in Redis
+export async function linkFlashToInvaderRedis(
+  fid: number,
+  flashId: number,
+  invader: {
+    i: number;
+    n: string;
+    l: { lat: number; lng: number };
+    t: string;
+  },
+  city: string
+): Promise<UserFlashLinks> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+
+    // Check if flash is already linked to any invader
+    const existingLinkIndex = userLinks.links.findIndex(link => link.flash_id === flashId);
+
+    if (existingLinkIndex !== -1) {
+      // Update existing link
+      userLinks.links[existingLinkIndex] = {
+        flash_id: flashId,
+        invader_id: invader.n,
+        invader_name: invader.n,
+        coordinates: {
+          lat: invader.l.lat,
+          lng: invader.l.lng
+        },
+        linked_date: new Date().toISOString(),
+        city
+      };
+    } else {
+      // Add new link
+      const newLink: FlashLink = {
+        flash_id: flashId,
+        invader_id: invader.n,
+        invader_name: invader.n,
+        coordinates: {
+          lat: invader.l.lat,
+          lng: invader.l.lng
+        },
+        linked_date: new Date().toISOString(),
+        city
+      };
+
+      userLinks.links.push(newLink);
+    }
+
+    await saveFlashLinksToRedis(userLinks);
+    return userLinks;
+  } catch (error) {
+    console.error('Error linking flash to invader in Redis:', error);
+    throw error;
+  }
+}
+
+// Unlink flash from invader in Redis
+export async function unlinkFlashFromInvaderRedis(fid: number, flashId: number): Promise<UserFlashLinks> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+    userLinks.links = userLinks.links.filter(link => link.flash_id !== flashId);
+    await saveFlashLinksToRedis(userLinks);
+    return userLinks;
+  } catch (error) {
+    console.error('Error unlinking flash from invader in Redis:', error);
+    throw error;
+  }
+}
+
+// Get links for specific invader
+export async function getInvaderLinksRedis(fid: number, invaderId: string): Promise<FlashLink[]> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+    return userLinks.links.filter(link => link.invader_id === invaderId);
+  } catch (error) {
+    console.error('Error getting invader links from Redis:', error);
+    return [];
+  }
+}
+
+// Get link for specific flash
+export async function getFlashLinkRedis(fid: number, flashId: number): Promise<FlashLink | null> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+    return userLinks.links.find(link => link.flash_id === flashId) || null;
+  } catch (error) {
+    console.error('Error getting flash link from Redis:', error);
+    return null;
+  }
+}
+
+// Check if flash is linked
+export async function isFlashLinkedRedis(fid: number, flashId: number): Promise<boolean> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+    return userLinks.links.some(link => link.flash_id === flashId);
+  } catch (error) {
+    console.error('Error checking flash link status in Redis:', error);
+    return false;
+  }
+}
+
+// Get count of links for an invader
+export async function getInvaderLinkCountRedis(fid: number, invaderId: string): Promise<number> {
+  try {
+    const userLinks = await getFlashLinksFromRedis(fid);
+    return userLinks.links.filter(link => link.invader_id === invaderId).length;
+  } catch (error) {
+    console.error('Error getting invader link count from Redis:', error);
+    return 0;
+  }
+}
+
+// Helper to create empty flash links
+function getEmptyFlashLinks(fid: number): UserFlashLinks {
+  return {
+    fid,
+    links: [],
+    stats: {
+      total_links: 0,
+      last_updated: new Date().toISOString()
+    }
+  };
+}

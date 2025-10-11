@@ -6,7 +6,9 @@ import Image from "next/image";
 import type { Map as LeafletMap } from "leaflet";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useMapData } from "~/hooks/useMapData";
+import { useFlashLinks } from "~/hooks/useFlashLinks";
 import { getLocalImagePath } from "~/lib/getImagePath";
+import { FlashLinkModal } from "~/components/molecule/FlashLinkModal";
 
 // Import Leaflet CSS in the component
 import "leaflet/dist/leaflet.css";
@@ -257,7 +259,7 @@ interface InvaderMapProps {
 export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapProps = {}) {
   const { context } = useFrame();
   const farcasterFid = context?.user?.fid;
-  
+
   const [allInvaders, setAllInvaders] = useState<InvaderLocation[]>([]);
   const [visibleInvaders, setVisibleInvaders] = useState<InvaderLocation[]>([]);
   const [filteredInvaders, setFilteredInvaders] = useState<InvaderLocation[]>([]);
@@ -267,7 +269,9 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
   const [showAllCities, setShowAllCities] = useState(false);
   const [map, setMap] = useState<LeafletMap | null>(null);
   const [activeView, setActiveView] = useState<MapView>('geo');
-  
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [selectedInvaderForLink, setSelectedInvaderForLink] = useState<InvaderLocation | null>(null);
+
   // Use the new clean map data hook
   const {
     statusMap,
@@ -276,6 +280,9 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
     markInvaderAsDead,
     removeFromSavedList,
   } = useMapData(farcasterFid);
+
+  // Use flash links hook
+  const { getInvaderLinkCount } = useFlashLinks(farcasterFid);
   
   // Popular cities with coordinates for navigation
   const popularCities = useMemo(() => [
@@ -522,7 +529,8 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
             {visibleInvaders.map((invader) => {
               const status = statusMap[invader.n] || null;
               const customIcon = createCustomIcon(status);
-              
+              const linkCount = getInvaderLinkCount(invader.n);
+
               return (
                 <Marker
                   key={invader.i}
@@ -546,15 +554,36 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
                       LAT: {invader.l.lat.toFixed(6)}<br />
                       LNG: {invader.l.lng.toFixed(6)}
                     </div>
-                    <InvaderActionButton 
-                      invader={invader} 
-                      fid={farcasterFid} 
+                    <InvaderActionButton
+                      invader={invader}
+                      fid={farcasterFid}
                       currentStatus={status}
                       onAddToHunt={addToHuntList}
                       onMarkAlive={markInvaderAsAlive}
                       onMarkDead={markInvaderAsDead}
                       onRemoveFromSaved={removeFromSavedList}
                     />
+
+                    {/* Link Flash Button */}
+                    {farcasterFid && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setSelectedInvaderForLink(invader);
+                            setLinkModalOpen(true);
+                          }}
+                          className="w-full mt-2 px-2 py-1 text-[10px] font-bold border border-cyan-400 bg-cyan-400 text-black hover:bg-cyan-300 transition-all duration-200"
+                        >
+                          [↗] LINK FLASH
+                        </button>
+
+                        {linkCount > 0 && (
+                          <div className="mt-2 text-xs text-cyan-400">
+                            {linkCount} FLASH{linkCount > 1 ? 'ES' : ''} LINKED
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </Popup>
               </Marker>
@@ -624,6 +653,19 @@ export function InvaderMap({ targetLocation, onLocationTargeted }: InvaderMapPro
       <div className="mt-4 text-center text-xs text-gray-400">
         <div>CLICK MARKERS FOR INVADER DETAILS • ZOOM AND PAN TO EXPLORE</div>
       </div>
+
+      {/* Flash Link Modal */}
+      {selectedInvaderForLink && farcasterFid && (
+        <FlashLinkModal
+          invader={selectedInvaderForLink}
+          fid={farcasterFid}
+          isOpen={linkModalOpen}
+          onClose={() => {
+            setLinkModalOpen(false);
+            setSelectedInvaderForLink(null);
+          }}
+        />
+      )}
     </div>
   );
 }

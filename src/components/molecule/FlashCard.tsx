@@ -16,11 +16,12 @@ interface FlashCardProps {
   fid: number;
   castHash: string | null;
   isPlayer: boolean;
+  linkedInvader?: string | null;
 }
 
-export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash }: FlashCardProps) {
+export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash, linkedInvader }: FlashCardProps) {
   return (
-    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in" ref={ref}>
+    <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in relative" ref={ref}>
       <div className="flex items-start gap-3">
         <Image width={1920} height={1080} src={avatar} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
 
@@ -35,20 +36,27 @@ export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo
         </div>
       </div>
 
-      <Image
-        onClick={() => {
-          if (castHash) {
-            sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
-          } else {
-            sdk.actions.openUrl(S3.BASE_URL + imageUrl);
-          }
-        }}
-        width={1920}
-        height={1080}
-        src={S3.BASE_URL + imageUrl}
-        alt="flash"
-        className="w-[60px] h-[60px] object-cover border border-gray-800 hover:cursor-pointer"
-      />
+      <div className="relative">
+        {linkedInvader && (
+          <div className="absolute -top-1 -right-1 bg-cyan-400 text-black text-[8px] px-1 py-0.5 font-bold z-10 border border-cyan-400">
+            ↗ {linkedInvader}
+          </div>
+        )}
+        <Image
+          onClick={() => {
+            if (castHash) {
+              sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
+            } else {
+              sdk.actions.openUrl(S3.BASE_URL + imageUrl);
+            }
+          }}
+          width={1920}
+          height={1080}
+          src={S3.BASE_URL + imageUrl}
+          alt="flash"
+          className="w-[60px] h-[60px] object-cover border border-gray-800 hover:cursor-pointer"
+        />
+      </div>
     </div>
   );
 }
