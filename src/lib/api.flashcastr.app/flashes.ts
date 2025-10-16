@@ -30,6 +30,7 @@ export interface FlashStats {
 
 export interface LeaderboardEntry {
   username: string;
+  pfp_url: string | null;
   flash_count: number;
   city_count: number;
 }
@@ -150,6 +151,7 @@ export class FlashesApi extends BaseApi {
         query GetLeaderboard($limit: Int) {
           getLeaderboard(limit: $limit) {
             username
+            pfp_url
             flash_count
             city_count
           }

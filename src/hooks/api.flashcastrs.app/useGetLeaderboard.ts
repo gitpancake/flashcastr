@@ -3,6 +3,7 @@ import { FlashesApi, LeaderboardEntry as ApiLeaderboardEntry } from "~/lib/api.f
 
 interface LeaderboardEntry {
   username: string;
+  pfp_url: string | null;
   flashCount: number;
   citiesCount: number;
 }
@@ -17,6 +18,7 @@ export const useGetLeaderboard = (limit: number = 100) => {
       // Map API response to our internal format
       return entries.map((entry: ApiLeaderboardEntry) => ({
         username: entry.username,
+        pfp_url: entry.pfp_url,
         flashCount: entry.flash_count,
         citiesCount: entry.city_count,
       }));

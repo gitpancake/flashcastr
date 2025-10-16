@@ -2,10 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { formatFlashCount } from "~/lib/badges";
 
 interface LeaderboardUser {
   username: string;
+  pfp_url: string | null;
   flashCount: number;
   citiesCount: number;
   rank?: number;
@@ -104,8 +106,22 @@ export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
                 {user.rank}
               </div>
 
-              {/* Username */}
-              <div className="col-span-1 flex items-center">
+              {/* Username with Avatar */}
+              <div className="col-span-1 flex items-center gap-1 sm:gap-2">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded-full flex-shrink-0 overflow-hidden relative">
+                  {user.pfp_url ? (
+                    <Image
+                      src={user.pfp_url}
+                      alt={user.username}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[8px] sm:text-xs">
+                      👤
+                    </div>
+                  )}
+                </div>
                 <div className="truncate font-mono text-[10px] sm:text-sm">
                   {user.username}
                 </div>
