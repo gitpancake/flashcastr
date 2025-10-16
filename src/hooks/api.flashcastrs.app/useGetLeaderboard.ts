@@ -36,8 +36,8 @@ export const useGetLeaderboard = () => {
         user.flashCount++;
       }
       
-      // Get stats for each user
-      for (const [fid, user] of userMap.entries()) {
+      // Get stats for each user in parallel
+      const statsPromises = Array.from(userMap.entries()).map(async ([fid, user]) => {
         try {
           const stats = await api.getFlashStats(fid);
           user.flashCount = stats.flashCount;
@@ -45,7 +45,9 @@ export const useGetLeaderboard = () => {
         } catch (error) {
           console.error(`Failed to get stats for user ${fid}`, error);
         }
-      }
+      });
+
+      await Promise.all(statsPromises);
       
       // Convert map to array and sort by flash count
       return Array.from(userMap.values())
