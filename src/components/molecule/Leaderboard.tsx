@@ -2,13 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { formatFlashCount } from "~/lib/badges";
 
 interface LeaderboardUser {
-  fid: number;
   username: string;
-  pfp_url: string;
   flashCount: number;
   citiesCount: number;
   rank?: number;
@@ -16,13 +13,13 @@ interface LeaderboardUser {
 
 interface LeaderboardProps {
   users: LeaderboardUser[];
-  currentUserFid?: number;
+  currentUsername?: string;
 }
 
-export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
+export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
   const [sortBy, setSortBy] = useState<'flashes' | 'cities'>('flashes');
   const router = useRouter();
-  
+
   const sortedUsers = useMemo(() => {
     const sorted = [...users].sort((a, b) => {
       if (sortBy === 'flashes') {
@@ -30,14 +27,14 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
       }
       return b.citiesCount - a.citiesCount;
     });
-    
+
     return sorted.map((user, index) => ({
       ...user,
       rank: index + 1
     }));
   }, [users, sortBy]);
 
-  const currentUserRank = sortedUsers.find(u => u.fid === currentUserFid)?.rank;
+  const currentUserRank = sortedUsers.find(u => u.username === currentUsername)?.rank;
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
@@ -87,17 +84,17 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
 
         {/* Leaderboard Entries - Simplified */}
         {sortedUsers.slice(0, 50).map((user) => {
-          const isCurrentUser = user.fid === currentUserFid;
+          const isCurrentUser = user.username === currentUsername;
           const primaryStat = sortBy === 'flashes' ? user.flashCount : user.citiesCount;
-          
+
           return (
             <div
-              key={user.fid}
-              onClick={() => router.push(`/profile/${user.fid}`)}
+              key={user.username}
+              onClick={() => router.push(`/?search=${encodeURIComponent(user.username)}`)}
               className={`
                 grid grid-cols-3 gap-1 sm:gap-2 p-2 sm:p-3 border transition-all duration-200 text-xs sm:text-sm cursor-pointer
-                ${isCurrentUser 
-                  ? 'bg-green-900/50 border-green-400 text-green-400 hover:bg-green-800/50' 
+                ${isCurrentUser
+                  ? 'bg-green-900/50 border-green-400 text-green-400 hover:bg-green-800/50'
                   : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500 hover:bg-gray-800'
                 }
               `}
@@ -109,18 +106,8 @@ export function Leaderboard({ users, currentUserFid }: LeaderboardProps) {
 
               {/* Username */}
               <div className="col-span-1 flex items-center">
-                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded mr-1 sm:mr-2 flex-shrink-0 overflow-hidden relative">
-                  {user.pfp_url && (
-                    <Image 
-                      src={user.pfp_url} 
-                      alt={user.username}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
-                </div>
                 <div className="truncate font-mono text-[10px] sm:text-sm">
-                  @{user.username}
+                  {user.username}
                 </div>
               </div>
 

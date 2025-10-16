@@ -121,7 +121,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       case 'global':
         return <GlobalFlashes />;
       case 'leaderboard':
-        return <Leaderboard users={leaderboardUsers} currentUserFid={farcasterFid} />;
+        return <Leaderboard users={leaderboardUsers} currentUsername={appUser?.username} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
       case 'map':

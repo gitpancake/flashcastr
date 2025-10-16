@@ -28,6 +28,12 @@ export interface FlashStats {
   flashCount: number;
 }
 
+export interface LeaderboardEntry {
+  username: string;
+  flash_count: number;
+  city_count: number;
+}
+
 export class FlashesApi extends BaseApi {
   public async getFlashes(page: number = 1, limit: number = 40, fid?: number, search?: string): Promise<FlashResponse[]> {
     const variables: Record<string, number | string | undefined> = {
@@ -136,5 +142,22 @@ export class FlashesApi extends BaseApi {
     });
 
     return response.data.data.flash ?? null;
+  }
+
+  public async getLeaderboard(limit: number = 100): Promise<LeaderboardEntry[]> {
+    const response = await this.api.post("/graphql", {
+      query: `
+        query GetLeaderboard($limit: Int) {
+          getLeaderboard(limit: $limit) {
+            username
+            flash_count
+            city_count
+          }
+        }
+      `,
+      variables: { limit },
+    });
+
+    return response.data.data.getLeaderboard || [];
   }
 }
