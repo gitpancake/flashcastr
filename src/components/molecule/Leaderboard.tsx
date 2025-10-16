@@ -108,18 +108,25 @@ export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
 
               {/* Username with Avatar */}
               <div className="col-span-1 flex items-center gap-1 sm:gap-2">
-                <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-600 rounded-full flex-shrink-0 overflow-hidden relative">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full flex-shrink-0 overflow-hidden relative">
                   {user.pfp_url ? (
                     <Image
                       src={user.pfp_url}
                       alt={user.username}
                       fill
                       className="object-cover"
+                      onError={(e) => {
+                        // Replace with purple alien on error
+                        e.currentTarget.src = '/icon.png';
+                      }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[8px] sm:text-xs">
-                      👤
-                    </div>
+                    <Image
+                      src="/icon.png"
+                      alt="Space Invader"
+                      fill
+                      className="object-cover"
+                    />
                   )}
                 </div>
                 <div className="truncate font-mono text-[10px] sm:text-sm">
