@@ -35,6 +35,11 @@ export interface LeaderboardEntry {
   city_count: number;
 }
 
+export interface DailyProgress {
+  date: string;
+  count: number;
+}
+
 export class FlashesApi extends BaseApi {
   public async getFlashes(page: number = 1, limit: number = 40, fid?: number, search?: string): Promise<FlashResponse[]> {
     const variables: Record<string, number | string | undefined> = {
@@ -161,5 +166,21 @@ export class FlashesApi extends BaseApi {
     });
 
     return response.data.data.getLeaderboard || [];
+  }
+
+  public async getProgress(fid: number, days: number = 7, order: 'ASC' | 'DESC' = 'ASC'): Promise<DailyProgress[]> {
+    const response = await this.api.post("/graphql", {
+      query: `
+        query GetProgress($fid: Int!, $days: Int!, $order: String) {
+          progress(fid: $fid, days: $days, order: $order) {
+            date
+            count
+          }
+        }
+      `,
+      variables: { fid, days, order },
+    });
+
+    return response.data.data.progress || [];
   }
 }

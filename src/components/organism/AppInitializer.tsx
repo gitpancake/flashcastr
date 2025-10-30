@@ -8,6 +8,7 @@ import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
 import { InvaderMap } from "~/components/molecule/InvaderMap";
+import { Progress } from "~/components/molecule/Progress";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
@@ -122,6 +123,8 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
         return <GlobalFlashes />;
       case 'leaderboard':
         return <Leaderboard users={leaderboardUsers} currentUsername={appUser?.username} />;
+      case 'progress':
+        return <Progress userProgress={userProgress} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
       case 'map':

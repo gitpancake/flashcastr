@@ -1,7 +1,7 @@
 "use client";
 
 
-export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map';
+export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map' | 'progress';
 
 interface RetroNavProps {
   activeTab: NavTab;
@@ -18,14 +18,15 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
     { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
     { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
+    { id: 'progress' as NavTab, label: 'PROGRESS', icon: '↑', key: 'P' },
   ];
 
   // Add map tab for experimental users (admin or experimental users)
-  const tabsWithMap = hasExperimentalAccess 
+  const tabsWithMap = hasExperimentalAccess
     ? [...baseTabs, { id: 'map' as NavTab, label: 'MAP', icon: '◉', key: 'M' }]
     : baseTabs;
 
-  const tabs = showAchievements 
+  const tabs = showAchievements
     ? [...tabsWithMap, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
     : tabsWithMap;
 
@@ -52,28 +53,28 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, clas
         <div className="text-gray-400 text-xs">SPACE INVADER FLASH BROADCASTING SYSTEM v2.0</div>
       </div>
 
-      {/* Navigation Tabs - Mobile Optimized */}
-      <div className="flex justify-center p-2">
-        <div className="flex w-full max-w-2xl bg-gray-900 border border-gray-700 font-mono">
+      {/* Navigation Tabs - Horizontally Scrollable */}
+      <div className="flex justify-center p-2 overflow-hidden">
+        <div className="flex overflow-x-auto scrollbar-hide w-full max-w-2xl bg-gray-900 border border-gray-700 font-mono scroll-smooth snap-x snap-mandatory">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                relative flex-1 px-2 py-2 sm:py-3 text-xs sm:text-sm border-r border-gray-700 last:border-r-0 
-                transition-all duration-200
-                ${activeTab === tab.id 
-                  ? 'bg-green-400 text-black' 
+                relative flex-shrink-0 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm border-r border-gray-700 last:border-r-0
+                transition-all duration-200 snap-start
+                ${activeTab === tab.id
+                  ? 'bg-green-400 text-black'
                   : 'text-green-400 hover:bg-gray-800'
                 }
               `}
             >
-              <div className="flex flex-col items-center gap-0.5">
+              <div className="flex flex-col items-center gap-0.5 min-w-[60px] sm:min-w-[80px]">
                 <div className="text-base sm:text-lg">{tab.icon}</div>
-                <div className="font-bold hidden sm:block">
+                <div className="font-bold hidden sm:block whitespace-nowrap">
                   [{tab.key}] {tab.label}
                 </div>
-                <div className="font-bold sm:hidden text-[10px]">
+                <div className="font-bold sm:hidden text-[10px] whitespace-nowrap">
                   {tab.label}
                 </div>
               </div>
