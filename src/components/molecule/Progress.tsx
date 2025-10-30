@@ -26,6 +26,14 @@ export function Progress({ userProgress }: ProgressProps) {
     viewMode === 'list' ? 'DESC' : 'ASC'
   );
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Progress component - FID:', userProgress?.fid, 'Days:', timeRange, 'Order:', viewMode === 'list' ? 'DESC' : 'ASC');
+    if (error) {
+      console.error('Progress error:', error);
+    }
+  }, [userProgress?.fid, timeRange, viewMode, error]);
+
   if (!userProgress?.fid) {
     return <NoUserState />;
   }
@@ -373,7 +381,7 @@ function LoadingState() {
 function ErrorState({ error }: { error: Error }) {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="border-2 border-red-500 p-8 text-center bg-gray-900">
+      <div className="border-2 border-red-500 p-8 text-center bg-gray-900 max-w-2xl">
         <pre className="text-red-500 text-xs mb-4">
 {`
 ╔═══════════════════════════╗
@@ -383,7 +391,13 @@ function ErrorState({ error }: { error: Error }) {
 ╚═══════════════════════════╝
 `}
         </pre>
-        <p className="text-sm text-red-400">{error.message}</p>
+        <p className="text-sm text-red-400 mb-2">{error.message}</p>
+        <details className="text-xs text-left text-gray-500 mt-4">
+          <summary className="cursor-pointer hover:text-gray-300">Technical Details</summary>
+          <pre className="mt-2 p-2 bg-black border border-gray-700 overflow-auto max-h-40">
+            {JSON.stringify(error, null, 2)}
+          </pre>
+        </details>
         <button
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-black transition-colors"

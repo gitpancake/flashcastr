@@ -169,18 +169,28 @@ export class FlashesApi extends BaseApi {
   }
 
   public async getProgress(fid: number, days: number = 7, order: 'ASC' | 'DESC' = 'ASC'): Promise<DailyProgress[]> {
-    const response = await this.api.post("/graphql", {
-      query: `
-        query GetProgress($fid: Int!, $days: Int!, $order: String) {
-          progress(fid: $fid, days: $days, order: $order) {
-            date
-            count
+    try {
+      const response = await this.api.post("/graphql", {
+        query: `
+          query GetProgress($fid: Int!, $days: Int!, $order: String) {
+            progress(fid: $fid, days: $days, order: $order) {
+              date
+              count
+            }
           }
-        }
-      `,
-      variables: { fid, days, order },
-    });
+        `,
+        variables: { fid, days, order },
+      });
 
-    return response.data.data.progress || [];
+      if (response.data.errors) {
+        console.error('GraphQL errors:', response.data.errors);
+        throw new Error(response.data.errors[0]?.message || 'GraphQL query failed');
+      }
+
+      return response.data.data?.progress || [];
+    } catch (error) {
+      console.error('getProgress error:', error);
+      throw error;
+    }
   }
 }
