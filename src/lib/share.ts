@@ -34,8 +34,32 @@ export function shareToTwitter({ flash, currentUrl }: ShareOptions) {
 export async function copyToClipboard({ flash, currentUrl }: ShareOptions): Promise<boolean> {
   try {
     const shareText = generateShareText({ flash, currentUrl });
-    await navigator.clipboard.writeText(shareText);
-    return true;
+
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(shareText);
+      return true;
+    }
+
+    // Fallback to older method
+    const textArea = document.createElement('textarea');
+    textArea.value = shareText;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (err) {
+      document.body.removeChild(textArea);
+      console.error('Fallback copy failed:', err);
+      return false;
+    }
   } catch (error) {
     console.error('Failed to copy to clipboard:', error);
     return false;
