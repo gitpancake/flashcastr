@@ -57,6 +57,11 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       setActiveTab('feed');
       return;
     }
+    // If progress tab is selected but user doesn't have context, redirect to feed
+    if (tab === 'progress' && !hasUserContext) {
+      setActiveTab('feed');
+      return;
+    }
     // If map tab is selected but user doesn't have experimental access, redirect to feed
     if (tab === 'map' && !hasExperimentalAccess) {
       setActiveTab('feed');
@@ -66,10 +71,13 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   }, [hasUserContext, hasExperimentalAccess]);
 
 
-  // If user is on achievements tab but loses context, redirect to feed
+  // If user is on achievements/progress tab but loses context, redirect to feed
   // If user is on map tab but doesn't have experimental access, redirect to feed
   useEffect(() => {
     if (activeTab === 'achievements' && !hasUserContext) {
+      setActiveTab('feed');
+    }
+    if (activeTab === 'progress' && !hasUserContext) {
       setActiveTab('feed');
     }
     if (activeTab === 'map' && !hasExperimentalAccess) {
@@ -136,7 +144,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} currentUserFid={farcasterFid} hasExperimentalAccess={hasExperimentalAccess} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} showProgress={hasUserContext} currentUserFid={farcasterFid} hasExperimentalAccess={hasExperimentalAccess} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)
