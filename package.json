@@ -42,7 +42,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "mipd": "^0.0.7",
-    "next": "^15.5.7",
+    "next": "15.5.9",
     "next-auth": "^4.24.11",
     "qrcode.react": "^4.2.0",
     "react": "^18",
