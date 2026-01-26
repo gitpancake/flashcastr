@@ -60,7 +60,7 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, show
 
       {/* Navigation Tabs - Horizontally Scrollable */}
       <div className="flex justify-center p-2 overflow-hidden">
-        <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide w-full max-w-2xl bg-gray-900 border border-gray-700 font-mono scroll-smooth snap-x snap-mandatory">
+        <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide w-full sm:w-auto sm:max-w-fit bg-gray-900 border border-gray-700 font-mono scroll-smooth snap-x snap-mandatory">
           {tabs.map((tab) => (
             <button
               key={tab.id}
