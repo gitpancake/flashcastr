@@ -1,6 +1,6 @@
 # Flashcastr 👾
 
-A Farcaster Frame application for broadcasting and viewing Space Invaders flash photos, featuring IPFS-based image storage and real-time global feed.
+A decentralized Farcaster Frame application for broadcasting and viewing Space Invaders flash photos, featuring IPFS storage via Pinata and real-time global feed.
 
 ![Flashcastr](https://img.shields.io/badge/Built%20with-Next.js-000000?style=for-the-badge&logo=next.js) 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -10,7 +10,7 @@ A Farcaster Frame application for broadcasting and viewing Space Invaders flash 
 
 - **Global Flash Feed**: Browse Space Invaders flash photos from players worldwide
 - **Personal Feed**: View your own flash history with Farcaster integration
-- **IPFS Storage**: Decentralized image storage with S3 fallback for reliability
+- **IPFS Storage**: Decentralized image storage via Pinata for reliability
 - **City Filtering**: Filter flashes by location with trending cities
 - **Real-time Updates**: Live feed updates with infinite scroll
 - **Farcaster Integration**: Seamless authentication and social features
@@ -26,9 +26,8 @@ A Farcaster Frame application for broadcasting and viewing Space Invaders flash 
 - **NextAuth** - Authentication with Farcaster
 
 ### Image Storage
-- **Primary**: IPFS via Pinata gateway (`fuchsia-rich-lungfish-648.mypinata.cloud`)
-- **Fallback**: Amazon S3 (`invader-flashes.s3.amazonaws.com`)
-- **Smart Routing**: Automatically selects IPFS when available, falls back to S3
+- **IPFS**: Decentralized storage via Pinata gateway (`fuchsia-rich-lungfish-648.mypinata.cloud`)
+- **Fully Decentralized**: All images stored on IPFS for censorship resistance and permanence
 
 ### APIs
 - **Flashcastr API**: Personal flashes and user data
@@ -98,25 +97,20 @@ src/
 
 ## 🖼️ Image Storage System
 
-Flashcastr uses a hybrid image storage approach:
+Flashcastr uses decentralized IPFS storage for all images:
 
-### IPFS Primary Storage
-- Images are stored on IPFS for decentralization
-- Retrieved via Pinata gateway for reliability
+### IPFS Decentralized Storage
+- All images are stored on IPFS for permanence and censorship resistance
+- Retrieved via Pinata gateway for optimal performance and reliability
 - URLs: `https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs/{cid}`
 
-### S3 Fallback Storage  
-- Legacy images remain on S3
-- Provides fallback for IPFS unavailability
-- URLs: `https://invader-flashes.s3.amazonaws.com/{path}`
-
-### Smart URL Resolution
-The `getImageUrl()` utility automatically selects the best storage:
+### Image URL Resolution
+The `getImageUrl()` utility handles IPFS URL construction:
 
 ```typescript
-// Prefers IPFS if ipfs_cid is available
+// Returns IPFS URL from ipfs_cid
 const imageUrl = getImageUrl(flash);
-// Returns: IPFS URL or S3 URL as fallback
+// Returns: https://gateway.../ipfs/{cid}
 ```
 
 ## 🔌 API Integration
@@ -130,8 +124,8 @@ interface FlashData {
   player: string;
   city: string;
   timestamp: number;
-  img: string;
-  ipfs_cid?: string;  // New IPFS content identifier
+  img: string;           // Legacy field for backwards compatibility
+  ipfs_cid?: string;     // IPFS content identifier (primary)
 }
 ```
 
