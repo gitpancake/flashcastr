@@ -13,9 +13,10 @@ interface FlashImageData {
 export function getImageUrl(flash: FlashImageData): string {
   // Early return for IPFS if available - critical path optimization
   if (flash.ipfs_cid?.trim()) {
-    return `${IPFS.GATEWAY}/${flash.ipfs_cid}`;
+    // IPFS.GATEWAY already includes /ipfs/ path
+    return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
   }
   
-  // Fallback to S3 URL with defensive programming
-  return flash.img ? `${S3.BASE_URL}/${flash.img}` : S3.BASE_URL;
+  // Fallback to S3 URL - maintain original concatenation format
+  return `${S3.BASE_URL}${flash.img || ''}`;
 }
