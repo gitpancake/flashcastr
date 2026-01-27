@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Feed from "~/components/molecule/Feed";
 import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
@@ -85,28 +85,29 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     }
   }, [activeTab, hasUserContext, hasExperimentalAccess]);
 
-  // Add global keyboard shortcuts
-  useKeyboardShortcuts({
+  const keyboardShortcuts = useMemo(() => ({
     onHome: () => setActiveTab('feed'),
     onGlobal: () => setActiveTab('global'),
     onLeaderboard: () => setActiveTab('leaderboard'),
     onSearch: () => setShowSearch(true),
-  });
+  }), []);
 
-  const handleSetupComplete = (_user: User) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+  useKeyboardShortcuts(keyboardShortcuts);
+
+  const handleSetupComplete = useCallback((_user: User) => {
     refetchAppUser();
     setShowSetupFlow(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem(SETUP_SKIPPED_STORAGE_KEY);
     }
-  };
+  }, [refetchAppUser]);
 
-  const handleSkipSetup = () => {
+  const handleSkipSetup = useCallback(() => {
     setShowSetupFlow(false);
     if (typeof window !== "undefined") {
       localStorage.setItem(SETUP_SKIPPED_STORAGE_KEY, "true");
     }
-  };
+  }, []);
 
 
   if (showSetupFlow) {

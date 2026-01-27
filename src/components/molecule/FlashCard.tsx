@@ -1,7 +1,7 @@
 import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
 import Link from "next/link";
-import { Ref } from "react";
+import { Ref, useCallback } from "react";
 import { S3 } from "~/lib/constants";
 import addCommasToNumber from "~/lib/help/addCommasToNumber";
 
@@ -20,19 +20,37 @@ interface FlashCardProps {
 }
 
 export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash, linkedInvader }: FlashCardProps) {
+  const handleImageClick = useCallback(() => {
+    if (castHash) {
+      sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
+    } else {
+      sdk.actions.openUrl(S3.BASE_URL + imageUrl);
+    }
+  }, [castHash, player, imageUrl]);
+
+  const profileHref = isPlayer ? `/profile` : `/profile/${fid}`;
+  const timestampText = `${timeAgo} | #${addCommasToNumber(flashNumber)}`;
+  const fullImageUrl = S3.BASE_URL + imageUrl;
+
   return (
     <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in relative" ref={ref}>
       <div className="flex items-start gap-3">
-        <Image width={1920} height={1080} src={avatar} alt="avatar" className="w-[30px] h-[30px] object-cover shadow-lg" />
+        <Image 
+          width={30} 
+          height={30} 
+          src={avatar} 
+          alt={`${player} avatar`} 
+          className="w-[30px] h-[30px] object-cover shadow-lg" 
+        />
 
         <div className="flex flex-col gap-3 h-full">
           <div className="flex flex-col gap-0">
-            <Link href={isPlayer ? `/profile` : `/profile/${fid}`} target="_self">
+            <Link href={profileHref} target="_self">
               <p className="font-invader text-white text-[28px] leading-none">{player}</p>
             </Link>
             <p className="font-invader text-gray-400 text-[18px] leading-none">{city}</p>
           </div>
-          <p className="font-invader text-gray-300 text-[12px] leading-none tracking-wider">{`${timeAgo} | #${addCommasToNumber(flashNumber)}`}</p>
+          <p className="font-invader text-gray-300 text-[12px] leading-none tracking-wider">{timestampText}</p>
         </div>
       </div>
 
@@ -43,17 +61,11 @@ export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo
           </div>
         )}
         <Image
-          onClick={() => {
-            if (castHash) {
-              sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
-            } else {
-              sdk.actions.openUrl(S3.BASE_URL + imageUrl);
-            }
-          }}
-          width={1920}
-          height={1080}
-          src={S3.BASE_URL + imageUrl}
-          alt="flash"
+          onClick={handleImageClick}
+          width={60}
+          height={60}
+          src={fullImageUrl}
+          alt={`Flash from ${city}`}
           className="w-[60px] h-[60px] object-cover border border-gray-800 hover:cursor-pointer"
         />
       </div>

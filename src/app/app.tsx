@@ -1,4 +1,5 @@
 import AppInitializer from "~/components/organism/AppInitializer";
+import { ErrorBoundary } from "~/components/atom/ErrorBoundary";
 import { FlashesApi, FlashResponse } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 
@@ -12,5 +13,9 @@ export default async function App() {
     // App will work in fallback mode with empty flashes
   }
 
-  return <AppInitializer initialFlashes={initialFlashes} />;
+  return (
+    <ErrorBoundary>
+      <AppInitializer initialFlashes={initialFlashes} />
+    </ErrorBoundary>
+  );
 }

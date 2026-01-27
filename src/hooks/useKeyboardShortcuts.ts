@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export interface KeyboardShortcuts {
@@ -16,96 +16,68 @@ export interface KeyboardShortcuts {
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcuts = {}) {
   const router = useRouter();
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      // Only trigger shortcuts when not in input fields
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
-      }
-
-      // Modifier key combinations
-      if (event.ctrlKey || event.metaKey) {
-        switch (event.key.toLowerCase()) {
-          case 'h':
-            event.preventDefault();
-            if (shortcuts.onHome) {
-              shortcuts.onHome();
-            } else {
-              router.push('/');
-            }
-            break;
-          case 'p':
-            event.preventDefault();
-            if (shortcuts.onProfile) {
-              shortcuts.onProfile();
-            } else {
-              router.push('/profile');
-            }
-            break;
-          case 'g':
-            event.preventDefault();
-            if (shortcuts.onGlobal) {
-              shortcuts.onGlobal();
-            } else {
-              router.push('/');
-            }
-            break;
-          case 'l':
-            event.preventDefault();
-            if (shortcuts.onLeaderboard) {
-              shortcuts.onLeaderboard();
-            }
-            break;
-          case 'k':
-            event.preventDefault();
-            if (shortcuts.onSearch) {
-              shortcuts.onSearch();
-            }
-            break;
-          case 's':
-            event.preventDefault();
-            if (shortcuts.onShare) {
-              shortcuts.onShare();
-            }
-            break;
-          case 'f':
-            event.preventDefault();
-            if (shortcuts.onFavorite) {
-              shortcuts.onFavorite();
-            }
-            break;
-          case 'r':
-            event.preventDefault();
-            if (shortcuts.onRefresh) {
-              shortcuts.onRefresh();
-            } else {
-              window.location.reload();
-            }
-            break;
-        }
-        return;
-      }
-
-      // Single key shortcuts
-      switch (event.key) {
-        case 'Escape':
-          if (shortcuts.onBack) {
-            shortcuts.onBack();
-          } else {
-            router.back();
-          }
-          break;
-        case '?':
-          event.preventDefault();
-          showKeyboardShortcutsHelp();
-          break;
-      }
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Only trigger shortcuts when not in input fields
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      return;
     }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Modifier key combinations
+    if (event.ctrlKey || event.metaKey) {
+      const key = event.key.toLowerCase();
+      event.preventDefault();
+      
+      switch (key) {
+        case 'h':
+          if (shortcuts.onHome) shortcuts.onHome();
+          else router.push('/');
+          break;
+        case 'p':
+          if (shortcuts.onProfile) shortcuts.onProfile();
+          else router.push('/profile');
+          break;
+        case 'g':
+          if (shortcuts.onGlobal) shortcuts.onGlobal();
+          else router.push('/');
+          break;
+        case 'l':
+          if (shortcuts.onLeaderboard) shortcuts.onLeaderboard();
+          break;
+        case 'k':
+          if (shortcuts.onSearch) shortcuts.onSearch();
+          break;
+        case 's':
+          if (shortcuts.onShare) shortcuts.onShare();
+          break;
+        case 'f':
+          if (shortcuts.onFavorite) shortcuts.onFavorite();
+          break;
+        case 'r':
+          if (shortcuts.onRefresh) shortcuts.onRefresh();
+          else window.location.reload();
+          break;
+      }
+      return;
+    }
+
+    // Single key shortcuts
+    switch (event.key) {
+      case 'Escape':
+        if (shortcuts.onBack) shortcuts.onBack();
+        else router.back();
+        break;
+      case '?':
+        event.preventDefault();
+        showKeyboardShortcutsHelp();
+        break;
+    }
   }, [router, shortcuts]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 }
 
 function showKeyboardShortcutsHelp() {
