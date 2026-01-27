@@ -30,9 +30,8 @@ A decentralized Farcaster Frame application for broadcasting and viewing Space I
 - **Fully Decentralized**: All images stored on IPFS for censorship resistance and permanence
 
 ### APIs
-- **Flashcastr API**: Personal flashes and user data
-- **Invaders.fun API**: Global flash feed and statistics
-- **Neynar API**: Farcaster protocol integration
+- **Flashcastr API**: All flash data, user management, and global feed
+- **Neynar API**: Farcaster protocol integration and authentication
 
 ## 🚀 Getting Started
 
@@ -88,8 +87,8 @@ src/
 │   └── ui/                # shadcn/ui components
 ├── hooks/                 # Custom React hooks
 ├── lib/                   # Utility libraries
-│   ├── api.flashcastr.app/   # Flashcastr API client
-│   ├── api.invaders.fun/     # Invaders.fun API client
+│   ├── api.flashcastr.app/   # Flashcastr API client (unified API)
+│   ├── neynar/            # Neynar/Farcaster API client
 │   ├── help/              # Helper utilities
 │   └── constants.ts       # App constants
 └── auth.ts               # NextAuth configuration
