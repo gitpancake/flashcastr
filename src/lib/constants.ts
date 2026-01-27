@@ -8,9 +8,7 @@ export const FETCH = {
   LIMIT: 20,
 };
 
-export const S3 = {
-  BASE_URL: process.env.NEXT_PUBLIC_S3_BASE || "https://invader-flashes.s3.amazonaws.com",
-};
+// S3 storage removed - using IPFS only
 
 export const IPFS = {
   GATEWAY: process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs",

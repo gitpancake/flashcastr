@@ -226,8 +226,7 @@ All required environment variables are documented in `.env.example`. Copy it to 
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_IPFS_GATEWAY` | IPFS gateway for decentralized storage | `https://...mypinata.cloud/ipfs/` |
-| `NEXT_PUBLIC_S3_BASE` | S3 bucket for fallback images | `https://invader-flashes.s3.amazonaws.com` |
+| `NEXT_PUBLIC_IPFS_GATEWAY` | IPFS gateway for decentralized storage via Pinata | `https://...mypinata.cloud/ipfs/` |
 
 ### Frame Configuration (Required)
 

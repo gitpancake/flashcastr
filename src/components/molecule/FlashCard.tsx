@@ -2,15 +2,18 @@ import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
 import Link from "next/link";
 import { Ref, useCallback } from "react";
-import { S3 } from "~/lib/constants";
 import addCommasToNumber from "~/lib/help/addCommasToNumber";
+import { getImageUrl } from "~/lib/help/getImageUrl";
 
 interface FlashCardProps {
   player?: string;
   city: string;
   timeAgo: string;
   flashNumber: string;
-  imageUrl: string;
+  flash: {
+    ipfs_cid?: string;
+    img?: string; // Legacy field - can be removed when all data has ipfs_cid
+  };
   ref: Ref<HTMLDivElement>;
   avatar: string;
   fid: number;
@@ -19,18 +22,19 @@ interface FlashCardProps {
   linkedInvader?: string | null;
 }
 
-export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, imageUrl, ref, castHash, linkedInvader }: FlashCardProps) {
+export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo, flashNumber, flash, ref, castHash, linkedInvader }: FlashCardProps) {
+  const imageUrl = getImageUrl(flash);
+  
   const handleImageClick = useCallback(() => {
     if (castHash) {
       sdk.actions.openUrl(`https://warpcast.com/${player}/${castHash}`);
     } else {
-      sdk.actions.openUrl(S3.BASE_URL + imageUrl);
+      sdk.actions.openUrl(imageUrl);
     }
   }, [castHash, player, imageUrl]);
 
   const profileHref = isPlayer ? `/profile` : `/profile/${fid}`;
   const timestampText = `${timeAgo} | #${addCommasToNumber(flashNumber)}`;
-  const fullImageUrl = S3.BASE_URL + imageUrl;
 
   return (
     <div className="bg-[#1E1E1E] p-2 flex items-center justify-between w-full max-w-2xl max-h-[100px] animate-fade-in relative" ref={ref}>
@@ -64,7 +68,7 @@ export default function FlashCard({ isPlayer, avatar, player, fid, city, timeAgo
           onClick={handleImageClick}
           width={60}
           height={60}
-          src={fullImageUrl}
+          src={imageUrl}
           alt={`Flash from ${city}`}
           className="w-[60px] h-[60px] object-cover border border-gray-800 hover:cursor-pointer"
         />

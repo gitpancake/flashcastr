@@ -1,4 +1,5 @@
 import { FavoriteFlash } from "./favorites";
+import { getImageUrl } from "./help/getImageUrl";
 
 export interface ExportOptions {
   flashes: FavoriteFlash[];
@@ -95,10 +96,8 @@ export async function exportAsImageGrid({
         resolve();
       };
       
-      // Try to get image URL
-      const imageUrl = flash.ipfs_cid 
-        ? `https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs/${flash.ipfs_cid}`
-        : flash.img || '';
+      // Get IPFS image URL
+      const imageUrl = getImageUrl(flash);
         
       img.src = imageUrl;
     });
