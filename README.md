@@ -57,28 +57,14 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-4. Configure your `.env.local` file:
-```bash
-# Farcaster/Neynar Configuration
-NEYNAR_API_KEY=your_neynar_api_key
-NEYNAR_CLIENT_ID=your_neynar_client_id
-
-# Image Storage Configuration
-NEXT_PUBLIC_IPFS_GATEWAY=https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs/
-NEXT_PUBLIC_S3_BASE=https://invader-flashes.s3.amazonaws.com
-
-# NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret
-
-# Frame Configuration
-NEXT_PUBLIC_FRAME_NAME="Flashcastr"
-NEXT_PUBLIC_FRAME_DESCRIPTION="Broadcast your Space Invader flashes."
-NEXT_PUBLIC_FRAME_BUTTON_TEXT="Enter"
-```
+4. Configure your `.env` file with your actual values:
+   - Get a **Neynar API key** from [neynar.com](https://neynar.com)
+   - Generate a **NextAuth secret**: `openssl rand -base64 32`
+   - Set your **Flashcastr API key** (contact the team)
+   - Configure your deployment URL for production
 
 5. Run the development server:
 ```bash
@@ -183,9 +169,9 @@ interface GlobalFlash {
 ### Environment Setup
 
 The app uses multiple environment files:
-- `.env` - Base configuration
-- `.env.local` - Local overrides (gitignored)
-- `.env.example` - Template for required variables
+- `.env` - Your local configuration (gitignored for security)
+- `.env.example` - Template showing all required variables
+- Environment variables are automatically loaded by Next.js
 
 ### Code Quality
 
@@ -222,15 +208,44 @@ npm start
 
 ## 🔐 Environment Variables
 
+All required environment variables are documented in `.env.example`. Copy it to `.env` and configure with your values.
+
+### Core Configuration (Required)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEYNAR_API_KEY` | Neynar API key for Farcaster integration | Get from [neynar.com](https://neynar.com) |
+| `NEYNAR_CLIENT_ID` | Neynar client ID from dashboard | `ca507e6f-5287-...` |
+| `NEXTAUTH_URL` | Your app's public URL | `https://your-app.vercel.app` |
+| `NEXTAUTH_SECRET` | JWT signing secret | Generate with `openssl rand -base64 32` |
+| `NEXT_PUBLIC_URL` | Public URL for the app | Same as NEXTAUTH_URL |
+| `FLASHCASTR_API_KEY` | API key for Flashcastr backend | Contact team for access |
+| `NEXT_PUBLIC_FLASHCASTR_API_URL` | Flashcastr API endpoint | `http://localhost:4000` (dev) |
+
+### Image Storage (Required)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_IPFS_GATEWAY` | IPFS gateway for decentralized storage | `https://...mypinata.cloud/ipfs/` |
+| `NEXT_PUBLIC_S3_BASE` | S3 bucket for fallback images | `https://invader-flashes.s3.amazonaws.com` |
+
+### Frame Configuration (Required)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_FRAME_NAME` | App name displayed in frame | `Flashcastr` |
+| `NEXT_PUBLIC_FRAME_DESCRIPTION` | Frame description | `Broadcast your Space Invader flashes.` |
+| `NEXT_PUBLIC_FRAME_BUTTON_TEXT` | Frame button text | `Enter` |
+
+### Optional Configuration
+
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `NEYNAR_API_KEY` | Neynar API key for Farcaster integration | ✅ |
-| `NEYNAR_CLIENT_ID` | Neynar client ID | ✅ |
-| `NEXTAUTH_URL` | NextAuth URL (production URL) | ✅ |
-| `NEXTAUTH_SECRET` | NextAuth secret key | ✅ |
-| `NEXT_PUBLIC_IPFS_GATEWAY` | IPFS gateway URL with /ipfs/ path | ✅ |
-| `NEXT_PUBLIC_S3_BASE` | S3 base URL for fallback images | ✅ |
-| `USE_TUNNEL` | Enable tunneling for development | ❌ |
+| `REDIS_URL` | Redis connection for caching | Production only |
+| `KV_REST_API_URL` | Vercel KV store URL | Optional |
+| `KV_REST_API_TOKEN` | Vercel KV store token | Optional |
+| `NEXT_PUBLIC_ADMIN_FID` | Admin Farcaster ID for special features | Optional |
+| `USE_TUNNEL` | Enable localtunnel for development | Optional |
 
 ## 🤝 Contributing
 
