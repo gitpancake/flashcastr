@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the image from IPFS
-    const imageUrl = `${IPFS_GATEWAY}/${ipfs_cid}`;
+    const imageUrl = `${IPFS_GATEWAY}${ipfs_cid}`;
     const imageResponse = await fetch(imageUrl);
 
     if (!imageResponse.ok) {

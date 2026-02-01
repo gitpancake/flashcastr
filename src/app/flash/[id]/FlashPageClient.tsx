@@ -45,7 +45,7 @@ function getFlashImageUrl(flash: FlashData): string {
   if (!flash.ipfs_cid?.trim()) {
     return '';
   }
-  return `${IPFS.GATEWAY}/${flash.ipfs_cid}`;
+  return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
 }
 
 function generateShareText(flash: FlashData, currentUrl: string): string {
