@@ -417,9 +417,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
                           {(match.confidence * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <div className="text-gray-500 text-xs mt-1">
-                        Flash ID: {match.flash_id}
-                      </div>
                       {savingId === match.flash_id && (
                         <div className="text-green-400 text-xs mt-2 animate-pulse">
                           Saving...
