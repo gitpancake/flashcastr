@@ -1,44 +1,24 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
 import type { Metadata } from "next";
-import { GlobalFlashesApi, GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
-import { FlashesApi, FlashData } from "~/lib/api.flashcastr.app/flashes";
+import { UnifiedFlashesApi, UnifiedFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
-import { getImageUrl } from "~/lib/help/getImageUrl";
+import { IPFS } from "~/lib/constants";
 import FlashPageClient from "./FlashPageClient";
 
-// Type guard to check if flash has text property (GlobalFlash vs FlashData)
-function hasTextProperty(flash: GlobalFlash | FlashData): flash is GlobalFlash {
-  return 'text' in flash;
+function getFlashImageUrl(flash: UnifiedFlash): string {
+  if (!flash.ipfs_cid?.trim()) {
+    return '';
+  }
+  return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  
+
   try {
-    let flashResponse = null;
-    let flash;
-    let playerName;
-
-    // Try FlashesApi first to get Farcaster username (with error handling)
-    try {
-      const flashcastrApi = new FlashesApi();
-      flashResponse = await flashcastrApi.getFlashById(Number(id));
-    } catch (error) {
-      console.log('FlashesApi failed for metadata, falling back to GlobalFlashesApi:', error);
-      // Continue to fallback, don't throw
-    }
-
-    if (flashResponse && flashResponse.user_username) {
-      // We have Farcaster data
-      flash = flashResponse.flash;
-      playerName = flashResponse.user_username;
-    } else {
-      // Fallback to GlobalFlashesApi
-      const globalApi = new GlobalFlashesApi();
-      flash = await globalApi.getGlobalFlash(Number(id));
-      playerName = flash?.player;
-    }
+    const api = new UnifiedFlashesApi();
+    const flash = await api.getUnifiedFlash(Number(id));
 
     if (!flash) {
       return {
@@ -47,9 +27,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       };
     }
 
-    const imageUrl = getImageUrl(flash);
-    const title = `Flash #${flash.flash_id} by ${playerName} | Flashcastr`;
-    const description = hasTextProperty(flash) && flash.text 
+    // Use Farcaster username if available, otherwise player name
+    const playerName = flash.farcaster_user?.username || flash.player;
+    // Use identification name if available and confidence is high
+    const flashName = flash.identification?.confidence && flash.identification.confidence >= 0.8
+      ? flash.identification.matched_flash_name
+      : null;
+
+    const imageUrl = getFlashImageUrl(flash);
+    const title = flashName
+      ? `${flashName} by ${playerName} | Flashcastr`
+      : `Flash #${flash.flash_id} by ${playerName} | Flashcastr`;
+    const description = flash.text
       ? `${flash.text} - Flash from ${flash.city} by ${playerName}`
       : `Space Invaders flash from ${flash.city} by ${playerName}`;
 
@@ -64,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       version: "next",
       imageUrl: imageUrl,
       button: {
-        title: `View Flash #${flash.flash_id}`,
+        title: flashName ? `View ${flashName}` : `View Flash #${flash.flash_id}`,
         action: {
           type: "launch_frame",
           name: appName,
@@ -87,7 +76,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             url: imageUrl,
             width: 800,
             height: 800,
-            alt: `Flash #${flash.flash_id} by ${playerName}`,
+            alt: flashName ? `${flashName} by ${playerName}` : `Flash #${flash.flash_id} by ${playerName}`,
           }
         ],
         url,
@@ -121,57 +110,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function FlashPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
+
   try {
-    let flashResponse = null;
-    
-    // Try FlashesApi first to get Farcaster username (with error handling)
-    try {
-      const flashcastrApi = new FlashesApi();
-      flashResponse = await flashcastrApi.getFlashById(Number(id));
-      if (!flashResponse) {
-        console.log(`Flash ${id}: Not found in FlashesApi, falling back to GlobalFlashesApi`);
-      }
-    } catch (error) {
-      console.log('FlashesApi failed, falling back to GlobalFlashesApi:', error);
-      // Continue to fallback, don't throw
-    }
-
-    if (flashResponse && flashResponse.user_username) {
-      // We have Farcaster data, use it
-      const timestampSeconds = Math.floor(flashResponse.flash.timestamp / 1000);
-      const timestamp = fromUnixTime(timestampSeconds);
-      const timeAgo = formatTimeAgo(timestamp);
-
-      // Create a combined flash object with Farcaster username
-      const flashWithFarcaster = {
-        ...flashResponse.flash,
-        text: '', // FlashData doesn't have text field, but GlobalFlash expects it
-        farcaster_username: flashResponse.user_username,
-        farcaster_pfp: flashResponse.user_pfp_url,
-        farcaster_fid: flashResponse.user_fid
-      };
-
-      console.log(`Flash ${id}: Using Farcaster data for user ${flashResponse.user_username} (FID: ${flashResponse.user_fid})`);
-
-      return (
-        <FlashPageClient 
-          flash={flashWithFarcaster}
-          timeAgo={timeAgo}
-        />
-      );
-    }
-
-    // Fallback to GlobalFlashesApi if not found in FlashesApi or FlashesApi failed
-    const globalApi = new GlobalFlashesApi();
-    const flash = await globalApi.getGlobalFlash(Number(id));
+    const api = new UnifiedFlashesApi();
+    const flash = await api.getUnifiedFlash(Number(id));
 
     if (!flash) {
       console.error(`Flash not found for ID: ${id}`);
       return notFound();
     }
 
-    // Check if flash has the required structure
     if (!flash.timestamp) {
       console.error('Flash data structure is invalid:', flash);
       return notFound();
@@ -181,11 +129,27 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
     const timestamp = fromUnixTime(timestampSeconds);
     const timeAgo = formatTimeAgo(timestamp);
 
-    console.log(`Flash ${id}: Using GlobalFlashesApi fallback for player ${flash.player}`);
+    // Transform to the format expected by FlashPageClient
+    const flashForClient = {
+      flash_id: flash.flash_id,
+      city: flash.city || '',
+      player: flash.player || '',
+      img: flash.img || '',
+      ipfs_cid: flash.ipfs_cid || undefined,
+      text: flash.text || '',
+      timestamp: flash.timestamp,
+      farcaster_username: flash.farcaster_user?.username || undefined,
+      farcaster_pfp: flash.farcaster_user?.pfp_url || undefined,
+      farcaster_fid: flash.farcaster_user?.fid || undefined,
+      cast_hash: flash.farcaster_user?.cast_hash || undefined,
+      identification: flash.identification || undefined,
+    };
+
+    console.log(`Flash ${id}: Loaded via unified API${flash.farcaster_user ? ` (Farcaster: ${flash.farcaster_user.username})` : ''}${flash.identification ? ` (ID: ${flash.identification.matched_flash_name})` : ''}`);
 
     return (
-      <FlashPageClient 
-        flash={flash}
+      <FlashPageClient
+        flash={flashForClient}
         timeAgo={timeAgo}
       />
     );

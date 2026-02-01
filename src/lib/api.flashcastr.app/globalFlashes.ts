@@ -32,6 +32,18 @@ interface GlobalFlashApiResponse {
   flash_count?: string;
 }
 
+interface UnifiedFlashApiResponse {
+  flash_id: string;
+  city: string | null;
+  player: string | null;
+  img: string | null;
+  ipfs_cid: string | null;
+  text: string | null;
+  timestamp: string;
+  flash_count: string | null;
+  farcaster_user: FarcasterUser | null;
+  identification: FlashIdentificationInfo | null;
+}
 interface FlashcastrFlashResponse {
   flash_id: string;
   flash: {
@@ -186,6 +198,153 @@ export class GlobalFlashesApi extends BaseApi {
     } catch (error) {
       console.error("Error fetching trending cities:", error);
       return [];
+    }
+  }
+}
+// Unified Flash types that include Farcaster user and identification data
+export interface FarcasterUser {
+  fid: number;
+  username: string | null;
+  pfp_url: string | null;
+  cast_hash: string | null;
+}
+
+export interface FlashIdentificationInfo {
+  id: number;
+  matched_flash_id: string;
+  matched_flash_name: string | null;
+  similarity: number;
+  confidence: number;
+}
+
+export interface UnifiedFlash {
+  flash_id: number;
+  city: string | null;
+  player: string | null;
+  img: string | null;
+  ipfs_cid: string | null;
+  text: string | null;
+  timestamp: number;
+  flash_count: string | null;
+  farcaster_user: FarcasterUser | null;
+  identification: FlashIdentificationInfo | null;
+}
+
+export class UnifiedFlashesApi extends BaseApi {
+  public async getUnifiedFlash(flash_id: number): Promise<UnifiedFlash | null> {
+    try {
+      const response = await this.api.post("/graphql", {
+        query: `
+          query UnifiedFlash($flash_id: String!) {
+            unifiedFlash(flash_id: $flash_id) {
+              flash_id
+              city
+              player
+              img
+              ipfs_cid
+              text
+              timestamp
+              flash_count
+              farcaster_user {
+                fid
+                username
+                pfp_url
+                cast_hash
+              }
+              identification {
+                id
+                matched_flash_id
+                matched_flash_name
+                similarity
+                confidence
+              }
+            }
+          }
+        `,
+        variables: { flash_id: flash_id.toString() },
+      });
+
+      const flash = response.data.data.unifiedFlash;
+      if (!flash) return null;
+
+      return {
+        flash_id: parseInt(flash.flash_id, 10),
+        city: flash.city,
+        player: flash.player,
+        img: flash.img,
+        ipfs_cid: flash.ipfs_cid,
+        text: flash.text,
+        timestamp: parseInt(flash.timestamp, 10),
+        flash_count: flash.flash_count,
+        farcaster_user: flash.farcaster_user,
+        identification: flash.identification,
+      };
+    } catch (error) {
+      console.error("Error fetching unified flash:", error);
+      return null;
+    }
+  }
+
+  public async getUnifiedFlashes(
+    page: number = 1,
+    limit: number = 40,
+    city?: string | null,
+    player?: string | null
+  ): Promise<{ items: UnifiedFlash[]; hasNext: boolean }> {
+    try {
+      const variables: Record<string, unknown> = { page, limit };
+      if (city) variables.city = city;
+      if (player) variables.player = player;
+
+      const response = await this.api.post("/graphql", {
+        query: `
+          query UnifiedFlashes($page: Int, $limit: Int, $city: String, $player: String) {
+            unifiedFlashes(page: $page, limit: $limit, city: $city, player: $player) {
+              flash_id
+              city
+              player
+              img
+              ipfs_cid
+              text
+              timestamp
+              flash_count
+              farcaster_user {
+                fid
+                username
+                pfp_url
+                cast_hash
+              }
+              identification {
+                id
+                matched_flash_id
+                matched_flash_name
+                similarity
+                confidence
+              }
+            }
+          }
+        `,
+        variables,
+      });
+
+      const flashes = response.data.data.unifiedFlashes || [];
+      const items: UnifiedFlash[] = flashes.map((flash: UnifiedFlashApiResponse) => ({
+        flash_id: parseInt(flash.flash_id, 10),
+        city: flash.city,
+        player: flash.player,
+        img: flash.img,
+        ipfs_cid: flash.ipfs_cid,
+        text: flash.text,
+        timestamp: parseInt(flash.timestamp, 10),
+        flash_count: flash.flash_count,
+        farcaster_user: flash.farcaster_user,
+        identification: flash.identification,
+      }));
+
+      return { items, hasNext: items.length === limit };
+    } catch (error) {
+      console.error("Error fetching unified flashes:", error);
+      return { items: [], hasNext: false };
     }
   }
 }
