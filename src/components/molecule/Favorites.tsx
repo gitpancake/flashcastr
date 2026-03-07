@@ -229,8 +229,7 @@ export function Favorites() {
       {filteredFavorites.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
           {filteredFavorites.map((favorite) => {
-            const timestampSeconds = Math.floor(favorite.timestamp / 1000);
-            const timestamp = fromUnixTime(timestampSeconds);
+            const timestamp = fromUnixTime(favorite.timestamp);
 
             return (
               <div

@@ -158,8 +158,7 @@ export function FlashLinkModal({ invader, fid, isOpen, onClose }: FlashLinkModal
                 const linkedTo = flashData.linked_to;
                 const isLinkedToThisInvader = linkedTo?.invader_id === invader.n;
                 const isLinkedToOther = linkedTo && !isLinkedToThisInvader;
-                const timestampSeconds = Math.floor(flash.timestamp / 1000);
-                const timestamp = fromUnixTime(timestampSeconds);
+                const timestamp = fromUnixTime(flash.timestamp);
 
                 return (
                   <div

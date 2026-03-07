@@ -96,8 +96,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {flashes.map(({ user_fid, user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
-          const timestampSeconds = Math.floor(flash.timestamp / 1000);
-          const timestamp = fromUnixTime(timestampSeconds);
+          const timestamp = fromUnixTime(flash.timestamp);
 
           return (
             <div

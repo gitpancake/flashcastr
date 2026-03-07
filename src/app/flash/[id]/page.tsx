@@ -125,8 +125,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       return notFound();
     }
 
-    const timestampSeconds = Math.floor(flash.timestamp / 1000);
-    const timestamp = fromUnixTime(timestampSeconds);
+    const timestamp = fromUnixTime(flash.timestamp);
     const timeAgo = formatTimeAgo(timestamp);
 
     // Transform to the format expected by FlashPageClient
