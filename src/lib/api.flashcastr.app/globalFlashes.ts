@@ -1,4 +1,5 @@
 import { BaseApi } from "./base";
+import { parseTimestamp } from "../help/parseTimestamp";
 
 // Match the existing GlobalFlash interface for compatibility
 export interface GlobalFlash {
@@ -100,7 +101,7 @@ export class GlobalFlashesApi extends BaseApi {
         img: item.img,
         ipfs_cid: item.ipfs_cid,
         text: item.text,
-        timestamp: parseInt(item.timestamp, 10),
+        timestamp: parseTimestamp(item.timestamp) ?? Math.floor(Date.now() / 1000),
       }));
 
       // For now, we'll assume there are more pages if we got a full page
@@ -169,7 +170,7 @@ export class GlobalFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseInt(flash.timestamp, 10),
+        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
       };
     } catch (error) {
       console.error("Error fetching global flash:", error);
@@ -274,7 +275,7 @@ export class UnifiedFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseInt(flash.timestamp, 10),
+        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
         flash_count: flash.flash_count,
         farcaster_user: flash.farcaster_user,
         identification: flash.identification,
@@ -335,7 +336,7 @@ export class UnifiedFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseInt(flash.timestamp, 10),
+        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
         flash_count: flash.flash_count,
         farcaster_user: flash.farcaster_user,
         identification: flash.identification,
