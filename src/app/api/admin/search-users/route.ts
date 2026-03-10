@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '~/auth';
 import { FEATURES } from '~/lib/constants';
 
 interface NeynarUser {
@@ -20,17 +21,16 @@ interface NeynarSearchResponse {
   };
 }
 
-// GET /api/admin/search-users?q=username&adminFid=123
+// GET /api/admin/search-users?q=username
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const adminFid = searchParams.get('adminFid');
-    const query = searchParams.get('q');
-
-    // Check if user is admin
-    if (!adminFid || parseInt(adminFid, 10) !== FEATURES.ADMIN_FID) {
+    const session = await getSession();
+    if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q');
 
     if (!query || query.trim().length < 2) {
       return NextResponse.json({ error: 'Query must be at least 2 characters' }, { status: 400 });

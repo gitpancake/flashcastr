@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  getWishlistFromRedis, 
+import { getSession } from '~/auth';
+import {
+  getWishlistFromRedis,
   markAsAliveRedis,
-  markAsDeadRedis, 
+  markAsDeadRedis,
   removeFromWishlistRedis,
 } from '~/lib/redis';
 
@@ -43,19 +44,14 @@ export async function GET(request: NextRequest) {
 // POST /api/saved - Mark as found or remove from saved
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session?.user?.fid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { fid, action, invaderId } = body;
-
-    console.log(`[DEBUG] Saved API POST request - FID: ${fid}, Action: ${action}, InvaderID: ${invaderId}`);
-
-    if (!fid) {
-      return NextResponse.json({ error: 'FID is required' }, { status: 400 });
-    }
-
-    const fidNumber = parseInt(fid, 10);
-    if (isNaN(fidNumber)) {
-      return NextResponse.json({ error: 'Invalid FID' }, { status: 400 });
-    }
+    const { action, invaderId } = body;
+    const fidNumber = session.user.fid;
 
     if (!invaderId) {
       return NextResponse.json({ error: 'Invader ID is required' }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '~/auth';
 import {
   getFlashLinksFromRedis,
   linkFlashToInvaderRedis,
@@ -58,17 +59,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { action, fid, flash_id, invader, city } = body;
-
-    if (!fid) {
-      return NextResponse.json(
-        { error: 'FID is required' },
-        { status: 400 }
-      );
+    const session = await getSession();
+    if (!session?.user?.fid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const fidNumber = parseInt(fid, 10);
+    const body = await request.json();
+    const { action, flash_id, invader, city } = body;
+    const fidNumber = session.user.fid;
 
     switch (action) {
       case 'link': {

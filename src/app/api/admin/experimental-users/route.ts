@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
+import {
   getExperimentalUsersRedis,
   addExperimentalUserRedis,
-  removeExperimentalUserRedis 
+  removeExperimentalUserRedis
 } from '~/lib/redis';
+import { getSession } from '~/auth';
 import { FEATURES } from '~/lib/constants';
 
 // GET /api/admin/experimental-users - Get all experimental users
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Check if user is admin
-    const { searchParams } = new URL(request.url);
-    const adminFid = searchParams.get('adminFid');
-    
-    if (!adminFid || parseInt(adminFid, 10) !== FEATURES.ADMIN_FID) {
+    const session = await getSession();
+    if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -32,13 +30,13 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/experimental-users - Add experimental user
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { adminFid, userFid } = body;
-
-    // Check if user is admin
-    if (!adminFid || adminFid !== FEATURES.ADMIN_FID) {
+    const session = await getSession();
+    if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+
+    const body = await request.json();
+    const { userFid } = body;
 
     if (!userFid || typeof userFid !== 'number') {
       return NextResponse.json({ error: 'Valid userFid is required' }, { status: 400 });
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
     const success = await addExperimentalUserRedis(userFid);
     
     if (success) {
-      console.log(`[ADMIN] Added experimental user: ${userFid} by admin: ${adminFid}`);
+      console.log(`[ADMIN] Added experimental user: ${userFid} by admin: ${session.user.fid}`);
       return NextResponse.json({ 
         success: true, 
         message: `Added user ${userFid} to experimental users`,
@@ -73,13 +71,13 @@ export async function POST(request: NextRequest) {
 // DELETE /api/admin/experimental-users - Remove experimental user
 export async function DELETE(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { adminFid, userFid } = body;
-
-    // Check if user is admin
-    if (!adminFid || adminFid !== FEATURES.ADMIN_FID) {
+    const session = await getSession();
+    if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+
+    const body = await request.json();
+    const { userFid } = body;
 
     if (!userFid || typeof userFid !== 'number') {
       return NextResponse.json({ error: 'Valid userFid is required' }, { status: 400 });
@@ -88,7 +86,7 @@ export async function DELETE(request: NextRequest) {
     const success = await removeExperimentalUserRedis(userFid);
     
     if (success) {
-      console.log(`[ADMIN] Removed experimental user: ${userFid} by admin: ${adminFid}`);
+      console.log(`[ADMIN] Removed experimental user: ${userFid} by admin: ${session.user.fid}`);
       return NextResponse.json({ 
         success: true, 
         message: `Removed user ${userFid} from experimental users`,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  getFavoritesFromRedis, 
-  addToFavoritesRedis, 
-  removeFromFavoritesRedis, 
+import { getSession } from '~/auth';
+import {
+  getFavoritesFromRedis,
+  addToFavoritesRedis,
+  removeFromFavoritesRedis,
   isFavoriteRedis,
   getFavoritesCountRedis,
   type FavoriteFlash
@@ -54,17 +55,14 @@ export async function GET(request: NextRequest) {
 // POST /api/favorites - Add or remove from favorites
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session?.user?.fid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { fid, action, flash, flashId } = body;
-
-    if (!fid) {
-      return NextResponse.json({ error: 'FID is required' }, { status: 400 });
-    }
-
-    const fidNumber = parseInt(fid, 10);
-    if (isNaN(fidNumber)) {
-      return NextResponse.json({ error: 'Invalid FID' }, { status: 400 });
-    }
+    const { action, flash, flashId } = body;
+    const fidNumber = session.user.fid;
 
     switch (action) {
       case 'add':
