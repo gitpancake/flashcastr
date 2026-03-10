@@ -6,7 +6,15 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        hostname: "*",
+        hostname: "*.mypinata.cloud",
+        protocol: "https",
+      },
+      {
+        hostname: "i.imgur.com",
+        protocol: "https",
+      },
+      {
+        hostname: "res.cloudinary.com",
         protocol: "https",
       },
     ],
