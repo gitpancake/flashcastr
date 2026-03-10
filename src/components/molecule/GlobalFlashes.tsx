@@ -60,7 +60,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const flashes = data?.pages?.flatMap(page => page.items) || initialFlashes;
+  const flashes = (data?.pages?.flatMap(page => page.items) || initialFlashes).filter(flash => flash.timestamp !== null);
 
   // Intersection observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
@@ -177,7 +177,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       {/* Flash Grid - Mobile First */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {flashes.map((flash, index) => {
-          const timestamp = flash.timestamp ? fromUnixTime(flash.timestamp) : null;
+          const timestamp = fromUnixTime(flash.timestamp!);
 
           return (
             <div
@@ -213,7 +213,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
                   </div>
                 )}
                 <div className="text-gray-500 text-[10px] sm:text-xs">
-                  {timestamp ? formatTimeAgo(timestamp) : "UNKNOWN"}
+                  {formatTimeAgo(timestamp)}
                 </div>
               </div>
             </div>
