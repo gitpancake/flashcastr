@@ -7,9 +7,13 @@ Flashcastr is the frontend web app for the Flash Invaders broadcasting system. U
 - **Framework**: Next.js 15 (App Router) + React 18 + TypeScript
 - **Styling**: Tailwind CSS 3.4 with retro terminal/pixel aesthetic (Space Invaders font)
 - **Data Fetching**: @tanstack/react-query 5 (infinite queries for pagination)
-- **API**: GraphQL via axios POST to `NEXT_PUBLIC_FLASHCASTR_API_URL` (flashcastr.services API)
+- **API**: GraphQL via axios POST to `NEXT_PUBLIC_FLASHCASTR_API_URL`
 - **Auth**: next-auth with Neynar/Farcaster integration
 - **Web3**: viem + wagmi for wallet/Farcaster frame support
+- **Farcaster Frames**: @farcaster/frame-core, frame-node, frame-sdk, frame-wagmi-connector
+- **Maps**: leaflet + react-leaflet (InvaderMap component)
+- **Caching**: @upstash/redis (optional)
+- **Dates**: date-fns
 - **Deployment**: Vercel (`npm run deploy:vercel`)
 
 ## Project Structure

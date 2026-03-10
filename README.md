@@ -24,6 +24,10 @@ A decentralized Farcaster Frame application for broadcasting and viewing Space I
 - **TailwindCSS** - Utility-first styling with retro theme
 - **React Query** - Data fetching and caching
 - **NextAuth** - Authentication with Farcaster
+- **Farcaster Frame SDKs** - @farcaster/frame-core, frame-node, frame-sdk, frame-wagmi-connector
+- **Leaflet + React Leaflet** - Interactive invader maps
+- **date-fns** - Date formatting
+- **viem + wagmi** - Web3/wallet integration
 
 ### Image Storage
 - **IPFS**: Decentralized storage via Pinata gateway (`fuchsia-rich-lungfish-648.mypinata.cloud`)
