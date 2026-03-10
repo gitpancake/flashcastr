@@ -45,17 +45,12 @@ export async function GET(request: NextRequest) {
 
     const neynarUrl = `https://api.neynar.com/v2/farcaster/user/search?q=${encodeURIComponent(query.trim())}&limit=10`;
     
-    console.log(`[DEBUG] Searching for users with query: "${query}"`);
-    console.log(`[DEBUG] Neynar API URL: ${neynarUrl}`);
-    
     const response = await fetch(neynarUrl, {
       headers: {
         'Accept': 'application/json',
         'x-api-key': neynarApiKey,
       },
     });
-
-    console.log(`[DEBUG] Neynar API response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -64,7 +59,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data: NeynarSearchResponse = await response.json();
-    console.log(`[DEBUG] Neynar API response:`, JSON.stringify(data, null, 2));
 
     // Validate response structure
     if (!data.result || !Array.isArray(data.result.users)) {
@@ -81,8 +75,6 @@ export async function GET(request: NextRequest) {
       followerCount: user.follower_count || 0,
       followingCount: user.following_count || 0,
     }));
-
-    console.log(`[DEBUG] Transformed ${users.length} users for query "${query}"`);
 
     return NextResponse.json({
       success: true,

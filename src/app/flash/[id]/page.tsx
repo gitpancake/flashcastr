@@ -144,8 +144,6 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       identification: flash.identification || undefined,
     };
 
-    console.log(`Flash ${id}: Loaded via unified API${flash.farcaster_user ? ` (Farcaster: ${flash.farcaster_user.username})` : ''}${flash.identification ? ` (ID: ${flash.identification.matched_flash_name})` : ''}`);
-
     return (
       <FlashPageClient
         flash={flashForClient}

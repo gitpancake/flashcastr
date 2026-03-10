@@ -135,9 +135,6 @@ export class GlobalFlashesApi extends BaseApi {
 
   public async getGlobalFlash(flash_id: number): Promise<GlobalFlash | null> {
     try {
-      // Use direct query by flash_id for efficient lookup
-      console.log(`Flash ${flash_id}: Querying globalFlash directly...`);
-
       const response = await this.api.post("/graphql", {
         query: `
           query GlobalFlash($flash_id: String!) {
@@ -158,11 +155,9 @@ export class GlobalFlashesApi extends BaseApi {
       const flash = response.data.data.globalFlash;
 
       if (!flash) {
-        console.log(`Flash ${flash_id}: Not found in globalFlash query`);
         return null;
       }
 
-      console.log(`Flash ${flash_id}: Found in globalFlash query`);
       return {
         flash_id: parseInt(flash.flash_id, 10),
         city: flash.city,

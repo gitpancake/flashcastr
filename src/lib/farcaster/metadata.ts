@@ -36,7 +36,6 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
   if (process.env.FRAME_METADATA) {
     try {
       const frameMetadata = JSON.parse(process.env.FRAME_METADATA);
-      console.log("Using pre-signed frame metadata from environment");
       return frameMetadata;
     } catch (error) {
       console.warn("Failed to parse FRAME_METADATA from environment:", error);
@@ -50,7 +49,6 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
 
   // Get the domain from the URL (without https:// prefix)
   const domain = new URL(appUrl).hostname;
-  console.log("Using domain for manifest:", domain);
 
   const secretEnvVars = getSecretEnvVars();
   if (!secretEnvVars) {

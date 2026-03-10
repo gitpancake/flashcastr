@@ -26,11 +26,10 @@ export function Progress({ userProgress }: ProgressProps) {
 
   // Debug logging
   React.useEffect(() => {
-    console.log('Progress component - FID:', userProgress?.fid, 'Days:', timeRange, 'Order: DESC');
     if (error) {
       console.error('Progress error:', error);
     }
-  }, [userProgress?.fid, timeRange, error]);
+  }, [error]);
 
   if (!userProgress?.fid) {
     return <NoUserState />;

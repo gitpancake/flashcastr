@@ -62,17 +62,14 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'mark_alive':
         wishlist = await markAsAliveRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully marked ${invaderId} as alive for FID ${fidNumber}`);
         break;
 
       case 'mark_dead':
         wishlist = await markAsDeadRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully marked ${invaderId} as dead for FID ${fidNumber}`);
         break;
 
       case 'remove':
         wishlist = await removeFromWishlistRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully removed ${invaderId} from saved list for FID ${fidNumber}`);
         break;
 
       default:

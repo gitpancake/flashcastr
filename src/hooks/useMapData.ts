@@ -28,8 +28,6 @@ export function useMapData(fid: number | undefined) {
     setState(prev => ({ ...prev, loading: true, error: false }));
     
     try {
-      console.log(`[DEBUG] Loading map data for FID ${fid}`);
-      
       const [huntList, savedList] = await Promise.all([
         getHuntList(fid),
         getSavedList(fid)
@@ -53,7 +51,6 @@ export function useMapData(fid: number | undefined) {
         statusMap,
       });
 
-      console.log(`[DEBUG] Loaded ${huntList.items.length} hunt items, ${savedList.items.length} saved items`);
     } catch (error) {
       console.error('Error loading map data:', error);
       setState(prev => ({ ...prev, loading: false, error: true }));
@@ -75,7 +72,6 @@ export function useMapData(fid: number | undefined) {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Adding ${invader.n} to hunt list`);
       const updatedHuntList = await addToHunt(fid, invader);
       
       setState(prev => ({
@@ -99,7 +95,6 @@ export function useMapData(fid: number | undefined) {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Removing ${invaderId} from hunt list`);
       const updatedHuntList = await removeFromHunt(fid, invaderId);
       
       setState(prev => {
@@ -125,7 +120,6 @@ export function useMapData(fid: number | undefined) {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Marking ${invaderId} as alive`);
       const updatedSavedList = await markAsAlive(fid, invaderId);
       
       // Also update hunt list by removing the item
@@ -160,7 +154,6 @@ export function useMapData(fid: number | undefined) {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Marking ${invaderId} as dead`);
       const updatedSavedList = await markAsDead(fid, invaderId);
       
       // Also update hunt list by removing the item
@@ -195,7 +188,6 @@ export function useMapData(fid: number | undefined) {
     if (!fid) throw new Error('FID required');
 
     try {
-      console.log(`[DEBUG] Removing ${invaderId} from saved list`);
       const updatedSavedList = await removeFromSaved(fid, invaderId);
       
       setState(prev => {

@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invader data is required for add action' }, { status: 400 });
         }
         wishlist = await addToWishlistRedis(fidNumber, invader);
-        console.log(`[DEBUG] Successfully added ${invader.n} to hunt list for FID ${fidNumber}`);
         break;
 
       case 'remove':
@@ -68,7 +67,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invader ID is required for remove action' }, { status: 400 });
         }
         wishlist = await removeFromWishlistRedis(fidNumber, invaderId);
-        console.log(`[DEBUG] Successfully removed ${invaderId} from hunt list for FID ${fidNumber}`);
         break;
 
       default:
