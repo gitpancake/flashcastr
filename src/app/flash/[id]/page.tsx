@@ -120,13 +120,8 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       return notFound();
     }
 
-    if (!flash.timestamp) {
-      console.error('Flash data structure is invalid:', flash);
-      return notFound();
-    }
-
-    const timestamp = fromUnixTime(flash.timestamp);
-    const timeAgo = formatTimeAgo(timestamp);
+    const timestamp = flash.timestamp ? fromUnixTime(flash.timestamp) : null;
+    const timeAgo = timestamp ? formatTimeAgo(timestamp) : "UNKNOWN";
 
     // Transform to the format expected by FlashPageClient
     const flashForClient = {
@@ -136,7 +131,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       img: flash.img || '',
       ipfs_cid: flash.ipfs_cid || undefined,
       text: flash.text || '',
-      timestamp: flash.timestamp,
+      timestamp: flash.timestamp ?? 0,
       farcaster_username: flash.farcaster_user?.username || undefined,
       farcaster_pfp: flash.farcaster_user?.pfp_url || undefined,
       farcaster_fid: flash.farcaster_user?.fid || undefined,

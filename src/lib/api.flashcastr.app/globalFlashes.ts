@@ -8,7 +8,7 @@ export interface GlobalFlash {
   text: string;
   player: string;
   flash_id: number;
-  timestamp: number;
+  timestamp: number | null;
   ipfs_cid?: string;
 }
 
@@ -101,7 +101,7 @@ export class GlobalFlashesApi extends BaseApi {
         img: item.img,
         ipfs_cid: item.ipfs_cid,
         text: item.text,
-        timestamp: parseTimestamp(item.timestamp) ?? Math.floor(Date.now() / 1000),
+        timestamp: parseTimestamp(item.timestamp),
       }));
 
       // For now, we'll assume there are more pages if we got a full page
@@ -165,7 +165,7 @@ export class GlobalFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
+        timestamp: parseTimestamp(flash.timestamp),
       };
     } catch (error) {
       console.error("Error fetching global flash:", error);
@@ -220,7 +220,7 @@ export interface UnifiedFlash {
   img: string | null;
   ipfs_cid: string | null;
   text: string | null;
-  timestamp: number;
+  timestamp: number | null;
   flash_count: string | null;
   farcaster_user: FarcasterUser | null;
   identification: FlashIdentificationInfo | null;
@@ -270,7 +270,7 @@ export class UnifiedFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
+        timestamp: parseTimestamp(flash.timestamp),
         flash_count: flash.flash_count,
         farcaster_user: flash.farcaster_user,
         identification: flash.identification,
@@ -331,7 +331,7 @@ export class UnifiedFlashesApi extends BaseApi {
         img: flash.img,
         ipfs_cid: flash.ipfs_cid,
         text: flash.text,
-        timestamp: parseTimestamp(flash.timestamp) ?? Math.floor(Date.now() / 1000),
+        timestamp: parseTimestamp(flash.timestamp),
         flash_count: flash.flash_count,
         farcaster_user: flash.farcaster_user,
         identification: flash.identification,

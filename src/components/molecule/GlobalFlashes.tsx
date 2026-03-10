@@ -177,7 +177,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       {/* Flash Grid - Mobile First */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {flashes.map((flash, index) => {
-          const timestamp = fromUnixTime(flash.timestamp);
+          const timestamp = flash.timestamp ? fromUnixTime(flash.timestamp) : null;
 
           return (
             <div
@@ -213,7 +213,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
                   </div>
                 )}
                 <div className="text-gray-500 text-[10px] sm:text-xs">
-                  {formatTimeAgo(timestamp)}
+                  {timestamp ? formatTimeAgo(timestamp) : "UNKNOWN"}
                 </div>
               </div>
             </div>
