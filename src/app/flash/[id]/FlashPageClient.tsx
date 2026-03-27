@@ -66,38 +66,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     }
   };
 
-  const handleIdentify = async () => {
-    if (!flash.ipfs_cid) {
-      setIdentifyError("No IPFS CID available for this flash");
-      return;
-    }
-
-    setShowIdentifyModal(true);
-    setIdentifyLoading(true);
-    setIdentifyError(null);
-    setIdentifyMatches([]);
-
-    try {
-      const response = await fetch('/api/identify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ipfs_cid: flash.ipfs_cid, top_k: 5 }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to identify flash');
-      }
-
-      const data = await response.json();
-      setIdentifyMatches(data.matches || []);
-    } catch (error) {
-      console.error('Identify error:', error);
-      setIdentifyError('Failed to identify flash. Please try again.');
-    } finally {
-      setIdentifyLoading(false);
-    }
-  };
-
   const handleSelectMatch = async (match: IdentifyMatch) => {
     if (!flash.ipfs_cid) return;
 
