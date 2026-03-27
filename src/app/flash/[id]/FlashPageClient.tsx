@@ -48,21 +48,9 @@ function getFlashImageUrl(flash: FlashData): string {
   return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
 }
 
-function generateShareText(flash: FlashData, currentUrl: string): string {
-  return `[>] Space Invaders Flash #${flash.flash_id}
-
-[IMG] by @${flash.farcaster_username || flash.player}
-[LOC] ${flash.city}${flash.text ? `\n[TXT] "${flash.text}"` : ''}
-
-Check it out on Flashcastr
-${currentUrl}`;
-}
-
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
   const router = useRouter();
 
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
   const [showIdentifyModal, setShowIdentifyModal] = useState(false);
   const [identifyLoading, setIdentifyLoading] = useState(false);
   const [identifyMatches, setIdentifyMatches] = useState<IdentifyMatch[]>([]);
@@ -76,39 +64,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     } else {
       router.push('/');
     }
-  };
-
-  const handleShare = () => {
-    setShowShareMenu(!showShareMenu);
-  };
-
-  const handleCopyLink = async () => {
-    const currentUrl = window.location.href;
-    const shareText = generateShareText(flash, currentUrl);
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Copy failed:', err);
-    }
-    setShowShareMenu(false);
-  };
-
-  const handleShareToFarcaster = () => {
-    const currentUrl = window.location.href;
-    const shareText = generateShareText(flash, currentUrl);
-    const encodedText = encodeURIComponent(shareText);
-    window.open(`https://warpcast.com/~/compose?text=${encodedText}`, '_blank');
-    setShowShareMenu(false);
-  };
-
-  const handleShareToTwitter = () => {
-    const currentUrl = window.location.href;
-    const shareText = generateShareText(flash, currentUrl);
-    const encodedText = encodeURIComponent(shareText);
-    window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
-    setShowShareMenu(false);
   };
 
   const handleIdentify = async () => {
@@ -202,7 +157,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onBack: handleBack,
-    onShare: handleShare,
   });
 
   // Determine display name: use identification if confidence >= 80%, otherwise flash_id
@@ -219,62 +173,10 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
           onClick={handleBack}
           className="p-2 border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-200 font-bold text-xs"
         >
-          [&larr;] BACK
+          [←] BACK
         </button>
 
-        <div className="flex-1"></div>
-
-        {/* Identify Button - only show if no high-confidence identification */}
-        {!hasHighConfidenceId && flash.ipfs_cid && (
-          <button
-            onClick={handleIdentify}
-            className="p-2 border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black transition-all duration-200 font-bold text-xs"
-          >
-            [?] IDENTIFY
-          </button>
-        )}
-
-        {/* Share Button */}
-        <div className="relative">
-          <button
-            onClick={handleShare}
-            className="p-2 border-2 border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black transition-all duration-200 font-bold text-xs"
-          >
-            [&nearr;] SHARE
-          </button>
-
-          {/* Share Menu */}
-          {showShareMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-gray-900 border-2 border-purple-400 z-50 min-w-[160px]">
-              <button
-                onClick={handleShareToFarcaster}
-                className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
-              >
-                [FC] FARCASTER
-              </button>
-              <button
-                onClick={handleShareToTwitter}
-                className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
-              >
-                [TW] TWITTER
-              </button>
-              <button
-                onClick={handleCopyLink}
-                className="w-full text-left px-3 py-2 text-purple-400 hover:bg-gray-800 text-xs transition-colors duration-200"
-              >
-                [CP] COPY LINK
-              </button>
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Copy Success Message */}
-      {copySuccess && (
-        <div className="mb-4 p-2 bg-green-900 border border-green-400 text-green-400 text-xs">
-          [OK] COPIED TO CLIPBOARD
-        </div>
-      )}
 
       {/* Flash Card - Blown Up Version */}
       <div className="bg-black border-2 border-green-400 overflow-hidden relative">
