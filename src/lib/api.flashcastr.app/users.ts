@@ -23,6 +23,13 @@ export interface PollSignupStatusResponse {
   message?: string | null; // Optional additional information
 }
 
+export interface SignerStatusResponse {
+  ok: boolean;
+  status: string; // "APPROVED", "PENDING_APPROVAL", "REVOKED", "NO_SIGNER", "NEYNAR_LOOKUP_ERROR", "DECRYPT_ERROR"
+  fid?: number | null;
+  message?: string | null;
+}
+
 export class UsersApi extends BaseApi {
   public async getUser(fid?: number): Promise<User[]> {
     if (!fid) {
@@ -106,6 +113,28 @@ export class UsersApi extends BaseApi {
       // or return a specific status like "ERROR_CLIENT_REQUEST"
       throw new Error("Failed to poll signup status or malformed response.");
     }
+  }
+
+  public async checkSignerStatus(fid: number): Promise<SignerStatusResponse> {
+    const response = await this.api.post<{ data: { checkSignerStatus: SignerStatusResponse } }>("/graphql", {
+      query: `
+        query CheckSignerStatus($fid: Int!) {
+          checkSignerStatus(fid: $fid) {
+            ok
+            status
+            fid
+            message
+          }
+        }
+      `,
+      variables: { fid },
+    });
+
+    if (response.data.data?.checkSignerStatus) {
+      return response.data.data.checkSignerStatus;
+    }
+    console.error("GraphQL checkSignerStatus error or unexpected response structure:", response.data);
+    throw new Error("Failed to check signer status or malformed response.");
   }
 
   public async setAutoCast(fid: number, autoCast: boolean, apiKey: string): Promise<{ auto_cast: boolean }> {

@@ -13,6 +13,7 @@ import Feed from "../molecule/Feed";
 import { Achievements } from "../molecule/Achievements";
 import { DeleteProfile } from "../molecule/Delete";
 import { RefreshSigner } from "../molecule/RefreshSigner";
+import { SignerStatus } from "../molecule/SignerStatus";
 import { ToggleAutoCast } from "../molecule/ToggleAutoCast";
 
 interface PersonalProfileProps {
@@ -136,6 +137,7 @@ export default function PersonalProfile({ user, farcasterUserContext }: Personal
             <div className="mt-4 pt-4 border-t border-gray-700 space-y-3">
               <div className="text-xs text-gray-400 mb-2">SETTINGS</div>
               <ToggleAutoCast auto_cast={user.auto_cast} />
+              <SignerStatus fid={user.fid} />
               <RefreshSigner user={user} />
               <DeleteProfile />
             </div>
