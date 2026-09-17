@@ -3,31 +3,33 @@
 
 export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'progress';
 
+export interface TabDefinition {
+  id: NavTab;
+  label: string;
+  icon: string;
+  key: string;
+  requiresUser: boolean;
+}
+
+export const TAB_DEFINITIONS: TabDefinition[] = [
+  { id: 'feed', label: 'FEED', icon: '>', key: 'F', requiresUser: false },
+  { id: 'global', label: 'GLOBAL', icon: '*', key: 'G', requiresUser: false },
+  { id: 'leaderboard', label: 'BOARD', icon: '#', key: 'L', requiresUser: false },
+  { id: 'progress', label: 'PROGRESS', icon: '↑', key: 'P', requiresUser: true },
+  { id: 'achievements', label: 'ACHIEVE', icon: '+', key: 'A', requiresUser: true },
+];
+
 interface RetroNavProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
-  showAchievements?: boolean;
-  showProgress?: boolean;
+  hasUserContext?: boolean;
   className?: string;
   currentUserFid?: number;
 }
 
-export function RetroNav({ activeTab, onTabChange, showAchievements = true, showProgress = true, className = "" }: RetroNavProps) {
+export function RetroNav({ activeTab, onTabChange, hasUserContext = true, className = "" }: RetroNavProps) {
 
-  const baseTabs = [
-    { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
-    { id: 'global' as NavTab, label: 'GLOBAL', icon: '*', key: 'G' },
-    { id: 'leaderboard' as NavTab, label: 'BOARD', icon: '#', key: 'L' },
-  ];
-
-  // Add progress tab for authenticated users
-  const tabsWithProgress = showProgress
-    ? [...baseTabs, { id: 'progress' as NavTab, label: 'PROGRESS', icon: '↑', key: 'P' }]
-    : baseTabs;
-
-  const tabs = showAchievements
-    ? [...tabsWithProgress, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
-    : tabsWithProgress;
+  const tabs = TAB_DEFINITIONS.filter((tab) => !tab.requiresUser || hasUserContext);
 
   return (
     <div className={`w-full bg-black border-b-2 border-green-400 ${className}`}>
@@ -41,7 +43,7 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, show
 ██╔══╝  ██║     ██╔══██║╚════██║██╔══██║
 ██║     ███████╗██║  ██║███████║██║  ██║
 ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
- ██████╗ █████╗ ███████╗████████╗██████╗ 
+ ██████╗ █████╗ ███████╗████████╗██████╗
 ██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔══██╗
 ██║     ███████║███████╗   ██║   ██████╔╝
 ██║     ██╔══██║╚════██║   ██║   ██╔══██╗
