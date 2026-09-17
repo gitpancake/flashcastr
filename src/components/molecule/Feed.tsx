@@ -40,7 +40,11 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
   });
 
   const flashes = useMemo(
-    () => (data?.pages?.flat() || []).filter((item) => Number.isFinite(item.flash?.timestamp) && item.flash.timestamp > 0),
+    () =>
+      (data?.pages?.flat() || []).filter((item) => {
+        const timestamp = Number(item.flash?.timestamp);
+        return Number.isFinite(timestamp) && timestamp > 0;
+      }),
     [data]
   );
 
@@ -100,7 +104,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
       {/* Flash Grid - Same as Global */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {flashes.map(({ user_fid, user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
-          const timestamp = fromUnixTime(flash.timestamp);
+          const timestamp = fromUnixTime(Number(flash.timestamp));
 
           return (
             <div
