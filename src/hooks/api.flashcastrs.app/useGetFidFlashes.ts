@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
+import { queryKeys } from "~/lib/queryKeys";
 
 export function useGetFidFlashes(fid?: number) {
   return useQuery({
-    queryKey: ["flashes", fid],
+    queryKey: queryKeys.userFlashes(fid),
     queryFn: async () => {
       try {
         const flashes = await flashesApi.getFlashes(FETCH.INITIAL_PAGE, FETCH.LIMIT, fid);
