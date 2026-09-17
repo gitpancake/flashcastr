@@ -160,7 +160,7 @@ export class UsersApi extends BaseApi {
       }
     );
 
-    return response.data.setUserAutoCast;
+    return response.data.data.setUserAutoCast;
   }
 
   public async deleteUser(fid: number, apiKey: string): Promise<{ success: boolean; message: string }> {

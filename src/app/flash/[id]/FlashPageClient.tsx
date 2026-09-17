@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { IPFS } from "~/lib/constants";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
+import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 
 interface FlashIdentificationInfo {
   id: number;
@@ -72,45 +73,22 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     setSavingId(match.flash_id);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_FLASHCASTR_API_URL;
-      const response = await fetch(`${apiUrl}/graphql`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: `
-            mutation SaveFlashIdentification($source_ipfs_cid: String!, $matched_flash_id: String!, $matched_flash_name: String, $similarity: Float!, $confidence: Float!) {
-              saveFlashIdentification(source_ipfs_cid: $source_ipfs_cid, matched_flash_id: $matched_flash_id, matched_flash_name: $matched_flash_name, similarity: $similarity, confidence: $confidence) {
-                id
-                matched_flash_id
-                matched_flash_name
-                similarity
-                confidence
-              }
-            }
-          `,
-          variables: {
-            source_ipfs_cid: flash.ipfs_cid,
-            matched_flash_id: match.flash_id.toString(),
-            matched_flash_name: match.flash_name,
-            similarity: match.similarity,
-            confidence: match.confidence,
-          },
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(result.errors[0]?.message || 'Failed to save identification');
-      }
+      const flashesApi = new FlashesApi();
+      const savedIdentification = await flashesApi.saveFlashIdentification(
+        flash.ipfs_cid,
+        match.flash_id.toString(),
+        match.flash_name,
+        match.similarity,
+        match.confidence
+      );
 
       // Update local state with new identification
       setCurrentIdentification({
-        id: result.data.saveFlashIdentification.id,
-        matched_flash_id: result.data.saveFlashIdentification.matched_flash_id,
-        matched_flash_name: result.data.saveFlashIdentification.matched_flash_name,
-        similarity: result.data.saveFlashIdentification.similarity,
-        confidence: result.data.saveFlashIdentification.confidence,
+        id: savedIdentification.id,
+        matched_flash_id: savedIdentification.matched_flash_id,
+        matched_flash_name: savedIdentification.matched_flash_name,
+        similarity: savedIdentification.similarity,
+        confidence: savedIdentification.confidence,
       });
 
       setShowIdentifyModal(false);

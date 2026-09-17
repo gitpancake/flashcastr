@@ -40,6 +40,14 @@ export interface DailyProgress {
   count: number;
 }
 
+export interface FlashIdentification {
+  id: number;
+  matched_flash_id: string;
+  matched_flash_name: string | null;
+  similarity: number;
+  confidence: number;
+}
+
 export class FlashesApi extends BaseApi {
   public async getFlashes(page: number = 1, limit: number = 40, fid?: number, search?: string): Promise<FlashResponse[]> {
     const variables: Record<string, number | string | undefined> = {
@@ -192,5 +200,36 @@ export class FlashesApi extends BaseApi {
       console.error('getProgress error:', error);
       throw error;
     }
+  }
+
+  public async saveFlashIdentification(
+    sourceIpfsCid: string,
+    matchedFlashId: string,
+    matchedFlashName: string | null,
+    similarity: number,
+    confidence: number
+  ): Promise<FlashIdentification> {
+    const response = await this.api.post("/graphql", {
+      query: `
+        mutation SaveFlashIdentification($source_ipfs_cid: String!, $matched_flash_id: String!, $matched_flash_name: String, $similarity: Float!, $confidence: Float!) {
+          saveFlashIdentification(source_ipfs_cid: $source_ipfs_cid, matched_flash_id: $matched_flash_id, matched_flash_name: $matched_flash_name, similarity: $similarity, confidence: $confidence) {
+            id
+            matched_flash_id
+            matched_flash_name
+            similarity
+            confidence
+          }
+        }
+      `,
+      variables: {
+        source_ipfs_cid: sourceIpfsCid,
+        matched_flash_id: matchedFlashId,
+        matched_flash_name: matchedFlashName,
+        similarity,
+        confidence,
+      },
+    });
+
+    return response.data.data.saveFlashIdentification;
   }
 }

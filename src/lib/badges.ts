@@ -153,7 +153,7 @@ export const CITY_COUNT_BADGES: Badge[] = [
     gradient: "from-green-500 to-green-300",
   },
   {
-    id: "explorer",
+    id: "city-explorer",
     name: "Explorer",
     description: "30 different cities",
     icon: "<",
