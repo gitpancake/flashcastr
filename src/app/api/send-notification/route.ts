@@ -1,16 +1,25 @@
 import { notificationDetailsSchema } from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { crossOriginResponse, getSessionFid, isSameOrigin } from "~/lib/apiGuard";
 import { setUserNotificationDetails } from "~/lib/kv";
 import { sendNeynarFrameNotification } from "~/lib/neynar/notification";
 import { sendFrameNotification } from "~/lib/notifs";
 
 const requestSchema = z.object({
-  fid: z.number(),
   notificationDetails: notificationDetailsSchema,
 });
 
 export async function POST(request: NextRequest) {
+  if (!isSameOrigin(request)) {
+    return crossOriginResponse();
+  }
+
+  const sessionFid = await getSessionFid();
+  if (sessionFid === null) {
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   // If Neynar is enabled, we don't need to store notification details
   // as they will be managed by Neynar's system
   const neynarEnabled = process.env.NEYNAR_API_KEY && process.env.NEYNAR_CLIENT_ID;
@@ -24,13 +33,13 @@ export async function POST(request: NextRequest) {
 
   // Only store notification details if not using Neynar
   if (!neynarEnabled) {
-    await setUserNotificationDetails(Number(requestBody.data.fid), requestBody.data.notificationDetails);
+    await setUserNotificationDetails(sessionFid, requestBody.data.notificationDetails);
   }
 
   // Use appropriate notification function based on Neynar status
   const sendNotification = neynarEnabled ? sendNeynarFrameNotification : sendFrameNotification;
   const sendResult = await sendNotification({
-    fid: Number(requestBody.data.fid),
+    fid: sessionFid,
     title: "Test notification",
     body: "Sent at " + new Date().toISOString(),
   });

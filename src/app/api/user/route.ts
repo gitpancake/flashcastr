@@ -1,29 +1,38 @@
 import { NextResponse } from "next/server";
-import { getSession } from "~/auth";
+import { crossOriginResponse, getSessionFid, isSameOrigin } from "~/lib/apiGuard";
 import { UsersApi } from "~/lib/api.flashcastr.app/users";
 
 export async function PUT(req: Request) {
-  const session = await getSession();
+  if (!isSameOrigin(req)) {
+    return crossOriginResponse();
+  }
 
-  if (!session) {
+  const sessionFid = await getSessionFid();
+  if (sessionFid === null) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { auto_cast } = await req.json();
+  if (typeof auto_cast !== "boolean") {
+    return NextResponse.json({ error: "auto_cast must be a boolean" }, { status: 400 });
+  }
 
-  await new UsersApi().setAutoCast(session.user.fid, auto_cast, process.env.FLASHCASTR_API_KEY!);
+  await new UsersApi().setAutoCast(sessionFid, auto_cast, process.env.FLASHCASTR_API_KEY!);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
 
-export async function DELETE() {
-  const session = await getSession();
+export async function DELETE(req: Request) {
+  if (!isSameOrigin(req)) {
+    return crossOriginResponse();
+  }
 
-  if (!session) {
+  const sessionFid = await getSessionFid();
+  if (sessionFid === null) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await new UsersApi().deleteUser(session.user.fid, process.env.FLASHCASTR_API_KEY!);
+  await new UsersApi().deleteUser(sessionFid, process.env.FLASHCASTR_API_KEY!);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '~/auth';
+import { crossOriginResponse, getSessionFid, isSameOrigin } from '~/lib/apiGuard';
 import {
   getFlashLinksFromRedis,
   linkFlashToInvaderRedis,
@@ -26,6 +27,14 @@ export async function GET(request: NextRequest) {
     }
 
     const fidNumber = parseInt(fid, 10);
+    if (isNaN(fidNumber)) {
+      return NextResponse.json({ error: 'Invalid FID' }, { status: 400 });
+    }
+
+    const sessionFid = await getSessionFid();
+    if (sessionFid !== fidNumber) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Get link count for an invader
     if (action === 'count' && invaderId) {
@@ -59,6 +68,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return crossOriginResponse();
+    }
+
     const session = await getSession();
     if (!session?.user?.fid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

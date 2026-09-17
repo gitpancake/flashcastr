@@ -5,6 +5,7 @@ import {
   removeExperimentalUserRedis
 } from '~/lib/redis';
 import { getSession } from '~/auth';
+import { crossOriginResponse, isSameOrigin } from '~/lib/apiGuard';
 import { FEATURES } from '~/lib/constants';
 
 // GET /api/admin/experimental-users - Get all experimental users
@@ -30,6 +31,10 @@ export async function GET() {
 // POST /api/admin/experimental-users - Add experimental user
 export async function POST(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return crossOriginResponse();
+    }
+
     const session = await getSession();
     if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -71,6 +76,10 @@ export async function POST(request: NextRequest) {
 // DELETE /api/admin/experimental-users - Remove experimental user
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return crossOriginResponse();
+    }
+
     const session = await getSession();
     if (!session?.user?.fid || session.user.fid !== FEATURES.ADMIN_FID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });

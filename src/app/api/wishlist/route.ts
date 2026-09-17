@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '~/auth';
+import { crossOriginResponse, getSessionFid, isSameOrigin } from '~/lib/apiGuard';
 import {
   getWishlistFromRedis,
   addToWishlistRedis,
@@ -27,6 +28,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid FID' }, { status: 400 });
   }
 
+  const sessionFid = await getSessionFid();
+  if (sessionFid !== fidNumber) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     if (statsOnly) {
       // Return just stats
@@ -50,6 +56,10 @@ export async function GET(request: NextRequest) {
 // POST /api/wishlist - Add to wishlist or mark as found
 export async function POST(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return crossOriginResponse();
+    }
+
     const session = await getSession();
     if (!session?.user?.fid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

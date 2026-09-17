@@ -7,9 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     const { ipfs_cid, top_k = 5 } = await request.json();
 
-    if (!ipfs_cid) {
-      return NextResponse.json({ error: "ipfs_cid is required" }, { status: 400 });
+    if (typeof ipfs_cid !== "string" || !/^[A-Za-z0-9]+$/.test(ipfs_cid)) {
+      return NextResponse.json({ error: "Valid ipfs_cid is required" }, { status: 400 });
     }
+
+    const topKNumber = Number(top_k);
+    const clampedTopK = Number.isInteger(topKNumber) ? Math.min(Math.max(topKNumber, 1), 20) : 5;
 
     // Fetch the image from IPFS
     const imageUrl = `${IPFS_GATEWAY}${ipfs_cid}`;
@@ -26,7 +29,7 @@ export async function POST(request: NextRequest) {
     formData.append("file", imageBlob, "image.jpg");
 
     // Call embeddings API
-    const embeddingsResponse = await fetch(`${EMBEDDINGS_API_URL}/identify?top_k=${top_k}`, {
+    const embeddingsResponse = await fetch(`${EMBEDDINGS_API_URL}/identify?top_k=${clampedTopK}`, {
       method: "POST",
       body: formData,
     });

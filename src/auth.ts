@@ -12,6 +12,9 @@ declare module "next-auth" {
 
 function getDomainFromUrl(urlString: string | undefined): string {
   if (!urlString) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NEXTAUTH_URL must be set in production");
+    }
     console.warn("NEXTAUTH_URL is not set, using localhost:3000 as fallback");
     return "localhost:3000";
   }
@@ -19,6 +22,9 @@ function getDomainFromUrl(urlString: string | undefined): string {
     const url = new URL(urlString);
     return url.hostname;
   } catch (error) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`NEXTAUTH_URL is not a valid URL: ${urlString}`);
+    }
     console.error("Invalid NEXTAUTH_URL:", urlString, error);
     console.warn("Using localhost:3000 as fallback");
     return "localhost:3000";
