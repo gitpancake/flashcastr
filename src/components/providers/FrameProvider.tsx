@@ -3,6 +3,7 @@
 import sdk, { type Context, type FrameNotificationDetails } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import React, { useCallback, useEffect, useState } from "react";
+import { Loading } from "~/components/atom/Loading";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -102,7 +103,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   const { isSDKLoaded, context } = useFrame();
 
   if (!isSDKLoaded) {
-    return <div>Loading...</div>;
+    return <Loading fullScreen />;
   }
 
   return <FrameContext.Provider value={{ isSDKLoaded, context }}>{children}</FrameContext.Provider>;
