@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AlienLoader } from "~/components/atom/AlienLoader";
-import { FadeInImage } from "~/components/atom/FadeInImage";
-import { FlashGridSkeleton } from "~/components/atom/FlashGridSkeleton";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { fromUnixTime } from "date-fns";
+import { FlashGrid, type FlashCardData } from "~/components/molecule/FlashGrid";
 import { globalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
-import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
+import { queryKeys } from "~/lib/queryKeys";
 
 interface GlobalFlashesProps {
   initialFlashes?: GlobalFlash[];
@@ -49,7 +46,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["global-flashes", selectedCity],
+    queryKey: queryKeys.globalFlashes(selectedCity ?? undefined),
     queryFn: async ({ pageParam = 1 }) => {
       return await globalFlashesApi.getGlobalFlashes(pageParam as number, 40, selectedCity);
     },
@@ -64,27 +61,17 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
 
   const flashes = (data?.pages?.flatMap(page => page.items) || initialFlashes).filter(flash => flash.timestamp !== null);
 
-  // Intersection observer for infinite scroll
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastFlashRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (isLoading || isFetchingNextPage || !hasNextPage) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]
-  );
-
-  useEffect(() => {
-    return () => observer.current?.disconnect();
-  }, []);
+  const items: FlashCardData[] = flashes.map((flash: GlobalFlash) => ({
+    id: String(flash.flash_id),
+    flashId: flash.flash_id,
+    city: flash.city,
+    player: flash.player,
+    avatarUrl: null,
+    imageSrc: getImageUrl(flash),
+    timestampSeconds: flash.timestamp as number,
+    text: flash.text || undefined,
+    onImageClick: () => router.push(`/flash/${flash.flash_id}`),
+  }));
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
@@ -180,98 +167,23 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
         )}
       </div>
 
-      {/* Flash Grid - Mobile First */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map((flash, index) => {
-          const timestamp = fromUnixTime(flash.timestamp!);
-
-          return (
-            <div
-              key={flash.flash_id}
-              ref={index === flashes.length - 10 ? lastFlashRef : null}
-              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
-            >
-              <button
-                type="button"
-                onClick={() => router.push(`/flash/${flash.flash_id}`)}
-                aria-label={`View flash #${flash.flash_id}`}
-                className="block w-full text-left cursor-pointer active:opacity-75 transition-opacity"
-              >
-              {/* Flash Image */}
-              <div className="aspect-square overflow-hidden relative">
-                <FadeInImage
-                  src={getImageUrl(flash)}
-                  alt={`Flash ${flash.flash_id}`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-              </div>
-
-              {/* Flash Info */}
-              <div className="p-2 sm:p-3 space-y-1">
-                <div className="text-green-400 text-[10px] sm:text-xs font-bold">
-                  #{flash.flash_id}
-                </div>
-                <div className="text-white text-xs sm:text-sm">
-                  {">"} {flash.city}
-                </div>
-                <div className="text-gray-400 text-[10px] sm:text-xs">
-                  @ {flash.player}
-                </div>
-                {flash.text && (
-                  <div className="text-gray-300 text-[10px] sm:text-xs line-clamp-2">
-                    {flash.text}
-                  </div>
-                )}
-                <div className="text-gray-500 text-[10px] sm:text-xs">
-                  {formatTimeAgo(timestamp)}
-                </div>
-              </div>
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Loading States */}
-      {isLoading && <FlashGridSkeleton tiles={12} className="" />}
-      {isFetchingNextPage && <AlienLoader />}
-
-      {/* Error State */}
-      {isError && (
-        <div className="text-center py-12">
-          <div className="text-red-400 text-lg">SIGNAL LOST</div>
-          <div className="text-gray-500 text-sm mt-2">Could not reach the flash database</div>
-          <button
-            onClick={() => refetch()}
-            className="mt-4 px-4 py-2 border border-green-400 text-green-400 text-xs hover:bg-green-400 hover:text-black transition-colors"
-          >
-            RETRY
-          </button>
-        </div>
-      )}
-
-      {/* No Results */}
-      {!isLoading && !isError && flashes.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-lg">
-            NO FLASHES FOUND
+      <FlashGrid
+        items={items}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchNextPage={fetchNextPage}
+        emptyMessage={selectedCity ? `No flashes in ${selectedCity}` : "No global flashes available"}
+        footer={
+          <div className="mt-8 text-center text-xs text-gray-500">
+            <div>SHOWING {flashes.length} FLASHES</div>
+            {selectedCity && <div>FILTERED BY: {selectedCity.toUpperCase()}</div>}
+            <div className="mt-2">DATA SOURCE: FLASHCASTR.APP</div>
           </div>
-          <div className="text-gray-500 text-sm mt-2">
-            {selectedCity ? `No flashes in ${selectedCity}` : 'No global flashes available'}
-          </div>
-        </div>
-      )}
-
-      {/* Footer Stats */}
-      {!isLoading && (
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <div>SHOWING {flashes.length} FLASHES</div>
-          {selectedCity && <div>FILTERED BY: {selectedCity.toUpperCase()}</div>}
-          <div className="mt-2">DATA SOURCE: FLASHCASTR.APP</div>
-        </div>
-      )}
+        }
+      />
     </div>
   );
 }

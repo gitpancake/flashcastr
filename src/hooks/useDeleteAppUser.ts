@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "~/lib/queryKeys";
 
 export const useDeleteAppUser = () => {
   const queryClient = useQueryClient();
@@ -10,7 +11,7 @@ export const useDeleteAppUser = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user() });
     },
   });
 };

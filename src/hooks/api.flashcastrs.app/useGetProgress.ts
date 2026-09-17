@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { flashesApi, DailyProgress } from "~/lib/api.flashcastr.app/flashes";
+import { queryKeys } from "~/lib/queryKeys";
 
 export const useGetProgress = (fid: number | undefined, days: number = 7, order: 'ASC' | 'DESC' = 'ASC') => {
   return useQuery<DailyProgress[]>({
-    queryKey: ["progress", fid, days, order],
+    queryKey: queryKeys.progress(fid, days, order),
     queryFn: async () => {
       if (!fid) return [];
 

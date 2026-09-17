@@ -1,16 +1,13 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { fromUnixTime } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { AlienLoader } from "~/components/atom/AlienLoader";
-import { FadeInImage } from "~/components/atom/FadeInImage";
+import { FlashCardData, FlashGrid } from "~/components/molecule/FlashGrid";
 import { FlashResponse, flashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
-import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
+import { queryKeys } from "~/lib/queryKeys";
 
 type Props = {
   initialFlashes: FlashResponse[];
@@ -20,9 +17,9 @@ type Props = {
 
 export default function Feed({ initialFlashes, fid, showHeader = false }: Props) {
   const router = useRouter();
-  
+
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } = useInfiniteQuery({
-    queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
+    queryKey: queryKeys.userFlashesFeed(fid),
     queryFn: async ({ pageParam = 1 }) => {
       return await flashesApi.getFlashes(pageParam, FETCH.LIMIT, fid);
     },
@@ -36,7 +33,8 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
       pages: [initialFlashes],
       pageParams: [1],
     },
-    staleTime: 60_000,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   const flashes = useMemo(
@@ -48,32 +46,22 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
     [data]
   );
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1 }
-    );
-
-    const current = loadMoreRef.current;
-
-    if (current) {
-      observer.observe(current);
-    }
-
-    return () => {
-      if (current) {
-        observer.unobserve(current);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const items: FlashCardData[] = useMemo(
+    () =>
+      flashes.map(({ user_fid, user_pfp_url, user_username, flash }: FlashResponse) => ({
+        id: flash.flash_id.toString(),
+        flashId: flash.flash_id,
+        city: flash.city,
+        player: user_username || flash.player,
+        avatarUrl: user_pfp_url || null,
+        imageSrc: getImageUrl(flash),
+        timestampSeconds: Number(flash.timestamp),
+        text: undefined,
+        onImageClick: () => router.push(`/flash/${flash.flash_id}`),
+        onPlayerClick: () => router.push(`/profile/${user_fid || flash.player}`),
+      })),
+    [flashes, router]
+  );
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 sm:p-6 font-mono">
@@ -101,93 +89,15 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
         </div>
       )}
 
-      {/* Flash Grid - Same as Global */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-        {flashes.map(({ user_fid, user_pfp_url, user_username, flash }: FlashResponse, index: number) => {
-          const timestamp = fromUnixTime(Number(flash.timestamp));
-
-          return (
-            <div
-              key={flash.flash_id.toString()}
-              ref={index === flashes.length - FETCH.THRESHOLD ? loadMoreRef : null}
-              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
-            >
-              {/* Flash Image - Click to go to flash page */}
-              <button
-                type="button"
-                className="block w-full aspect-square overflow-hidden cursor-pointer relative active:opacity-75 transition-opacity"
-                aria-label={`View flash #${flash.flash_id}`}
-                onClick={() => router.push(`/flash/${flash.flash_id}`)}
-              >
-                <FadeInImage
-                  src={getImageUrl(flash)}
-                  alt={`Flash ${flash.flash_id}`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-              </button>
-
-              {/* Flash Info - Click to go to user profile */}
-              <button
-                type="button"
-                className="block w-full text-left p-2 sm:p-3 space-y-1 cursor-pointer active:opacity-75 transition-opacity"
-                aria-label={`View profile of ${user_username || flash.player}`}
-                onClick={() => router.push(`/profile/${user_fid || flash.player}`)}
-              >
-                <div className="text-green-400 text-[10px] sm:text-xs font-bold">#{flash.flash_id.toLocaleString()}</div>
-                <div className="text-white text-xs sm:text-sm flex items-center gap-1">
-                  {user_pfp_url && (
-                    <Image
-                      src={user_pfp_url}
-                      alt={user_username || flash.player}
-                      width={12}
-                      height={12}
-                      className="rounded-full"
-                    />
-                  )}
-                  @ {user_username || flash.player}
-                </div>
-                <div className="text-gray-400 text-[10px] sm:text-xs">
-                  {">"} {flash.city}
-                </div>
-                <div className="text-gray-500 text-[10px] sm:text-xs">{formatTimeAgo(timestamp)}</div>
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Loading States */}
-      {isFetchingNextPage && <AlienLoader />}
-
-      {/* Error State */}
-      {isError && (
-        <div className="text-center py-12">
-          <div className="text-red-400 text-lg">SIGNAL LOST</div>
-          <div className="text-gray-500 text-sm mt-2">Could not reach the flash database</div>
-          <button
-            onClick={() => refetch()}
-            className="mt-4 px-4 py-2 border border-green-400 text-green-400 text-xs hover:bg-green-400 hover:text-black transition-colors"
-          >
-            RETRY
-          </button>
-        </div>
-      )}
-
-      {/* No Results */}
-      {!isError && flashes.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-lg">NO FLASHES FOUND</div>
-          <div className="text-gray-500 text-sm mt-2">No flashes available</div>
-        </div>
-      )}
-
-      {/* Footer Stats */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <div>SHOWING {flashes.length} FLASHES</div>
-        <div className="mt-2">DATA SOURCE: FLASHCASTR API</div>
-      </div>
+      <FlashGrid
+        items={items}
+        isError={isError}
+        onRetry={() => refetch()}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchNextPage={fetchNextPage}
+        footerNote="DATA SOURCE: FLASHCASTR API"
+      />
     </div>
   );
 }
