@@ -1,6 +1,6 @@
 "use client";
 
-import { FrameContext } from "@farcaster/frame-core/dist/context";
+import { type Context } from "@farcaster/frame-sdk";
 import { useState } from "react";
 import Image from "next/image";
 import { FiSettings } from "react-icons/fi";
@@ -18,7 +18,7 @@ import { ToggleAutoCast } from "../molecule/ToggleAutoCast";
 
 interface PersonalProfileProps {
   user?: User;
-  farcasterUserContext?: FrameContext["user"];
+  farcasterUserContext?: Context.FrameContext["user"];
 }
 
 export default function PersonalProfile({ user, farcasterUserContext }: PersonalProfileProps) {
