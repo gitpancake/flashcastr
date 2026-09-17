@@ -3,18 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
-        hostname: "*.mypinata.cloud",
-        protocol: "https",
-      },
-      {
-        hostname: "i.imgur.com",
-        protocol: "https",
-      },
-      {
-        hostname: "res.cloudinary.com",
+        hostname: "**",
         protocol: "https",
       },
     ],

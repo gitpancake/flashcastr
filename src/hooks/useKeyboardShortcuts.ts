@@ -23,40 +23,25 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcuts = {}) {
       return;
     }
 
-    // Modifier key combinations
+    // Modifier key combinations — only intercept keys that have an action,
+    // so native shortcuts (copy/paste/select-all/new-tab) keep working
     if (event.ctrlKey || event.metaKey) {
       const key = event.key.toLowerCase();
-      event.preventDefault();
-      
-      switch (key) {
-        case 'h':
-          if (shortcuts.onHome) shortcuts.onHome();
-          else router.push('/');
-          break;
-        case 'p':
-          if (shortcuts.onProfile) shortcuts.onProfile();
-          else router.push('/profile');
-          break;
-        case 'g':
-          if (shortcuts.onGlobal) shortcuts.onGlobal();
-          else router.push('/');
-          break;
-        case 'l':
-          if (shortcuts.onLeaderboard) shortcuts.onLeaderboard();
-          break;
-        case 'k':
-          if (shortcuts.onSearch) shortcuts.onSearch();
-          break;
-        case 's':
-          if (shortcuts.onShare) shortcuts.onShare();
-          break;
-        case 'f':
-          if (shortcuts.onFavorite) shortcuts.onFavorite();
-          break;
-        case 'r':
-          if (shortcuts.onRefresh) shortcuts.onRefresh();
-          else window.location.reload();
-          break;
+      const modifierActions: Record<string, (() => void) | undefined> = {
+        h: shortcuts.onHome ?? (() => router.push('/')),
+        p: shortcuts.onProfile ?? (() => router.push('/profile')),
+        g: shortcuts.onGlobal ?? (() => router.push('/')),
+        l: shortcuts.onLeaderboard,
+        k: shortcuts.onSearch,
+        s: shortcuts.onShare,
+        f: shortcuts.onFavorite,
+        r: shortcuts.onRefresh ?? (() => window.location.reload()),
+      };
+
+      const action = modifierActions[key];
+      if (action) {
+        event.preventDefault();
+        action();
       }
       return;
     }

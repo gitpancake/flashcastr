@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { getWishlist, removeFromWishlist, markAsFound, getWishlistStats, type WishlistItem } from "~/lib/wishlist";
 
@@ -46,6 +47,7 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
   // Filter items based on selected filter
   const filteredItems = wishlistItems.filter(item => {
     if (filter === 'all') return true;
+    if (filter === 'found') return item.status === 'alive' || item.status === 'dead';
     return item.status === filter;
   });
 
@@ -55,15 +57,16 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
     
     try {
       await markAsFound(farcasterFid, invaderId);
-      
+
       // Reload data
       const wishlist = await getWishlist(farcasterFid);
       setWishlistItems(wishlist.items);
       const wishlistStats = await getWishlistStats(farcasterFid);
       setStats(wishlistStats);
+      toast.success('MARKED AS FOUND');
     } catch (error) {
       console.error('Error marking as found:', error);
-      setSystemError(true);
+      toast.error('COULD NOT MARK AS FOUND — TRY AGAIN');
     }
   };
 
@@ -72,15 +75,16 @@ export function WishlistView({ onNavigateToInvader }: WishlistViewProps) {
     
     try {
       await removeFromWishlist(farcasterFid, invaderId);
-      
+
       // Reload data
       const wishlist = await getWishlist(farcasterFid);
       setWishlistItems(wishlist.items);
       const wishlistStats = await getWishlistStats(farcasterFid);
       setStats(wishlistStats);
+      toast.success('REMOVED FROM HUNT LIST');
     } catch (error) {
       console.error('Error removing from wishlist:', error);
-      setSystemError(true);
+      toast.error('COULD NOT REMOVE — TRY AGAIN');
     }
   };
 

@@ -112,7 +112,7 @@ export class GlobalFlashesApi extends BaseApi {
       return { items, hasNext };
     } catch (error) {
       console.error("Error fetching global flashes:", error);
-      return { items: [], hasNext: false };
+      throw error;
     }
   }
 

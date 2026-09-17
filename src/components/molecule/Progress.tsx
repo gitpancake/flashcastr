@@ -159,13 +159,13 @@ function StatItem({ label, value }: { label: string; value: string | number }) {
 
 // Helper functions
 function calculateStreak(data: DailyProgress[]): number {
-  let streak = 0;
-  const reversed = [...data].reverse();
+  const newestFirst = [...data].sort((a, b) => b.date.localeCompare(a.date));
 
-  for (const day of reversed) {
-    if (day.count > 0) {
+  let streak = 0;
+  for (let i = 0; i < newestFirst.length; i++) {
+    if (newestFirst[i].count > 0) {
       streak++;
-    } else {
+    } else if (i > 0) {
       break;
     }
   }

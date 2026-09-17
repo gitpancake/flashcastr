@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import { getFavorites, removeFromFavorites, type FavoriteFlash } from "~/lib/favorites";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { getImageUrl } from "~/lib/help/getImageUrl";
@@ -92,7 +93,7 @@ export function Favorites() {
       }
     } catch (error) {
       console.error('Error removing from favorites:', error);
-      setSystemError(true);
+      toast.error('COULD NOT REMOVE FAVORITE — TRY AGAIN');
     }
   };
 
@@ -108,6 +109,7 @@ export function Favorites() {
       });
     } catch (error) {
       console.error('Export failed:', error);
+      toast.error('EXPORT FAILED — TRY AGAIN');
     }
   };
 

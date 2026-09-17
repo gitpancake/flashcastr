@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { getHuntList, addToHunt, removeFromHunt, HuntList } from '~/lib/hunt';
 import { getSavedList, markAsAlive, markAsDead, removeFromSaved, SavedList } from '~/lib/saved';
 
@@ -86,6 +87,7 @@ export function useMapData(fid: number | undefined) {
       return updatedHuntList;
     } catch (error) {
       console.error('Error adding to hunt list:', error);
+      toast.error('COULD NOT ADD TO HUNT LIST');
       throw error;
     }
   }, [fid]);
@@ -111,6 +113,7 @@ export function useMapData(fid: number | undefined) {
       return updatedHuntList;
     } catch (error) {
       console.error('Error removing from hunt list:', error);
+      toast.error('COULD NOT REMOVE FROM HUNT LIST');
       throw error;
     }
   }, [fid]);
@@ -145,6 +148,7 @@ export function useMapData(fid: number | undefined) {
       return updatedSavedList;
     } catch (error) {
       console.error('Error marking as alive:', error);
+      toast.error('COULD NOT MARK AS ALIVE');
       throw error;
     }
   }, [fid, state.huntList]);
@@ -179,6 +183,7 @@ export function useMapData(fid: number | undefined) {
       return updatedSavedList;
     } catch (error) {
       console.error('Error marking as dead:', error);
+      toast.error('COULD NOT MARK AS DEAD');
       throw error;
     }
   }, [fid, state.huntList]);
@@ -204,6 +209,7 @@ export function useMapData(fid: number | undefined) {
       return updatedSavedList;
     } catch (error) {
       console.error('Error removing from saved list:', error);
+      toast.error('COULD NOT REMOVE FROM SAVED LIST');
       throw error;
     }
   }, [fid]);

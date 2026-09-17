@@ -169,12 +169,13 @@ function getEmptyWishlist(fid: number): UserWishlist {
 // Get wishlist stats from Redis
 export async function getWishlistStatsRedis(fid: number) {
   const wishlist = await getWishlistFromRedis(fid);
+  const totalTracked = wishlist.stats.total_wanted + wishlist.stats.total_found;
   return {
     totalWanted: wishlist.stats.total_wanted,
     totalFound: wishlist.stats.total_found,
     totalItems: wishlist.items.length,
-    completionRate: wishlist.stats.total_wanted > 0 
-      ? Math.round((wishlist.stats.total_found / (wishlist.stats.total_wanted + wishlist.stats.total_found)) * 100)
+    completionRate: totalTracked > 0
+      ? Math.round((wishlist.stats.total_found / totalTracked) * 100)
       : 0
   };
 }

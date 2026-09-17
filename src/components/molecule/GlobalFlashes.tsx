@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { FadeInImage } from "~/components/atom/FadeInImage";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { GlobalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
@@ -43,6 +43,8 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   const {
     data,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -79,6 +81,10 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
     },
     [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]
   );
+
+  useEffect(() => {
+    return () => observer.current?.disconnect();
+  }, []);
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-6 font-mono">
@@ -181,17 +187,23 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
 
           return (
             <div
-              key={`${flash.flash_id}-${index}`}
+              key={flash.flash_id}
               ref={index === flashes.length - 10 ? lastFlashRef : null}
-              onClick={() => router.push(`/flash/${flash.flash_id}`)}
-              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group cursor-pointer"
+              className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
             >
+              <button
+                type="button"
+                onClick={() => router.push(`/flash/${flash.flash_id}`)}
+                aria-label={`View flash #${flash.flash_id}`}
+                className="block w-full text-left cursor-pointer active:opacity-75 transition-opacity"
+              >
               {/* Flash Image */}
               <div className="aspect-square overflow-hidden relative">
-                <Image
+                <FadeInImage
                   src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
                   fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
@@ -216,6 +228,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
                   {formatTimeAgo(timestamp)}
                 </div>
               </div>
+              </button>
             </div>
           );
         })}
@@ -233,8 +246,22 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
         </div>
       )}
 
+      {/* Error State */}
+      {isError && (
+        <div className="text-center py-12">
+          <div className="text-red-400 text-lg">SIGNAL LOST</div>
+          <div className="text-gray-500 text-sm mt-2">Could not reach the flash database</div>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 border border-green-400 text-green-400 text-xs hover:bg-green-400 hover:text-black transition-colors"
+          >
+            RETRY
+          </button>
+        </div>
+      )}
+
       {/* No Results */}
-      {!isLoading && flashes.length === 0 && (
+      {!isLoading && !isError && flashes.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-lg">
             NO FLASHES FOUND

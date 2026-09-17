@@ -5,6 +5,7 @@ import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { FadeInImage } from "~/components/atom/FadeInImage";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
@@ -19,7 +20,7 @@ type Props = {
 export default function Feed({ initialFlashes, fid, showHeader = false }: Props) {
   const router = useRouter();
   
-  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } = useInfiniteQuery({
     queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {
       const flashesApi = new FlashesApi();
@@ -35,10 +36,13 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
       pages: [initialFlashes],
       pageParams: [1],
     },
-    enabled: !!fid, // Only run query when fid is defined
+    staleTime: 60_000,
   });
 
-  const flashes = useMemo(() => data?.pages?.flat() || [], [data]);
+  const flashes = useMemo(
+    () => (data?.pages?.flat() || []).filter((item) => Number.isFinite(item.flash?.timestamp) && item.flash.timestamp > 0),
+    [data]
+  );
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -105,21 +109,26 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
               className="bg-gray-900 border border-gray-600 hover:border-green-400 transition-all duration-200 group"
             >
               {/* Flash Image - Click to go to flash page */}
-              <div 
-                className="aspect-square overflow-hidden cursor-pointer relative"
+              <button
+                type="button"
+                className="block w-full aspect-square overflow-hidden cursor-pointer relative active:opacity-75 transition-opacity"
+                aria-label={`View flash #${flash.flash_id}`}
                 onClick={() => router.push(`/flash/${flash.flash_id}`)}
               >
-                <Image
+                <FadeInImage
                   src={getImageUrl(flash)}
                   alt={`Flash ${flash.flash_id}`}
                   fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                 />
-              </div>
+              </button>
 
               {/* Flash Info - Click to go to user profile */}
-              <div 
-                className="p-2 sm:p-3 space-y-1 cursor-pointer"
+              <button
+                type="button"
+                className="block w-full text-left p-2 sm:p-3 space-y-1 cursor-pointer active:opacity-75 transition-opacity"
+                aria-label={`View profile of ${user_username || flash.player}`}
                 onClick={() => router.push(`/profile/${user_fid || flash.player}`)}
               >
                 <div className="text-green-400 text-[10px] sm:text-xs font-bold">#{flash.flash_id.toLocaleString()}</div>
@@ -139,7 +148,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
                   {">"} {flash.city}
                 </div>
                 <div className="text-gray-500 text-[10px] sm:text-xs">{formatTimeAgo(timestamp)}</div>
-              </div>
+              </button>
             </div>
           );
         })}
@@ -155,8 +164,22 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
         </div>
       )}
 
+      {/* Error State */}
+      {isError && (
+        <div className="text-center py-12">
+          <div className="text-red-400 text-lg">SIGNAL LOST</div>
+          <div className="text-gray-500 text-sm mt-2">Could not reach the flash database</div>
+          <button
+            onClick={() => refetch()}
+            className="mt-4 px-4 py-2 border border-green-400 text-green-400 text-xs hover:bg-green-400 hover:text-black transition-colors"
+          >
+            RETRY
+          </button>
+        </div>
+      )}
+
       {/* No Results */}
-      {flashes.length === 0 && (
+      {!isError && flashes.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-lg">NO FLASHES FOUND</div>
           <div className="text-gray-500 text-sm mt-2">No flashes available</div>
