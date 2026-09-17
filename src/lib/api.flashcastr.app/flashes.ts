@@ -224,3 +224,5 @@ export class FlashesApi extends BaseApi {
     return data.saveFlashIdentification;
   }
 }
+
+export const flashesApi = new FlashesApi();

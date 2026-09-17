@@ -173,6 +173,9 @@ export class GlobalFlashesApi extends BaseApi {
     }
   }
 }
+
+export const globalFlashesApi = new GlobalFlashesApi();
+
 // Unified Flash types that include Farcaster user and identification data
 export interface FarcasterUser {
   fid: number;
@@ -290,3 +293,5 @@ export class UnifiedFlashesApi extends BaseApi {
     }
   }
 }
+
+export const unifiedFlashesApi = new UnifiedFlashesApi();
