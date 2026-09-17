@@ -11,7 +11,6 @@ Flashcastr is the frontend web app for the Flash Invaders broadcasting system. U
 - **Auth**: next-auth with Neynar/Farcaster integration
 - **Web3**: viem + wagmi for wallet/Farcaster frame support
 - **Farcaster Frames**: @farcaster/frame-core, frame-node, frame-sdk, frame-wagmi-connector
-- **Maps**: leaflet + react-leaflet (InvaderMap component)
 - **Caching**: @upstash/redis (optional)
 - **Dates**: date-fns
 - **Deployment**: Vercel (`npm run deploy:vercel`)
