@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Feed from "~/components/molecule/Feed";
-import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
+import { RetroNav, TAB_DEFINITIONS, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
@@ -41,30 +41,44 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  // Get real user stats for the current user with safe defaults
+  const userProgress: UserProgress = useMemo(() => ({
+    fid: farcasterFid || 0,
+    username: context?.user?.username || 'anonymous',
+    totalFlashes: flashStats?.flashCount || 0,
+    citiesVisited: Array.isArray(flashStats?.cities) ? flashStats.cities : [],
+    badges: [],
+    achievements: [],
+  }), [farcasterFid, context?.user?.username, flashStats?.flashCount, flashStats?.cities]);
+
+  const TAB_CONFIG = useMemo(() => {
+    const tabRenderers: Record<NavTab, () => React.JSX.Element> = {
+      feed: () => <Feed initialFlashes={initialFlashes} />,
+      global: () => <GlobalFlashes />,
+      leaderboard: () => <Leaderboard users={leaderboardUsers} currentUsername={appUser?.username} />,
+      progress: () => <Progress userProgress={userProgress} />,
+      achievements: () => <Achievements userProgress={userProgress} />,
+    };
+
+    return TAB_DEFINITIONS.reduce((config, tab) => {
+      config[tab.id] = { render: tabRenderers[tab.id], requiresUser: tab.requiresUser };
+      return config;
+    }, {} as Record<NavTab, { render: () => React.JSX.Element; requiresUser: boolean }>);
+  }, [initialFlashes, leaderboardUsers, appUser?.username, userProgress]);
+
+  const resolveTab = useCallback(
+    (tab: NavTab): NavTab => (TAB_CONFIG[tab].requiresUser && !hasUserContext ? 'feed' : tab),
+    [hasUserContext, TAB_CONFIG]
+  );
+
   const handleTabChange = useCallback((tab: NavTab) => {
-    // If achievements tab is selected but user doesn't have context, redirect to feed
-    if (tab === 'achievements' && !hasUserContext) {
-      setActiveTab('feed');
-      return;
-    }
-    // If progress tab is selected but user doesn't have context, redirect to feed
-    if (tab === 'progress' && !hasUserContext) {
-      setActiveTab('feed');
-      return;
-    }
-    setActiveTab(tab);
-  }, [hasUserContext]);
+    setActiveTab(resolveTab(tab));
+  }, [resolveTab]);
 
-
-  // If user is on achievements/progress tab but loses context, redirect to feed
+  // If user is on a gated tab but loses context, redirect to feed
   useEffect(() => {
-    if (activeTab === 'achievements' && !hasUserContext) {
-      setActiveTab('feed');
-    }
-    if (activeTab === 'progress' && !hasUserContext) {
-      setActiveTab('feed');
-    }
-  }, [activeTab, hasUserContext]);
+    setActiveTab((prev) => resolveTab(prev));
+  }, [hasUserContext, resolveTab]);
 
   const keyboardShortcuts = useMemo(() => ({
     onHome: () => setActiveTab('feed'),
@@ -95,36 +109,11 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     return <Setup onSetupComplete={handleSetupComplete} onSkip={handleSkipSetup} />;
   }
 
-  // Get real user stats for the current user with safe defaults
-  const userProgress: UserProgress = {
-    fid: farcasterFid || 0,
-    username: context?.user?.username || 'anonymous',
-    totalFlashes: flashStats?.flashCount || 0,
-    citiesVisited: Array.isArray(flashStats?.cities) ? flashStats.cities : [],
-    badges: [],
-    achievements: [],
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'feed':
-        return <Feed initialFlashes={initialFlashes} />;
-      case 'global':
-        return <GlobalFlashes />;
-      case 'leaderboard':
-        return <Leaderboard users={leaderboardUsers} currentUsername={appUser?.username} />;
-      case 'progress':
-        return <Progress userProgress={userProgress} />;
-      case 'achievements':
-        return <Achievements userProgress={userProgress} />;
-      default:
-        return <Feed initialFlashes={initialFlashes} />;
-    }
-  };
+  const renderTabContent = () => TAB_CONFIG[activeTab].render();
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} showProgress={hasUserContext} currentUserFid={farcasterFid} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} hasUserContext={hasUserContext} currentUserFid={farcasterFid} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)

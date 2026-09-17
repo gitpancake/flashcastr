@@ -38,6 +38,15 @@ export const usePollSigner = ({
     onSettled?.();
   }, [onSettled]);
 
+  const failPolling = useCallback(
+    (message: string, fid?: number | null) => {
+      onError(message, fid);
+      toast.error(message);
+      stopPolling();
+    },
+    [onError, stopPolling]
+  );
+
   // Extracted Handlers
   const handleApprovedFinalized = useCallback(
     (response: PollSignupStatusResponse) => {
@@ -46,31 +55,12 @@ export const usePollSigner = ({
       }
       if (response.user) {
         onSuccess(response.user);
+        stopPolling();
       } else {
-        onError(response.message || "Signup approved but user data is missing.", response.fid);
-        toast.error(response.message || "Signup approved but user data is missing.");
+        failPolling(response.message || "Signup approved but user data is missing.", response.fid);
       }
-      stopPolling();
     },
-    [onSuccess, onError, stopPolling]
-  );
-
-  const handleRevoked = useCallback(
-    (response: PollSignupStatusResponse) => {
-      onError(response.message || "Signer request was revoked.", response.fid);
-      toast.error(response.message || "Signer request was revoked.");
-      stopPolling();
-    },
-    [onError, stopPolling]
-  );
-
-  const handleGenericError = useCallback(
-    (response: PollSignupStatusResponse, defaultMessage: string) => {
-      onError(response.message || defaultMessage, response.fid);
-      toast.error(response.message || defaultMessage);
-      stopPolling();
-    },
-    [onError, stopPolling]
+    [onSuccess, stopPolling, failPolling]
   );
 
   const handlePollingException = useCallback(
@@ -80,24 +70,20 @@ export const usePollSigner = ({
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      onError(errorMessage); // Assuming onError doesn't always need fid for exceptions
-      toast.error(errorMessage);
-      stopPolling();
+      failPolling(errorMessage); // Assuming onError doesn't always need fid for exceptions
     },
-    [onError, stopPolling]
+    [failPolling]
   );
 
   const handleUnknownStatus = useCallback(
     (response: PollSignupStatusResponse) => {
       console.warn(`Unknown polling status: ${response.status}, message: ${response.message}`);
       if (response.status?.toUpperCase().includes("ERROR")) {
-        onError(response.message || `An unknown error occurred: ${response.status}`, response.fid);
-        toast.error(response.message || `An unknown error occurred: ${response.status}`);
-        stopPolling();
+        failPolling(response.message || `An unknown error occurred: ${response.status}`, response.fid);
       }
       // If not an explicit error, it continues polling by not calling stopPolling()
     },
-    [onError, stopPolling]
+    [failPolling]
   );
 
   useEffect(() => {
@@ -106,30 +92,20 @@ export const usePollSigner = ({
       return;
     }
 
+    const STATUS_HANDLERS: Record<string, (response: PollSignupStatusResponse) => void> = {
+      APPROVED_FINALIZED: handleApprovedFinalized,
+      PENDING_APPROVAL: () => {},
+      REVOKED: (response) => failPolling(response.message || "Signer request was revoked.", response.fid),
+      ERROR_NEYNAR_LOOKUP: (response) =>
+        failPolling(response.message || "An error occurred during Neynar lookup.", response.fid),
+      ERROR_FINALIZATION: (response) =>
+        failPolling(response.message || "An error occurred during signup finalization.", response.fid),
+    };
+
     const poll = async () => {
       try {
         const response = await usersApi.pollSignupStatus(signerUuid, username);
-
-        switch (response.status) {
-          case "APPROVED_FINALIZED":
-            handleApprovedFinalized(response);
-            break;
-          case "PENDING_APPROVAL":
-            // Continue polling, do nothing here
-            break;
-          case "REVOKED":
-            handleRevoked(response);
-            break;
-          case "ERROR_NEYNAR_LOOKUP":
-            handleGenericError(response, "An error occurred during Neynar lookup.");
-            break;
-          case "ERROR_FINALIZATION":
-            handleGenericError(response, "An error occurred during signup finalization.");
-            break;
-          default:
-            handleUnknownStatus(response);
-            break;
-        }
+        (STATUS_HANDLERS[response.status] ?? handleUnknownStatus)(response);
       } catch (error: unknown) {
         handlePollingException(error);
       }
@@ -150,7 +126,7 @@ export const usePollSigner = ({
     return () => {
       stopPolling();
     };
-  }, [signerUuid, username, onSuccess, onError, stopPolling, enabled, handleApprovedFinalized, handleRevoked, handleGenericError, handlePollingException, handleUnknownStatus]); // Add `enabled` and new handlers to dependencies
+  }, [signerUuid, username, onError, stopPolling, enabled, failPolling, handleApprovedFinalized, handleUnknownStatus, handlePollingException]);
 
   // No return value needed from the hook itself, side effects are managed via callbacks
 };
