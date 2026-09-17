@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '~/auth';
-import { crossOriginResponse, getSessionFid, isSameOrigin } from '~/lib/apiGuard';
+import { getSessionFid, withApiGuard } from '~/lib/apiGuard';
 import {
   getWishlistFromRedis,
   addToWishlistRedis,
@@ -54,20 +53,10 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/wishlist - Add to wishlist or mark as found
-export async function POST(request: NextRequest) {
+export const POST = withApiGuard(async (request, { fid: fidNumber }) => {
   try {
-    if (!isSameOrigin(request)) {
-      return crossOriginResponse();
-    }
-
-    const session = await getSession();
-    if (!session?.user?.fid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, invader, invaderId } = body;
-    const fidNumber = session.user.fid;
 
     let wishlist;
 
@@ -103,4 +92,4 @@ export async function POST(request: NextRequest) {
     console.error('Error updating wishlist:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});
