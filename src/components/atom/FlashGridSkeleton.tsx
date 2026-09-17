@@ -1,6 +1,12 @@
-export const FlashGridSkeleton = ({ tiles = 8 }: { tiles?: number }) => {
+export const FlashGridSkeleton = ({
+  tiles = 8,
+  className = "w-full max-w-4xl mx-auto p-2 sm:p-6",
+}: {
+  tiles?: number;
+  className?: string;
+}) => {
   return (
-    <div className="w-full max-w-4xl mx-auto p-2 sm:p-6">
+    <div className={className}>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
         {Array.from({ length: tiles }).map((_, index) => (
           <div key={index} className="bg-gray-900 border border-gray-700 animate-pulse">

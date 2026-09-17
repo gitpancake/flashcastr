@@ -5,6 +5,7 @@ import { fromUnixTime } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { AlienLoader } from "~/components/atom/AlienLoader";
 import { FadeInImage } from "~/components/atom/FadeInImage";
 import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
@@ -159,14 +160,7 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
       </div>
 
       {/* Loading States */}
-      {isFetchingNextPage && (
-        <div className="text-center py-12">
-          <div className="text-green-400 text-sm animate-pulse">LOADING FLASHES...</div>
-          <div className="text-gray-500 text-xs mt-2">
-            {`>>`} SCANNING FEED DATABASE {`<<`}
-          </div>
-        </div>
-      )}
+      {isFetchingNextPage && <AlienLoader />}
 
       {/* Error State */}
       {isError && (

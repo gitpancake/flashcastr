@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { AlienLoader } from "~/components/atom/AlienLoader";
 import { FadeInImage } from "~/components/atom/FadeInImage";
+import { FlashGridSkeleton } from "~/components/atom/FlashGridSkeleton";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
 import { GlobalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
@@ -235,16 +237,8 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       </div>
 
       {/* Loading States */}
-      {(isLoading || isFetchingNextPage) && (
-        <div className="text-center py-12">
-          <div className="text-green-400 text-sm animate-pulse">
-            LOADING FLASHES...
-          </div>
-          <div className="text-gray-500 text-xs mt-2">
-            {`>>`} SCANNING GLOBAL DATABASE {`<<`}
-          </div>
-        </div>
-      )}
+      {isLoading && <FlashGridSkeleton tiles={12} className="" />}
+      {isFetchingNextPage && <AlienLoader />}
 
       {/* Error State */}
       {isError && (
@@ -273,11 +267,13 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
       )}
 
       {/* Footer Stats */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <div>SHOWING {flashes.length} FLASHES</div>
-        {selectedCity && <div>FILTERED BY: {selectedCity.toUpperCase()}</div>}
-        <div className="mt-2">DATA SOURCE: FLASHCASTR.APP</div>
-      </div>
+      {!isLoading && (
+        <div className="mt-8 text-center text-xs text-gray-500">
+          <div>SHOWING {flashes.length} FLASHES</div>
+          {selectedCity && <div>FILTERED BY: {selectedCity.toUpperCase()}</div>}
+          <div className="mt-2">DATA SOURCE: FLASHCASTR.APP</div>
+        </div>
+      )}
     </div>
   );
 }
