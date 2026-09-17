@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '~/auth';
-import { crossOriginResponse, getSessionFid, isSameOrigin } from '~/lib/apiGuard';
+import { getSessionFid, withApiGuard } from '~/lib/apiGuard';
 import {
   getFlashLinksFromRedis,
   linkFlashToInvaderRedis,
@@ -66,20 +65,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withApiGuard(async (request, { fid: fidNumber }) => {
   try {
-    if (!isSameOrigin(request)) {
-      return crossOriginResponse();
-    }
-
-    const session = await getSession();
-    if (!session?.user?.fid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, flash_id, invader, city } = body;
-    const fidNumber = session.user.fid;
 
     switch (action) {
       case 'link': {
@@ -149,4 +138,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,5 +1,7 @@
 // Hunt List Management - Client-side API for invaders you want to find
 
+import { getResource, postResource } from './resourceClient';
+
 export interface HuntItem {
   invader_id: string;
   invader_name: string;
@@ -22,59 +24,31 @@ export interface HuntList {
 
 // Get user's hunt list
 export async function getHuntList(fid: number): Promise<HuntList> {
-  const response = await fetch(`/api/hunt?fid=${fid}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load hunt list: ${response.status}`);
-  }
-  return await response.json();
+  return getResource<HuntList>('/api/hunt', { fid }, 'Failed to load hunt list');
 }
 
 // Add invader to hunt list
 export async function addToHunt(
-  fid: number, 
-  invader: { 
-    i: number; 
-    n: string; 
-    l: { lat: number; lng: number }; 
-    t: string; 
+  fid: number,
+  invader: {
+    i: number;
+    n: string;
+    l: { lat: number; lng: number };
+    t: string;
   }
 ): Promise<HuntList> {
-  const response = await fetch('/api/hunt', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'add',
-      invader
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to add to hunt list: ${response.status}`);
-  }
-  
-  return await response.json();
+  return postResource<HuntList>(
+    '/api/hunt',
+    { fid, action: 'add', invader },
+    'Failed to add to hunt list'
+  );
 }
 
 // Remove invader from hunt list
 export async function removeFromHunt(fid: number, invaderId: string): Promise<HuntList> {
-  const response = await fetch('/api/hunt', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'remove',
-      invaderId
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to remove from hunt list: ${response.status}`);
-  }
-  
-  return await response.json();
+  return postResource<HuntList>(
+    '/api/hunt',
+    { fid, action: 'remove', invaderId },
+    'Failed to remove from hunt list'
+  );
 }

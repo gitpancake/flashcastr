@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '~/auth';
-import { crossOriginResponse, getSessionFid, isSameOrigin } from '~/lib/apiGuard';
+import { getSessionFid, withApiGuard } from '~/lib/apiGuard';
 import {
   getWishlistFromRedis,
   markAsAliveRedis,
@@ -48,20 +47,10 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/saved - Mark as found or remove from saved
-export async function POST(request: NextRequest) {
+export const POST = withApiGuard(async (request, { fid: fidNumber }) => {
   try {
-    if (!isSameOrigin(request)) {
-      return crossOriginResponse();
-    }
-
-    const session = await getSession();
-    if (!session?.user?.fid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, invaderId } = body;
-    const fidNumber = session.user.fid;
 
     if (!invaderId) {
       return NextResponse.json({ error: 'Invader ID is required' }, { status: 400 });
@@ -101,4 +90,4 @@ export async function POST(request: NextRequest) {
     console.error('Error updating saved list:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

@@ -1,4 +1,6 @@
 // Client-side favorites management using Redis via API
+import { getResource, postResource } from './resourceClient';
+
 export interface FavoriteFlash {
   flash_id: number;
   player: string;
@@ -15,13 +17,12 @@ export async function getFavorites(fid?: number): Promise<FavoriteFlash[]> {
   if (!fid) {
     throw new Error('Farcaster ID is required to load favorites');
   }
-  
-  const response = await fetch(`/api/favorites?fid=${fid}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load favorites: ${response.status}`);
-  }
-  
-  const userFavorites = await response.json();
+
+  const userFavorites = await getResource<{ favorites?: FavoriteFlash[] }>(
+    '/api/favorites',
+    { fid },
+    'Failed to load favorites'
+  );
   return userFavorites.favorites || [];
 }
 
@@ -30,24 +31,12 @@ export async function addToFavorites(flash: Omit<FavoriteFlash, 'addedAt'>, fid?
   if (!fid) {
     throw new Error('Farcaster ID is required to add favorites');
   }
-  
-  const response = await fetch('/api/favorites', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'add',
-      flash
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to add to favorites: ${response.status}`);
-  }
-  
-  const result = await response.json();
+
+  const result = await postResource<{ success: boolean }>(
+    '/api/favorites',
+    { fid, action: 'add', flash },
+    'Failed to add to favorites'
+  );
   return result.success;
 }
 
@@ -56,24 +45,12 @@ export async function removeFromFavorites(flashId: number, fid?: number): Promis
   if (!fid) {
     throw new Error('Farcaster ID is required to remove favorites');
   }
-  
-  const response = await fetch('/api/favorites', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'remove',
-      flashId
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to remove from favorites: ${response.status}`);
-  }
-  
-  const result = await response.json();
+
+  const result = await postResource<{ success: boolean }>(
+    '/api/favorites',
+    { fid, action: 'remove', flashId },
+    'Failed to remove from favorites'
+  );
   return result.success;
 }
 
@@ -82,13 +59,12 @@ export async function isFavorite(flashId: number, fid?: number): Promise<boolean
   if (!fid) {
     return false; // Not signed in, can't have favorites
   }
-  
-  const response = await fetch(`/api/favorites?fid=${fid}&flashId=${flashId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to check favorite status: ${response.status}`);
-  }
-  
-  const result = await response.json();
+
+  const result = await getResource<{ isFavorite: boolean }>(
+    '/api/favorites',
+    { fid, flashId },
+    'Failed to check favorite status'
+  );
   return result.isFavorite;
 }
 
@@ -97,12 +73,11 @@ export async function getFavoritesCount(fid?: number): Promise<number> {
   if (!fid) {
     return 0; // Not signed in, no favorites
   }
-  
-  const response = await fetch(`/api/favorites?fid=${fid}&count=true`);
-  if (!response.ok) {
-    throw new Error(`Failed to get favorites count: ${response.status}`);
-  }
-  
-  const result = await response.json();
+
+  const result = await getResource<{ count: number }>(
+    '/api/favorites',
+    { fid, count: true },
+    'Failed to get favorites count'
+  );
   return result.count;
 }
