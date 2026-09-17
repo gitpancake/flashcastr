@@ -183,30 +183,36 @@ export const CITY_COUNT_BADGES: Badge[] = [
 
 export const ALL_BADGES = [...FLASH_COUNT_BADGES, ...CITY_COUNT_BADGES];
 
+// Finds the highest badge already reached ("current") or the lowest badge
+// still ahead ("next"), relative to count.
+export function findBadge(badges: Badge[], count: number, direction: "current" | "next"): Badge | null {
+  if (direction === "current") {
+    const eligibleBadges = badges.filter((badge) => count >= badge.threshold).sort((a, b) => b.threshold - a.threshold);
+
+    return eligibleBadges[0] || null;
+  }
+
+  const nextBadges = badges.filter((badge) => count < badge.threshold).sort((a, b) => a.threshold - b.threshold);
+
+  return nextBadges[0] || null;
+}
+
 // Utility functions for city badges
 export function getCityBadgeForCount(count: number): Badge | null {
-  const eligibleBadges = CITY_COUNT_BADGES.filter((badge) => count >= badge.threshold).sort((a, b) => b.threshold - a.threshold);
-
-  return eligibleBadges[0] || null;
+  return findBadge(CITY_COUNT_BADGES, count, "current");
 }
 
 export function getNextCityBadge(count: number): Badge | null {
-  const nextBadges = CITY_COUNT_BADGES.filter((badge) => count < badge.threshold).sort((a, b) => a.threshold - b.threshold);
-
-  return nextBadges[0] || null;
+  return findBadge(CITY_COUNT_BADGES, count, "next");
 }
 
 // Utility functions
 export function getBadgeForFlashCount(count: number): Badge | null {
-  const eligibleBadges = FLASH_COUNT_BADGES.filter((badge) => count >= badge.threshold).sort((a, b) => b.threshold - a.threshold);
-
-  return eligibleBadges[0] || null;
+  return findBadge(FLASH_COUNT_BADGES, count, "current");
 }
 
 export function getNextBadge(count: number): Badge | null {
-  const nextBadges = FLASH_COUNT_BADGES.filter((badge) => count < badge.threshold).sort((a, b) => a.threshold - b.threshold);
-
-  return nextBadges[0] || null;
+  return findBadge(FLASH_COUNT_BADGES, count, "next");
 }
 
 export function calculateProgress(count: number, target: number): number {
