@@ -17,18 +17,26 @@ ${currentUrl}`;
   return text;
 }
 
-export function shareToFarcaster({ flash, currentUrl }: ShareOptions) {
+type ShareTarget = "farcaster" | "twitter";
+
+const SHARE_TARGET_URLS: Record<ShareTarget, (encodedText: string) => string> = {
+  farcaster: (encodedText) => `https://warpcast.com/~/compose?text=${encodedText}`,
+  twitter: (encodedText) => `https://twitter.com/intent/tweet?text=${encodedText}`,
+};
+
+function shareTo(target: ShareTarget, { flash, currentUrl }: ShareOptions) {
   const shareText = generateShareText({ flash, currentUrl });
   const encodedText = encodeURIComponent(shareText);
-  const farcasterUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
-  window.open(farcasterUrl, '_blank');
+  const url = SHARE_TARGET_URLS[target](encodedText);
+  window.open(url, '_blank');
 }
 
-export function shareToTwitter({ flash, currentUrl }: ShareOptions) {
-  const shareText = generateShareText({ flash, currentUrl });
-  const encodedText = encodeURIComponent(shareText);
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-  window.open(twitterUrl, '_blank');
+export function shareToFarcaster(options: ShareOptions) {
+  shareTo("farcaster", options);
+}
+
+export function shareToTwitter(options: ShareOptions) {
+  shareTo("twitter", options);
 }
 
 export async function copyToClipboard({ flash, currentUrl }: ShareOptions): Promise<boolean> {
