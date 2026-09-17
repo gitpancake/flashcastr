@@ -2,17 +2,22 @@
 
 import sdk, { type Context, type FrameNotificationDetails } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Loading } from "~/components/atom/Loading";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
   context: Context.FrameContext | undefined;
+  added: boolean;
+  notificationDetails: FrameNotificationDetails | null;
+  lastEvent: string;
+  addFrame: () => Promise<void>;
+  addFrameResult: string;
 }
 
 const FrameContext = React.createContext<FrameContextType | undefined>(undefined);
 
-export function useFrame() {
+function useFrameBootstrap(): FrameContextType {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
   const [added, setAdded] = useState(false);
@@ -100,11 +105,21 @@ export function useFrame() {
 }
 
 export function FrameProvider({ children }: { children: React.ReactNode }) {
-  const { isSDKLoaded, context } = useFrame();
+  const frame = useFrameBootstrap();
 
-  if (!isSDKLoaded) {
+  if (!frame.isSDKLoaded) {
     return <Loading fullScreen />;
   }
 
-  return <FrameContext.Provider value={{ isSDKLoaded, context }}>{children}</FrameContext.Provider>;
+  return <FrameContext.Provider value={frame}>{children}</FrameContext.Provider>;
+}
+
+export function useFrame() {
+  const context = useContext(FrameContext);
+
+  if (context === undefined) {
+    throw new Error("useFrame must be used within a FrameProvider");
+  }
+
+  return context;
 }
