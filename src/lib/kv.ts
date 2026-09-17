@@ -1,44 +1,70 @@
 import { FrameNotificationDetails } from "@farcaster/frame-sdk";
 import { Redis } from "@upstash/redis";
 
-// In-memory fallback storage
-const localStore = new Map<string, FrameNotificationDetails>();
+interface NotificationStore {
+  get(key: string): Promise<FrameNotificationDetails | null>;
+  set(key: string, notificationDetails: FrameNotificationDetails): Promise<void>;
+  delete(key: string): Promise<void>;
+}
 
-// Use Redis if KV env vars are present, otherwise use in-memory
-const useRedis = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
-const redis = useRedis
-  ? new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
-    })
-  : null;
+class RedisNotificationStore implements NotificationStore {
+  private readonly redis: Redis;
+
+  constructor(url: string, token: string) {
+    this.redis = new Redis({ url, token });
+  }
+
+  async get(key: string): Promise<FrameNotificationDetails | null> {
+    return await this.redis.get<FrameNotificationDetails>(key);
+  }
+
+  async set(key: string, notificationDetails: FrameNotificationDetails): Promise<void> {
+    await this.redis.set(key, notificationDetails);
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.redis.del(key);
+  }
+}
+
+class InMemoryNotificationStore implements NotificationStore {
+  private readonly store = new Map<string, FrameNotificationDetails>();
+
+  async get(key: string): Promise<FrameNotificationDetails | null> {
+    return this.store.get(key) ?? null;
+  }
+
+  async set(key: string, notificationDetails: FrameNotificationDetails): Promise<void> {
+    this.store.set(key, notificationDetails);
+  }
+
+  async delete(key: string): Promise<void> {
+    this.store.delete(key);
+  }
+}
+
+function createNotificationStore(): NotificationStore {
+  const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
+  if (KV_REST_API_URL && KV_REST_API_TOKEN) {
+    return new RedisNotificationStore(KV_REST_API_URL, KV_REST_API_TOKEN);
+  }
+  return new InMemoryNotificationStore();
+}
+
+const notificationStore = createNotificationStore();
 
 function getUserNotificationDetailsKey(fid: number): string {
   return `${process.env.NEXT_PUBLIC_FRAME_NAME}:user:${fid}`;
 }
 
 export async function getUserNotificationDetails(fid: number): Promise<FrameNotificationDetails | null> {
-  const key = getUserNotificationDetailsKey(fid);
-  if (redis) {
-    return await redis.get<FrameNotificationDetails>(key);
-  }
-  return localStore.get(key) || null;
+  return await notificationStore.get(getUserNotificationDetailsKey(fid));
 }
 
 export async function setUserNotificationDetails(fid: number, notificationDetails: FrameNotificationDetails): Promise<void> {
-  const key = getUserNotificationDetailsKey(fid);
-  if (redis) {
-    await redis.set(key, notificationDetails);
-  } else {
-    localStore.set(key, notificationDetails);
-  }
+  await notificationStore.set(getUserNotificationDetailsKey(fid), notificationDetails);
 }
 
 export async function deleteUserNotificationDetails(fid: number): Promise<void> {
-  const key = getUserNotificationDetailsKey(fid);
-  if (redis) {
-    await redis.del(key);
-  } else {
-    localStore.delete(key);
-  }
+  await notificationStore.delete(getUserNotificationDetailsKey(fid));
 }
