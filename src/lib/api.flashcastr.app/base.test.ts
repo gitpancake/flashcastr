@@ -36,6 +36,19 @@ describe("BaseApi.graphql", () => {
     );
   });
 
+  it("logs the full GraphQL errors array before throwing", async () => {
+    const api = new TestApi();
+    const errors = [{ message: "flash_id not found" }, { message: "second error" }];
+    const post = vi.fn().mockResolvedValue({ data: { errors } });
+    Object.assign(api, { api: { post } });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(api.callGraphql("query Flash { flash { flash_id } }")).rejects.toThrow();
+
+    expect(consoleError).toHaveBeenCalledWith("GraphQL errors:", errors);
+    consoleError.mockRestore();
+  });
+
   it("passes the optional axios config through to the underlying post call", async () => {
     const api = new TestApi();
     const post = vi.fn().mockResolvedValue({ data: { data: { ok: true } } });

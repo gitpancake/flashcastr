@@ -24,6 +24,7 @@ export abstract class BaseApi {
     const response = await this.api.post("/graphql", { query, variables }, config);
 
     if (response.data.errors) {
+      console.error("GraphQL errors:", response.data.errors);
       throw new Error(response.data.errors[0]?.message || "GraphQL query failed");
     }
 
