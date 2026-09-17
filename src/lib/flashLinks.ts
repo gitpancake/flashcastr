@@ -1,6 +1,7 @@
 // Flash Links Management - Client-side API for linking flashes to map invaders
 
 import { FlashResponse } from './api.flashcastr.app/flashes';
+import { getResource, postResource } from './resourceClient';
 
 export interface FlashLink {
   flash_id: number;
@@ -29,39 +30,35 @@ export interface FlashWithLinkInfo extends FlashResponse {
 
 // Get user's flash links
 export async function getFlashLinks(fid: number): Promise<UserFlashLinks> {
-  const response = await fetch(`/api/flash-links?fid=${fid}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load flash links: ${response.status}`);
-  }
-  return await response.json();
+  return getResource<UserFlashLinks>('/api/flash-links', { fid }, 'Failed to load flash links');
 }
 
 // Get links for a specific invader
 export async function getInvaderLinks(fid: number, invaderId: string): Promise<{ links: FlashLink[] }> {
-  const response = await fetch(`/api/flash-links?fid=${fid}&invader_id=${invaderId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load invader links: ${response.status}`);
-  }
-  return await response.json();
+  return getResource<{ links: FlashLink[] }>(
+    '/api/flash-links',
+    { fid, invader_id: invaderId },
+    'Failed to load invader links'
+  );
 }
 
 // Get link count for an invader
 export async function getInvaderLinkCount(fid: number, invaderId: string): Promise<number> {
-  const response = await fetch(`/api/flash-links?fid=${fid}&invader_id=${invaderId}&action=count`);
-  if (!response.ok) {
-    throw new Error(`Failed to load invader link count: ${response.status}`);
-  }
-  const data = await response.json();
+  const data = await getResource<{ count: number }>(
+    '/api/flash-links',
+    { fid, invader_id: invaderId, action: 'count' },
+    'Failed to load invader link count'
+  );
   return data.count;
 }
 
 // Get link for a specific flash
 export async function getFlashLink(fid: number, flashId: number): Promise<FlashLink | null> {
-  const response = await fetch(`/api/flash-links?fid=${fid}&flash_id=${flashId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load flash link: ${response.status}`);
-  }
-  const data = await response.json();
+  const data = await getResource<{ link: FlashLink | null }>(
+    '/api/flash-links',
+    { fid, flash_id: flashId },
+    'Failed to load flash link'
+  );
   return data.link;
 }
 
@@ -77,46 +74,20 @@ export async function linkFlashToInvader(
   },
   city: string
 ): Promise<UserFlashLinks> {
-  const response = await fetch('/api/flash-links', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'link',
-      flash_id: flashId,
-      invader,
-      city
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to link flash to invader: ${response.status}`);
-  }
-
-  return await response.json();
+  return postResource<UserFlashLinks>(
+    '/api/flash-links',
+    { fid, action: 'link', flash_id: flashId, invader, city },
+    'Failed to link flash to invader'
+  );
 }
 
 // Unlink flash from invader
 export async function unlinkFlash(fid: number, flashId: number): Promise<UserFlashLinks> {
-  const response = await fetch('/api/flash-links', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'unlink',
-      flash_id: flashId
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to unlink flash: ${response.status}`);
-  }
-
-  return await response.json();
+  return postResource<UserFlashLinks>(
+    '/api/flash-links',
+    { fid, action: 'unlink', flash_id: flashId },
+    'Failed to unlink flash'
+  );
 }
 
 // Get linkable flashes (user's flashes filtered by city)
@@ -124,22 +95,10 @@ export async function getLinkableFlashes(
   fid: number,
   city?: string
 ): Promise<FlashWithLinkInfo[]> {
-  const response = await fetch('/api/flash-links', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'get_linkable_flashes',
-      city
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load linkable flashes: ${response.status}`);
-  }
-
-  const data = await response.json();
+  const data = await postResource<{ flashes: FlashWithLinkInfo[] }>(
+    '/api/flash-links',
+    { fid, action: 'get_linkable_flashes', city },
+    'Failed to load linkable flashes'
+  );
   return data.flashes;
 }

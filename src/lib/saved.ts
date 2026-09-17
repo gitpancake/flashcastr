@@ -1,5 +1,7 @@
 // Saved List Management - Client-side API for invaders you've found
 
+import { getResource, postResource } from './resourceClient';
+
 export interface SavedItem {
   invader_id: string;
   invader_name: string;
@@ -23,72 +25,32 @@ export interface SavedList {
 
 // Get user's saved list
 export async function getSavedList(fid: number): Promise<SavedList> {
-  const response = await fetch(`/api/saved?fid=${fid}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load saved list: ${response.status}`);
-  }
-  return await response.json();
+  return getResource<SavedList>('/api/saved', { fid }, 'Failed to load saved list');
 }
 
 // Mark invader as alive
 export async function markAsAlive(fid: number, invaderId: string): Promise<SavedList> {
-  const response = await fetch('/api/saved', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'mark_alive',
-      invaderId
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to mark as alive: ${response.status}`);
-  }
-  
-  return await response.json();
+  return postResource<SavedList>(
+    '/api/saved',
+    { fid, action: 'mark_alive', invaderId },
+    'Failed to mark as alive'
+  );
 }
 
 // Mark invader as dead
 export async function markAsDead(fid: number, invaderId: string): Promise<SavedList> {
-  const response = await fetch('/api/saved', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'mark_dead',
-      invaderId
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to mark as dead: ${response.status}`);
-  }
-  
-  return await response.json();
+  return postResource<SavedList>(
+    '/api/saved',
+    { fid, action: 'mark_dead', invaderId },
+    'Failed to mark as dead'
+  );
 }
 
-// Remove invader from saved list  
+// Remove invader from saved list
 export async function removeFromSaved(fid: number, invaderId: string): Promise<SavedList> {
-  const response = await fetch('/api/saved', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fid,
-      action: 'remove',
-      invaderId
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to remove from saved list: ${response.status}`);
-  }
-  
-  return await response.json();
+  return postResource<SavedList>(
+    '/api/saved',
+    { fid, action: 'remove', invaderId },
+    'Failed to remove from saved list'
+  );
 }
