@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FlashesApi, LeaderboardEntry as ApiLeaderboardEntry } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi, LeaderboardEntry as ApiLeaderboardEntry } from "~/lib/api.flashcastr.app/flashes";
 
 interface LeaderboardEntry {
   username: string;
@@ -12,8 +12,7 @@ export const useGetLeaderboard = (limit: number = 100) => {
   return useQuery<LeaderboardEntry[]>({
     queryKey: ["leaderboard", limit],
     queryFn: async () => {
-      const api = new FlashesApi();
-      const entries = await api.getLeaderboard(limit);
+      const entries = await flashesApi.getLeaderboard(limit);
 
       // Map API response to our internal format
       return entries.map((entry: ApiLeaderboardEntry) => ({

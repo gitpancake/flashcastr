@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FlashesApi, DailyProgress } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi, DailyProgress } from "~/lib/api.flashcastr.app/flashes";
 
 export const useGetProgress = (fid: number | undefined, days: number = 7, order: 'ASC' | 'DESC' = 'ASC') => {
   return useQuery<DailyProgress[]>({
@@ -7,8 +7,7 @@ export const useGetProgress = (fid: number | undefined, days: number = 7, order:
     queryFn: async () => {
       if (!fid) return [];
 
-      const api = new FlashesApi();
-      return await api.getProgress(fid, days, order);
+      return await flashesApi.getProgress(fid, days, order);
     },
     enabled: !!fid, // Only run query if fid is provided
     staleTime: 1000 * 60 * 5, // 5 minutes

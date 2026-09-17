@@ -8,7 +8,7 @@ import { getCsrfToken, signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useCreateSigner } from "~/hooks/useCreateAndStoreSigner";
 import { usePollSigner } from "~/hooks/usePollSigner";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { User } from "~/lib/api.flashcastr.app/users";
 import { LOCAL_STORAGE_KEYS } from "~/lib/constants";
 
@@ -41,8 +41,6 @@ export default function Setup({ onSetupComplete, onSkip }: SetupProps) {
   const [signerUuid, setSignerUuid] = useState<string | null>(null);
   const [signerApprovalUrl, setSignerApprovalUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const flashesApi = new FlashesApi();
 
   const getNonce = useCallback(async () => {
     const nonce = await getCsrfToken();

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AlienLoader } from "~/components/atom/AlienLoader";
 import { FadeInImage } from "~/components/atom/FadeInImage";
-import { FlashResponse, FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { FlashResponse, flashesApi } from "~/lib/api.flashcastr.app/flashes";
 import { FETCH } from "~/lib/constants";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
@@ -24,7 +24,6 @@ export default function Feed({ initialFlashes, fid, showHeader = false }: Props)
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } = useInfiniteQuery({
     queryKey: [fid ? `flashes-${fid}` : "flashes", fid],
     queryFn: async ({ pageParam = 1 }) => {
-      const flashesApi = new FlashesApi();
       return await flashesApi.getFlashes(pageParam, FETCH.LIMIT, fid);
     },
     getNextPageParam: (lastPage, allPages) => {

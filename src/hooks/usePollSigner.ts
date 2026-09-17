@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { PollSignupStatusResponse, User, UsersApi } from "~/lib/api.flashcastr.app/users";
+import { PollSignupStatusResponse, User, usersApi } from "~/lib/api.flashcastr.app/users";
 import { LOCAL_STORAGE_KEYS } from "~/lib/constants";
 
 const POLLING_INTERVAL = 2000; // 2 seconds
 const POLLING_TIMEOUT = 300000; // 5 minutes
-
-const usersApi = new UsersApi();
 
 interface UsePollSignerProps {
   signerUuid: string | null | undefined;

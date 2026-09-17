@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 import useDebounce from "~/hooks/useDebounce";
 
 interface SearchBarProps {
@@ -42,8 +42,7 @@ export default function SearchBar({
 
       setIsLoading(true);
       try {
-        const api = new FlashesApi();
-        const players = await api.getAllPlayers(debouncedValue);
+        const players = await flashesApi.getAllPlayers(debouncedValue);
         setSuggestions(
           players.slice(0, 5).map(username => ({ username }))
         );

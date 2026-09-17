@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { IPFS } from "~/lib/constants";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 
 interface FlashIdentificationInfo {
   id: number;
@@ -73,7 +73,6 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
     setSavingId(match.flash_id);
 
     try {
-      const flashesApi = new FlashesApi();
       const savedIdentification = await flashesApi.saveFlashIdentification(
         flash.ipfs_cid,
         match.flash_id.toString(),
