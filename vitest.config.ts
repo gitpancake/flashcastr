@@ -12,5 +12,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: {
+      NEXT_PUBLIC_FLASHCASTR_API_URL: "https://api.flashcastr.test",
+    },
   },
 });

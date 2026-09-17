@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
 import type { Metadata } from "next";
-import { UnifiedFlashesApi, UnifiedFlash } from "~/lib/api.flashcastr.app/globalFlashes";
+import { unifiedFlashesApi, UnifiedFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { IPFS } from "~/lib/constants";
 import FlashPageClient from "./FlashPageClient";
@@ -17,8 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
 
   try {
-    const api = new UnifiedFlashesApi();
-    const flash = await api.getUnifiedFlash(Number(id));
+    const flash = await unifiedFlashesApi.getUnifiedFlash(Number(id));
 
     if (!flash) {
       return {
@@ -112,8 +111,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
 
   try {
-    const api = new UnifiedFlashesApi();
-    const flash = await api.getUnifiedFlash(Number(id));
+    const flash = await unifiedFlashesApi.getUnifiedFlash(Number(id));
 
     if (!flash) {
       console.error(`Flash not found for ID: ${id}`);

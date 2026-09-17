@@ -36,27 +36,25 @@ export class UsersApi extends BaseApi {
       return [];
     }
 
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ users: User[] }>(
+      `
         query Users($fid: Int!) {
           users(fid: $fid) {
-		  	    fid
+            fid
             username
-			      auto_cast
+            auto_cast
           }
         }
       `,
-      variables: {
-        fid,
-      },
-    });
+      { fid }
+    );
 
-    return response.data.data.users;
+    return data.users;
   }
 
   public async initiateSignup(username: string): Promise<InitiateSignupResponse> {
-    const response = await this.api.post<{ data: { initiateSignup: InitiateSignupResponse } }>("/graphql", {
-      query: `
+    const data = await this.graphql<{ initiateSignup: InitiateSignupResponse }>(
+      `
         mutation InitiateSignup($username: String!) {
           initiateSignup(username: $username) {
             signer_uuid
@@ -67,24 +65,20 @@ export class UsersApi extends BaseApi {
           }
         }
       `,
-      variables: {
-        username,
-      },
-    });
+      { username }
+    );
 
-    if (response.data.data?.initiateSignup) {
-      return response.data.data.initiateSignup;
+    if (data?.initiateSignup) {
+      return data.initiateSignup;
     } else {
-      // Handle cases where the expected data is not present, possibly due to GraphQL errors
-      // The actual error handling might depend on how your BaseApi or axios instance is configured
-      console.error("GraphQL initiateSignup error or unexpected response structure:", response.data);
+      console.error("GraphQL initiateSignup error or unexpected response structure:", data);
       throw new Error("Failed to initiate signup or malformed response.");
     }
   }
 
   public async pollSignupStatus(signer_uuid: string, username: string): Promise<PollSignupStatusResponse> {
-    const response = await this.api.post<{ data: { pollSignupStatus: PollSignupStatusResponse } }>("/graphql", {
-      query: `
+    const data = await this.graphql<{ pollSignupStatus: PollSignupStatusResponse }>(
+      `
         query PollSignupStatus($signer_uuid: String!, $username: String!) {
           pollSignupStatus(signer_uuid: $signer_uuid, username: $username) {
             status
@@ -98,26 +92,20 @@ export class UsersApi extends BaseApi {
           }
         }
       `,
-      variables: {
-        signer_uuid,
-        username,
-      },
-    });
+      { signer_uuid, username }
+    );
 
-    if (response.data.data?.pollSignupStatus) {
-      return response.data.data.pollSignupStatus;
+    if (data?.pollSignupStatus) {
+      return data.pollSignupStatus;
     } else {
-      console.error("GraphQL pollSignupStatus error or unexpected response structure:", response.data);
-      // It's important to return a structure that the poller can understand as an error or retryable state
-      // For instance, you could throw an error that the hook then catches,
-      // or return a specific status like "ERROR_CLIENT_REQUEST"
+      console.error("GraphQL pollSignupStatus error or unexpected response structure:", data);
       throw new Error("Failed to poll signup status or malformed response.");
     }
   }
 
   public async checkSignerStatus(fid: number): Promise<SignerStatusResponse> {
-    const response = await this.api.post<{ data: { checkSignerStatus: SignerStatusResponse } }>("/graphql", {
-      query: `
+    const data = await this.graphql<{ checkSignerStatus: SignerStatusResponse }>(
+      `
         query CheckSignerStatus($fid: Int!) {
           checkSignerStatus(fid: $fid) {
             ok
@@ -127,47 +115,35 @@ export class UsersApi extends BaseApi {
           }
         }
       `,
-      variables: { fid },
-    });
+      { fid }
+    );
 
-    if (response.data.data?.checkSignerStatus) {
-      return response.data.data.checkSignerStatus;
+    if (data?.checkSignerStatus) {
+      return data.checkSignerStatus;
     }
-    console.error("GraphQL checkSignerStatus error or unexpected response structure:", response.data);
+    console.error("GraphQL checkSignerStatus error or unexpected response structure:", data);
     throw new Error("Failed to check signer status or malformed response.");
   }
 
   public async setAutoCast(fid: number, autoCast: boolean, apiKey: string): Promise<{ auto_cast: boolean }> {
-    const response = await this.api.post(
-      "/graphql",
-      {
-        query: `
-			mutation SetAutoCast($fid: Int!, $autoCast: Boolean!) {
-				setUserAutoCast(fid: $fid, auto_cast: $autoCast) {
-					auto_cast
-				}
-			}
+    const data = await this.graphql<{ setUserAutoCast: { auto_cast: boolean } }>(
+      `
+        mutation SetAutoCast($fid: Int!, $autoCast: Boolean!) {
+          setUserAutoCast(fid: $fid, auto_cast: $autoCast) {
+            auto_cast
+          }
+        }
       `,
-        variables: {
-          fid,
-          autoCast,
-        },
-      },
-      {
-        headers: {
-          "X-API-KEY": apiKey,
-        },
-      }
+      { fid, autoCast },
+      { headers: { "X-API-KEY": apiKey } }
     );
 
-    return response.data.data.setUserAutoCast;
+    return data.setUserAutoCast;
   }
 
   public async deleteUser(fid: number, apiKey: string): Promise<{ success: boolean; message: string }> {
-    const response = await this.api.post(
-      "/graphql",
-      {
-        query: `
+    const data = await this.graphql<{ deleteUser: { success: boolean; message: string } }>(
+      `
         mutation DeleteUser($fid: Int!) {
           deleteUser(fid: $fid) {
             success
@@ -175,45 +151,27 @@ export class UsersApi extends BaseApi {
           }
         }
       `,
-        variables: {
-          fid,
-        },
-      },
-      {
-        headers: {
-          "X-API-KEY": apiKey,
-        },
-      }
+      { fid },
+      { headers: { "X-API-KEY": apiKey } }
     );
 
-    return response.data.data.deleteUser;
+    return data.deleteUser;
   }
 
   public async signup(fid: number, signer_uuid: string, username: string, apiKey: string): Promise<void> {
-    const response = await this.api.post(
-      "/graphql",
-      {
-        query: `
-          mutation Signup($fid: Int!, $signer_uuid: String!, $username: String!) {
-            signup(fid: $fid, signer_uuid: $signer_uuid, username: $username) {
-              success
-              message
-            }
+    await this.graphql<{ signup: { success: boolean; message: string } }>(
+      `
+        mutation Signup($fid: Int!, $signer_uuid: String!, $username: String!) {
+          signup(fid: $fid, signer_uuid: $signer_uuid, username: $username) {
+            success
+            message
           }
-        `,
-        variables: {
-          fid,
-          signer_uuid,
-          username,
-        },
-      },
-      {
-        headers: {
-          "X-API-KEY": apiKey,
-        },
-      }
+        }
+      `,
+      { fid, signer_uuid, username },
+      { headers: { "X-API-KEY": apiKey } }
     );
-
-    return response.data.signup;
   }
 }
+
+export const usersApi = new UsersApi();

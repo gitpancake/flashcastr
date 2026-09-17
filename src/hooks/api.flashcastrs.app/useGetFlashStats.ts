@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { FlashesApi } from "~/lib/api.flashcastr.app/flashes";
+import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 
 export function useGetFlashStats(fid?: number) {
   return useQuery({
     queryKey: ["flashStats", fid],
     queryFn: async () => {
       try {
-        const stats = await new FlashesApi().getFlashStats(fid);
+        const stats = await flashesApi.getFlashStats(fid);
         return {
           flashCount: stats?.flashCount || 0,
           cities: stats?.cities || []

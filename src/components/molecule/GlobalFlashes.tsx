@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AlienLoader } from "~/components/atom/AlienLoader";
 import { FadeInImage } from "~/components/atom/FadeInImage";
 import { FlashGridSkeleton } from "~/components/atom/FlashGridSkeleton";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fromUnixTime } from "date-fns";
-import { GlobalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
+import { globalFlashesApi, type GlobalFlash } from "~/lib/api.flashcastr.app/globalFlashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
 import { getImageUrl } from "~/lib/help/getImageUrl";
 
@@ -22,21 +22,19 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   const [allCities, setAllCities] = useState<string[]>([]);
   const [showAllCities, setShowAllCities] = useState(false);
   
-  const api = useMemo(() => new GlobalFlashesApi(), []);
-
   // Fetch trending cities immediately, load all cities only when needed
   useEffect(() => {
     const fetchTrendingData = async () => {
-      const trendingData = await api.getTrendingCities(true); // Exclude Paris
+      const trendingData = await globalFlashesApi.getTrendingCities(true); // Exclude Paris
       setTrendingCities(trendingData);
     };
     fetchTrendingData();
-  }, [api]);
+  }, []);
 
   // Load all cities only when user requests to see them
   const loadAllCities = async () => {
     if (allCities.length === 0) {
-      const cities = await api.getGlobalCities();
+      const cities = await globalFlashesApi.getGlobalCities();
       setAllCities(cities.sort());
     }
     setShowAllCities(true);
@@ -53,7 +51,7 @@ export function GlobalFlashes({ initialFlashes = [] }: GlobalFlashesProps) {
   } = useInfiniteQuery({
     queryKey: ["global-flashes", selectedCity],
     queryFn: async ({ pageParam = 1 }) => {
-      return await api.getGlobalFlashes(pageParam as number, 40, selectedCity);
+      return await globalFlashesApi.getGlobalFlashes(pageParam as number, 40, selectedCity);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {

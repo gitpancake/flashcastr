@@ -9,7 +9,7 @@ import {
   getFlashLinkRedis,
   getInvaderLinkCountRedis,
 } from '~/lib/redis';
-import { FlashesApi } from '~/lib/api.flashcastr.app/flashes';
+import { flashesApi } from '~/lib/api.flashcastr.app/flashes';
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,7 +116,6 @@ export async function POST(request: NextRequest) {
         // Get user's flashes that can be linked (filtered by city if provided)
         const { city: filterCity } = body;
 
-        const flashesApi = new FlashesApi();
         const flashes = await flashesApi.getFlashes(1, 100, fidNumber);
 
         // Filter by city if provided

@@ -1,9 +1,6 @@
 import { useMutation, UseMutationResult } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { InitiateSignupResponse, UsersApi } from "~/lib/api.flashcastr.app/users"; // Adjusted import path
-
-// Instantiate the UsersApi
-const usersApi = new UsersApi();
+import { InitiateSignupResponse, usersApi } from "~/lib/api.flashcastr.app/users"; // Adjusted import path
 
 export const useCreateSigner = (
   onSuccessCallback: (response: InitiateSignupResponse) => void

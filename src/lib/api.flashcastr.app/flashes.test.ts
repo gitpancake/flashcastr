@@ -1,6 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FlashesApi } from "./flashes";
 
+describe("FlashesApi.getProgress", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_FLASHCASTR_API_URL = "https://api.flashcastr.test";
+  });
+
+  it("logs and rethrows when the GraphQL query errors", async () => {
+    const flashesApi = new FlashesApi();
+    const post = vi.fn().mockResolvedValue({
+      data: { errors: [{ message: "fid required" }] },
+    });
+    Object.assign(flashesApi, { api: { post } });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(flashesApi.getProgress(123)).rejects.toThrow("fid required");
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+});
+
 describe("FlashesApi.saveFlashIdentification", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_FLASHCASTR_API_URL = "https://api.flashcastr.test";

@@ -48,6 +48,15 @@ export interface FlashIdentification {
   confidence: number;
 }
 
+const FLASH_NESTED_FIELDS = `
+  flash_id
+  city
+  player
+  timestamp
+  img
+  ipfs_cid
+`;
+
 export class FlashesApi extends BaseApi {
   public async getFlashes(page: number = 1, limit: number = 40, fid?: number, search?: string): Promise<FlashResponse[]> {
     const variables: Record<string, number | string | undefined> = {
@@ -63,30 +72,24 @@ export class FlashesApi extends BaseApi {
       variables.username = search;
     }
 
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ flashes: FlashResponse[] }>(
+      `
         query Flashes($page: Int!, $limit: Int!, $fid: Int, $username: String) {
           flashes(page: $page, limit: $limit, fid: $fid, username: $username) {
               user_fid
               user_pfp_url
               user_username
               flash {
-                city
-                flash_id
-                player
-                city
-                timestamp
-                img
-                ipfs_cid
+                ${FLASH_NESTED_FIELDS}
               }
               cast_hash
           }
         }
       `,
-      variables,
-    });
+      variables
+    );
 
-    return response.data.data.flashes;
+    return data.flashes;
   }
 
   public async getFlashStats(fid?: number): Promise<FlashStats> {
@@ -97,8 +100,8 @@ export class FlashesApi extends BaseApi {
       };
     }
 
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ flashesSummary: FlashStats }>(
+      `
         query FlashStats($fid: Int!) {
           flashesSummary(fid: $fid) {
             cities
@@ -106,12 +109,10 @@ export class FlashesApi extends BaseApi {
           }
         }
       `,
-      variables: {
-        fid,
-      },
-    });
+      { fid }
+    );
 
-    return response.data.data.flashesSummary;
+    return data.flashesSummary;
   }
 
   public async getAllPlayers(username?: string): Promise<string[]> {
@@ -120,47 +121,42 @@ export class FlashesApi extends BaseApi {
       variables.username = username;
     }
 
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ allFlashesPlayers: string[] }>(
+      `
         query AllFlashesPlayers($username: String) {
           allFlashesPlayers(username: $username)
         }
       `,
-      variables,
-    });
+      variables
+    );
 
-    return response.data.data.allFlashesPlayers || [];
+    return data.allFlashesPlayers || [];
   }
 
   public async getFlashById(flashId: number | string): Promise<FlashResponse | null> {
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ flash: FlashResponse | null }>(
+      `
         query Flash($flash_id: Int!) {
           flash(flash_id: $flash_id) {
             user_fid
             user_pfp_url
             user_username
             flash {
-              city
-              flash_id
-              player
-              timestamp
-              img
-              ipfs_cid
+              ${FLASH_NESTED_FIELDS}
             }
             cast_hash
           }
         }
       `,
-      variables: { flash_id: Number(flashId) },
-    });
+      { flash_id: Number(flashId) }
+    );
 
-    return response.data.data.flash ?? null;
+    return data.flash ?? null;
   }
 
   public async getLeaderboard(limit: number = 100): Promise<LeaderboardEntry[]> {
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ getLeaderboard: LeaderboardEntry[] }>(
+      `
         query GetLeaderboard($limit: Int) {
           getLeaderboard(limit: $limit) {
             username
@@ -170,16 +166,16 @@ export class FlashesApi extends BaseApi {
           }
         }
       `,
-      variables: { limit },
-    });
+      { limit }
+    );
 
-    return response.data.data.getLeaderboard || [];
+    return data.getLeaderboard || [];
   }
 
   public async getProgress(fid: number, days: number = 7, order: 'ASC' | 'DESC' = 'ASC'): Promise<DailyProgress[]> {
     try {
-      const response = await this.api.post("/graphql", {
-        query: `
+      const data = await this.graphql<{ progress: DailyProgress[] }>(
+        `
           query GetProgress($fid: Int!, $days: Int!, $order: String) {
             progress(fid: $fid, days: $days, order: $order) {
               date
@@ -187,15 +183,10 @@ export class FlashesApi extends BaseApi {
             }
           }
         `,
-        variables: { fid, days, order },
-      });
+        { fid, days, order }
+      );
 
-      if (response.data.errors) {
-        console.error('GraphQL errors:', response.data.errors);
-        throw new Error(response.data.errors[0]?.message || 'GraphQL query failed');
-      }
-
-      return response.data.data?.progress || [];
+      return data?.progress || [];
     } catch (error) {
       console.error('getProgress error:', error);
       throw error;
@@ -209,8 +200,8 @@ export class FlashesApi extends BaseApi {
     similarity: number,
     confidence: number
   ): Promise<FlashIdentification> {
-    const response = await this.api.post("/graphql", {
-      query: `
+    const data = await this.graphql<{ saveFlashIdentification: FlashIdentification }>(
+      `
         mutation SaveFlashIdentification($source_ipfs_cid: String!, $matched_flash_id: String!, $matched_flash_name: String, $similarity: Float!, $confidence: Float!) {
           saveFlashIdentification(source_ipfs_cid: $source_ipfs_cid, matched_flash_id: $matched_flash_id, matched_flash_name: $matched_flash_name, similarity: $similarity, confidence: $confidence) {
             id
@@ -221,15 +212,17 @@ export class FlashesApi extends BaseApi {
           }
         }
       `,
-      variables: {
+      {
         source_ipfs_cid: sourceIpfsCid,
         matched_flash_id: matchedFlashId,
         matched_flash_name: matchedFlashName,
         similarity,
         confidence,
-      },
-    });
+      }
+    );
 
-    return response.data.data.saveFlashIdentification;
+    return data.saveFlashIdentification;
   }
 }
+
+export const flashesApi = new FlashesApi();

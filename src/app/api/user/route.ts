@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { crossOriginResponse, getSessionFid, isSameOrigin } from "~/lib/apiGuard";
-import { UsersApi } from "~/lib/api.flashcastr.app/users";
+import { usersApi } from "~/lib/api.flashcastr.app/users";
 
 export async function PUT(req: Request) {
   if (!isSameOrigin(req)) {
@@ -17,7 +17,7 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "auto_cast must be a boolean" }, { status: 400 });
   }
 
-  await new UsersApi().setAutoCast(sessionFid, auto_cast, process.env.FLASHCASTR_API_KEY!);
+  await usersApi.setAutoCast(sessionFid, auto_cast, process.env.FLASHCASTR_API_KEY!);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
@@ -32,7 +32,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await new UsersApi().deleteUser(sessionFid, process.env.FLASHCASTR_API_KEY!);
+  await usersApi.deleteUser(sessionFid, process.env.FLASHCASTR_API_KEY!);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }

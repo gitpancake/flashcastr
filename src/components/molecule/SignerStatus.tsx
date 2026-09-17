@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { SignerStatusResponse, UsersApi } from "~/lib/api.flashcastr.app/users";
-
-const usersApi = new UsersApi();
+import { SignerStatusResponse, usersApi } from "~/lib/api.flashcastr.app/users";
 
 export const SignerStatus = ({ fid }: { fid: number }) => {
   const [loading, setLoading] = useState(false);
