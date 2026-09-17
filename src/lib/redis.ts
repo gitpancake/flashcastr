@@ -27,131 +27,59 @@ export async function getRedisClient() {
   return client;
 }
 
+// Generic Redis-backed JSON collection: read (parse or fall back to an empty
+// doc), write (recompute stats, stringify, set), and read-modify-write.
+interface JsonCollection<TDoc> {
+  get: (fid: number) => Promise<TDoc>;
+  save: (doc: TDoc) => Promise<void>;
+  update: (fid: number, mutate: (doc: TDoc) => void) => Promise<TDoc>;
+}
+
+function createJsonCollection<TDoc extends { fid: number }>(config: {
+  label: string;
+  keyFn: (fid: number) => string;
+  emptyDoc: (fid: number) => TDoc;
+  recomputeStats: (doc: TDoc) => void;
+}): JsonCollection<TDoc> {
+  async function get(fid: number): Promise<TDoc> {
+    try {
+      const client = await getRedisClient();
+      const stored = await client.get(config.keyFn(fid));
+
+      if (!stored) {
+        return config.emptyDoc(fid);
+      }
+
+      return JSON.parse(stored) as TDoc;
+    } catch (error) {
+      console.error(`Error loading ${config.label} from Redis:`, error);
+      return config.emptyDoc(fid);
+    }
+  }
+
+  async function save(doc: TDoc): Promise<void> {
+    try {
+      const client = await getRedisClient();
+      config.recomputeStats(doc);
+      await client.set(config.keyFn(doc.fid), JSON.stringify(doc));
+    } catch (error) {
+      console.error(`Error saving ${config.label} to Redis:`, error);
+      throw error;
+    }
+  }
+
+  async function update(fid: number, mutate: (doc: TDoc) => void): Promise<TDoc> {
+    const doc = await get(fid);
+    mutate(doc);
+    await save(doc);
+    return doc;
+  }
+
+  return { get, save, update };
+}
+
 // Redis key pattern for wishlists
 const WISHLIST_KEY = (fid: number) => `wishlist:${fid}`;
-
-// Get user's wishlist from Redis
-export async function getWishlistFromRedis(fid: number): Promise<UserWishlist> {
-  try {
-    const client = await getRedisClient();
-    const stored = await client.get(WISHLIST_KEY(fid));
-    
-    if (!stored) {
-      return getEmptyWishlist(fid);
-    }
-    
-    const parsed = JSON.parse(stored) as UserWishlist;
-    return parsed;
-  } catch (error) {
-    console.error('Error loading wishlist from Redis:', error);
-    return getEmptyWishlist(fid);
-  }
-}
-
-// Save user's wishlist to Redis
-export async function saveWishlistToRedis(wishlist: UserWishlist): Promise<void> {
-  try {
-    const client = await getRedisClient();
-    
-    // Update stats
-    wishlist.stats = {
-      total_wanted: wishlist.items.filter(item => item.status === 'want_to_find').length,
-      total_found: wishlist.items.filter(item => item.status === 'alive' || item.status === 'dead').length,
-      last_updated: new Date().toISOString()
-    };
-    
-    await client.set(WISHLIST_KEY(wishlist.fid), JSON.stringify(wishlist));
-  } catch (error) {
-    console.error('Error saving wishlist to Redis:', error);
-    throw error;
-  }
-}
-
-// Add invader to wishlist in Redis
-export async function addToWishlistRedis(
-  fid: number, 
-  invader: { 
-    i: number; 
-    n: string; 
-    l: { lat: number; lng: number }; 
-    t: string; 
-  }
-): Promise<UserWishlist> {
-  const wishlist = await getWishlistFromRedis(fid);
-  
-  // Check if already in wishlist
-  const existingIndex = wishlist.items.findIndex(item => item.invader_id === invader.n);
-  
-  if (existingIndex === -1) {
-    // Add new item
-    const newItem: WishlistItem = {
-      invader_id: invader.n,
-      invader_name: invader.n,
-      photo_url: getLocalImagePath(invader),
-      coordinates: {
-        lat: invader.l.lat,
-        lng: invader.l.lng
-      },
-      added_date: new Date().toISOString(),
-      status: 'want_to_find'
-    };
-    
-    wishlist.items.push(newItem);
-  } else {
-    // Update existing item to want_to_find if it was marked found
-    wishlist.items[existingIndex].status = 'want_to_find';
-    wishlist.items[existingIndex].added_date = new Date().toISOString();
-  }
-  
-  await saveWishlistToRedis(wishlist);
-  return wishlist;
-}
-
-// Remove invader from wishlist in Redis
-export async function removeFromWishlistRedis(fid: number, invaderId: string): Promise<UserWishlist> {
-  const wishlist = await getWishlistFromRedis(fid);
-  wishlist.items = wishlist.items.filter(item => item.invader_id !== invaderId);
-  await saveWishlistToRedis(wishlist);
-  return wishlist;
-}
-
-// Mark invader as found in Redis
-export async function markAsAliveRedis(fid: number, invaderId: string): Promise<UserWishlist> {
-  const wishlist = await getWishlistFromRedis(fid);
-  const item = wishlist.items.find(item => item.invader_id === invaderId);
-  
-  if (item) {
-    item.status = 'alive';
-  }
-  
-  await saveWishlistToRedis(wishlist);
-  return wishlist;
-}
-
-export async function markAsDeadRedis(fid: number, invaderId: string): Promise<UserWishlist> {
-  const wishlist = await getWishlistFromRedis(fid);
-  const item = wishlist.items.find(item => item.invader_id === invaderId);
-  
-  if (item) {
-    item.status = 'dead';
-  }
-  
-  await saveWishlistToRedis(wishlist);
-  return wishlist;
-}
-
-// Check if invader is in wishlist
-export async function isInWishlistRedis(fid: number, invaderId: string): Promise<boolean> {
-  const wishlist = await getWishlistFromRedis(fid);
-  return wishlist.items.some(item => item.invader_id === invaderId);
-}
-
-// Get invader status from Redis
-export async function getInvaderStatusRedis(fid: number, invaderId: string): Promise<'want_to_find' | 'alive' | 'dead' | null> {
-  const wishlist = await getWishlistFromRedis(fid);
-  const item = wishlist.items.find(item => item.invader_id === invaderId);
-  return item ? item.status : null;
-}
 
 // Helper to create empty wishlist
 function getEmptyWishlist(fid: number): UserWishlist {
@@ -166,9 +94,109 @@ function getEmptyWishlist(fid: number): UserWishlist {
   };
 }
 
+const wishlistCollection = createJsonCollection<UserWishlist>({
+  label: 'wishlist',
+  keyFn: WISHLIST_KEY,
+  emptyDoc: getEmptyWishlist,
+  recomputeStats: (wishlist) => {
+    wishlist.stats = {
+      total_wanted: wishlist.items.filter(item => item.status === 'want_to_find').length,
+      total_found: wishlist.items.filter(item => item.status === 'alive' || item.status === 'dead').length,
+      last_updated: new Date().toISOString()
+    };
+  }
+});
+
+// Get user's wishlist from Redis
+export const getWishlistFromRedis = wishlistCollection.get;
+
+// Save user's wishlist to Redis
+export const saveWishlistToRedis = wishlistCollection.save;
+
+// Add invader to wishlist in Redis
+export async function addToWishlistRedis(
+  fid: number,
+  invader: {
+    i: number;
+    n: string;
+    l: { lat: number; lng: number };
+    t: string;
+  }
+): Promise<UserWishlist> {
+  return wishlistCollection.update(fid, (wishlist) => {
+    // Check if already in wishlist
+    const existingIndex = wishlist.items.findIndex(item => item.invader_id === invader.n);
+
+    if (existingIndex === -1) {
+      // Add new item
+      const newItem: WishlistItem = {
+        invader_id: invader.n,
+        invader_name: invader.n,
+        photo_url: getLocalImagePath(invader),
+        coordinates: {
+          lat: invader.l.lat,
+          lng: invader.l.lng
+        },
+        added_date: new Date().toISOString(),
+        status: 'want_to_find'
+      };
+
+      wishlist.items.push(newItem);
+    } else {
+      // Update existing item to want_to_find if it was marked found
+      wishlist.items[existingIndex].status = 'want_to_find';
+      wishlist.items[existingIndex].added_date = new Date().toISOString();
+    }
+  });
+}
+
+// Remove invader from wishlist in Redis
+export async function removeFromWishlistRedis(fid: number, invaderId: string): Promise<UserWishlist> {
+  return wishlistCollection.update(fid, (wishlist) => {
+    wishlist.items = wishlist.items.filter(item => item.invader_id !== invaderId);
+  });
+}
+
+// Shared setter behind markAsAliveRedis / markAsDeadRedis — identical except for the status literal
+async function setWishlistItemStatus(
+  fid: number,
+  invaderId: string,
+  status: 'alive' | 'dead'
+): Promise<UserWishlist> {
+  return wishlistCollection.update(fid, (wishlist) => {
+    const item = wishlist.items.find(item => item.invader_id === invaderId);
+
+    if (item) {
+      item.status = status;
+    }
+  });
+}
+
+// Mark invader as found in Redis
+export async function markAsAliveRedis(fid: number, invaderId: string): Promise<UserWishlist> {
+  return setWishlistItemStatus(fid, invaderId, 'alive');
+}
+
+export async function markAsDeadRedis(fid: number, invaderId: string): Promise<UserWishlist> {
+  return setWishlistItemStatus(fid, invaderId, 'dead');
+}
+
+// Check if invader is in wishlist
+export async function isInWishlistRedis(fid: number, invaderId: string): Promise<boolean> {
+  const wishlist = await wishlistCollection.get(fid);
+  return wishlist.items.some(item => item.invader_id === invaderId);
+}
+
+// Get invader status from Redis
+export async function getInvaderStatusRedis(fid: number, invaderId: string): Promise<'want_to_find' | 'alive' | 'dead' | null> {
+  const wishlist = await wishlistCollection.get(fid);
+  const item = wishlist.items.find(item => item.invader_id === invaderId);
+  return item ? item.status : null;
+}
+
 // Get wishlist stats from Redis
 export async function getWishlistStatsRedis(fid: number) {
-  const wishlist = await getWishlistFromRedis(fid);
+  const wishlist = await wishlistCollection.get(fid);
   const totalTracked = wishlist.stats.total_wanted + wishlist.stats.total_found;
   return {
     totalWanted: wishlist.stats.total_wanted,
@@ -183,52 +211,54 @@ export async function getWishlistStatsRedis(fid: number) {
 // Experimental Users Management
 const EXPERIMENTAL_USERS_KEY = 'experimental_users';
 
+// Shared try/catch/log boilerplate for the experimental-users Set operations
+async function withExperimentalUserFallback<T>(
+  action: () => Promise<T>,
+  fallback: T,
+  errorLabel: string
+): Promise<T> {
+  try {
+    return await action();
+  } catch (error) {
+    console.error(errorLabel, error);
+    return fallback;
+  }
+}
+
 // Get all experimental users
 export async function getExperimentalUsersRedis(): Promise<number[]> {
-  try {
+  return withExperimentalUserFallback(async () => {
     const redis = await getRedisClient();
     const users = await redis.sMembers(EXPERIMENTAL_USERS_KEY);
     return Array.isArray(users) ? users.map(fid => parseInt(fid as string, 10)).filter(fid => !isNaN(fid)) : [];
-  } catch (error) {
-    console.error('Error getting experimental users:', error);
-    return [];
-  }
+  }, [], 'Error getting experimental users:');
 }
 
 // Add user to experimental users
 export async function addExperimentalUserRedis(fid: number): Promise<boolean> {
-  try {
+  return withExperimentalUserFallback(async () => {
     const redis = await getRedisClient();
     const result = await redis.sAdd(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1; // Returns 1 if added, 0 if already exists
-  } catch (error) {
-    console.error('Error adding experimental user:', error);
-    return false;
-  }
+  }, false, 'Error adding experimental user:');
 }
 
 // Remove user from experimental users
 export async function removeExperimentalUserRedis(fid: number): Promise<boolean> {
-  try {
+  return withExperimentalUserFallback(async () => {
     const redis = await getRedisClient();
     const result = await redis.sRem(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1; // Returns 1 if removed, 0 if didn't exist
-  } catch (error) {
-    console.error('Error removing experimental user:', error);
-    return false;
-  }
+  }, false, 'Error removing experimental user:');
 }
 
 // Check if user is experimental
 export async function isExperimentalUserRedis(fid: number): Promise<boolean> {
-  try {
+  return withExperimentalUserFallback(async () => {
     const redis = await getRedisClient();
     const result = await redis.sIsMember(EXPERIMENTAL_USERS_KEY, fid.toString());
     return result === 1;
-  } catch (error) {
-    console.error('Error checking experimental user:', error);
-    return false;
-  }
+  }, false, 'Error checking experimental user:');
 }
 
 // Cleanup Redis connection
@@ -264,110 +294,6 @@ export interface UserFavorites {
 // Redis key pattern for favorites
 const FAVORITES_KEY = (fid: number) => `favorites:${fid}`;
 
-// Get user's favorites from Redis
-export async function getFavoritesFromRedis(fid: number): Promise<UserFavorites> {
-  try {
-    const client = await getRedisClient();
-    const stored = await client.get(FAVORITES_KEY(fid));
-    
-    if (!stored) {
-      return getEmptyFavorites(fid);
-    }
-    
-    const parsed = JSON.parse(stored) as UserFavorites;
-    return parsed;
-  } catch (error) {
-    console.error('Error loading favorites from Redis:', error);
-    return getEmptyFavorites(fid);
-  }
-}
-
-// Save user's favorites to Redis
-export async function saveFavoritesToRedis(favorites: UserFavorites): Promise<void> {
-  try {
-    const client = await getRedisClient();
-    
-    // Update stats
-    favorites.stats = {
-      total_count: favorites.favorites.length,
-      last_updated: new Date().toISOString()
-    };
-    
-    await client.set(FAVORITES_KEY(favorites.fid), JSON.stringify(favorites));
-  } catch (error) {
-    console.error('Error saving favorites to Redis:', error);
-    throw error;
-  }
-}
-
-// Add flash to favorites in Redis
-export async function addToFavoritesRedis(fid: number, flash: Omit<FavoriteFlash, 'addedAt'>): Promise<boolean> {
-  try {
-    const userFavorites = await getFavoritesFromRedis(fid);
-    
-    // Check if already in favorites
-    const exists = userFavorites.favorites.some(fav => fav.flash_id === flash.flash_id);
-    if (exists) {
-      return false; // Already exists
-    }
-    
-    // Add new favorite
-    const newFavorite: FavoriteFlash = {
-      ...flash,
-      addedAt: Date.now()
-    };
-    
-    userFavorites.favorites.push(newFavorite);
-    await saveFavoritesToRedis(userFavorites);
-    return true;
-  } catch (error) {
-    console.error('Error adding to favorites in Redis:', error);
-    throw error;
-  }
-}
-
-// Remove flash from favorites in Redis
-export async function removeFromFavoritesRedis(fid: number, flashId: number): Promise<boolean> {
-  try {
-    const userFavorites = await getFavoritesFromRedis(fid);
-    const originalLength = userFavorites.favorites.length;
-    
-    userFavorites.favorites = userFavorites.favorites.filter(fav => fav.flash_id !== flashId);
-    
-    if (userFavorites.favorites.length === originalLength) {
-      return false; // Item wasn't found
-    }
-    
-    await saveFavoritesToRedis(userFavorites);
-    return true;
-  } catch (error) {
-    console.error('Error removing from favorites in Redis:', error);
-    throw error;
-  }
-}
-
-// Check if flash is in favorites
-export async function isFavoriteRedis(fid: number, flashId: number): Promise<boolean> {
-  try {
-    const userFavorites = await getFavoritesFromRedis(fid);
-    return userFavorites.favorites.some(fav => fav.flash_id === flashId);
-  } catch (error) {
-    console.error('Error checking favorite status in Redis:', error);
-    return false;
-  }
-}
-
-// Get favorites count from Redis
-export async function getFavoritesCountRedis(fid: number): Promise<number> {
-  try {
-    const userFavorites = await getFavoritesFromRedis(fid);
-    return userFavorites.favorites.length;
-  } catch (error) {
-    console.error('Error getting favorites count from Redis:', error);
-    return 0;
-  }
-}
-
 // Helper to create empty favorites
 function getEmptyFavorites(fid: number): UserFavorites {
   return {
@@ -378,6 +304,92 @@ function getEmptyFavorites(fid: number): UserFavorites {
       last_updated: new Date().toISOString()
     }
   };
+}
+
+const favoritesCollection = createJsonCollection<UserFavorites>({
+  label: 'favorites',
+  keyFn: FAVORITES_KEY,
+  emptyDoc: getEmptyFavorites,
+  recomputeStats: (favorites) => {
+    favorites.stats = {
+      total_count: favorites.favorites.length,
+      last_updated: new Date().toISOString()
+    };
+  }
+});
+
+// Get user's favorites from Redis
+export const getFavoritesFromRedis = favoritesCollection.get;
+
+// Save user's favorites to Redis
+export const saveFavoritesToRedis = favoritesCollection.save;
+
+// Add flash to favorites in Redis
+export async function addToFavoritesRedis(fid: number, flash: Omit<FavoriteFlash, 'addedAt'>): Promise<boolean> {
+  try {
+    const userFavorites = await favoritesCollection.get(fid);
+
+    // Check if already in favorites
+    const exists = userFavorites.favorites.some(fav => fav.flash_id === flash.flash_id);
+    if (exists) {
+      return false; // Already exists
+    }
+
+    // Add new favorite
+    const newFavorite: FavoriteFlash = {
+      ...flash,
+      addedAt: Date.now()
+    };
+
+    userFavorites.favorites.push(newFavorite);
+    await favoritesCollection.save(userFavorites);
+    return true;
+  } catch (error) {
+    console.error('Error adding to favorites in Redis:', error);
+    throw error;
+  }
+}
+
+// Remove flash from favorites in Redis
+export async function removeFromFavoritesRedis(fid: number, flashId: number): Promise<boolean> {
+  try {
+    const userFavorites = await favoritesCollection.get(fid);
+    const originalLength = userFavorites.favorites.length;
+
+    userFavorites.favorites = userFavorites.favorites.filter(fav => fav.flash_id !== flashId);
+
+    if (userFavorites.favorites.length === originalLength) {
+      return false; // Item wasn't found
+    }
+
+    await favoritesCollection.save(userFavorites);
+    return true;
+  } catch (error) {
+    console.error('Error removing from favorites in Redis:', error);
+    throw error;
+  }
+}
+
+// Check if flash is in favorites
+export async function isFavoriteRedis(fid: number, flashId: number): Promise<boolean> {
+  try {
+    const userFavorites = await favoritesCollection.get(fid);
+    return userFavorites.favorites.some(fav => fav.flash_id === flashId);
+  } catch (error) {
+    console.error('Error checking favorite status in Redis:', error);
+    return false;
+  }
+}
+
+// Get favorites count from Redis
+export async function getFavoritesCountRedis(fid: number): Promise<number> {
+  try {
+    const userFavorites = await favoritesCollection.get(fid);
+    return userFavorites.favorites.length;
+  } catch (error) {
+    console.error('Error getting favorites count from Redis:', error);
+    return 0;
+  }
 }
 
 // ================== FLASH LINKS MANAGEMENT ==================

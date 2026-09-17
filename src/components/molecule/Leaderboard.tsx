@@ -18,17 +18,36 @@ interface LeaderboardProps {
   currentUsername?: string;
 }
 
+type SortMode = 'flashes' | 'cities';
+
+interface SortModeConfig {
+  label: string;
+  headerLabel: string;
+  comparator: (a: LeaderboardUser, b: LeaderboardUser) => number;
+  statFor: (user: LeaderboardUser) => number;
+}
+
+const SORT_MODES: Record<SortMode, SortModeConfig> = {
+  flashes: {
+    label: '[F] FLASHES',
+    headerLabel: 'FLASHES',
+    comparator: (a, b) => b.flashCount - a.flashCount,
+    statFor: (user) => user.flashCount,
+  },
+  cities: {
+    label: '[C] CITIES',
+    headerLabel: 'CITIES',
+    comparator: (a, b) => b.citiesCount - a.citiesCount,
+    statFor: (user) => user.citiesCount,
+  },
+};
+
 export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
-  const [sortBy, setSortBy] = useState<'flashes' | 'cities'>('flashes');
+  const [sortBy, setSortBy] = useState<SortMode>('flashes');
   const router = useRouter();
 
   const sortedUsers = useMemo(() => {
-    const sorted = [...users].sort((a, b) => {
-      if (sortBy === 'flashes') {
-        return b.flashCount - a.flashCount;
-      }
-      return b.citiesCount - a.citiesCount;
-    });
+    const sorted = [...users].sort(SORT_MODES[sortBy].comparator);
 
     return sorted.map((user, index) => ({
       ...user,
@@ -52,26 +71,19 @@ export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
       {/* Sort Controls */}
       <div className="flex justify-center mb-6">
         <div className="bg-gray-900 border-2 border-gray-600 p-1 flex">
-          <button
-            onClick={() => setSortBy('flashes')}
-            className={`px-4 py-2 text-sm transition-all duration-200 ${
-              sortBy === 'flashes'
-                ? 'bg-green-400 text-black'
-                : 'text-green-400 hover:bg-gray-800'
-            }`}
-          >
-            [F] FLASHES
-          </button>
-          <button
-            onClick={() => setSortBy('cities')}
-            className={`px-4 py-2 text-sm transition-all duration-200 ${
-              sortBy === 'cities'
-                ? 'bg-green-400 text-black'
-                : 'text-green-400 hover:bg-gray-800'
-            }`}
-          >
-            [C] CITIES
-          </button>
+          {Object.entries(SORT_MODES).map(([mode, config]) => (
+            <button
+              key={mode}
+              onClick={() => setSortBy(mode as SortMode)}
+              className={`px-4 py-2 text-sm transition-all duration-200 ${
+                sortBy === mode
+                  ? 'bg-green-400 text-black'
+                  : 'text-green-400 hover:bg-gray-800'
+              }`}
+            >
+              {config.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -81,13 +93,13 @@ export function Leaderboard({ users, currentUsername }: LeaderboardProps) {
         <div className="grid grid-cols-3 gap-1 sm:gap-2 p-2 sm:p-3 bg-gray-900 border border-green-400 text-green-400 text-xs font-bold">
           <div className="col-span-1 text-center">RANK</div>
           <div className="col-span-1">PLAYER</div>
-          <div className="col-span-1 text-center">{sortBy === 'flashes' ? 'FLASHES' : 'CITIES'}</div>
+          <div className="col-span-1 text-center">{SORT_MODES[sortBy].headerLabel}</div>
         </div>
 
         {/* Leaderboard Entries - Simplified */}
         {sortedUsers.slice(0, 50).map((user) => {
           const isCurrentUser = user.username === currentUsername;
-          const primaryStat = sortBy === 'flashes' ? user.flashCount : user.citiesCount;
+          const primaryStat = SORT_MODES[sortBy].statFor(user);
 
           return (
             <div
