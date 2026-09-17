@@ -7,12 +7,10 @@ import { RetroNav, type NavTab } from "~/components/molecule/RetroNav";
 import { GlobalFlashes } from "~/components/molecule/GlobalFlashes";
 import { Leaderboard } from "~/components/molecule/Leaderboard";
 import { Achievements } from "~/components/molecule/Achievements";
-import { InvaderMap } from "~/components/molecule/InvaderMap";
 import { Progress } from "~/components/molecule/Progress";
 import SearchBar from "~/components/molecule/SearchBar";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
-import { useExperimentalAccess } from "~/hooks/useExperimentalAccess";
 import { useGetUser } from "~/hooks/api.flashcastrs.app/useGetUser";
 import { useGetLeaderboard } from "~/hooks/api.flashcastrs.app/useGetLeaderboard";
 import { useGetFlashStats } from "~/hooks/api.flashcastrs.app/useGetFlashStats";
@@ -37,19 +35,11 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
   
   const { data: leaderboardUsers = [] } = useGetLeaderboard();
   const { data: flashStats } = useGetFlashStats(farcasterFid);
-  const { hasAccess: hasExperimentalAccess } = useExperimentalAccess(farcasterFid);
 
   const [activeTab, setActiveTab] = useState<NavTab>('feed');
   const [showSetupFlow, setShowSetupFlow] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  
-  // Map navigation state for wishlist integration
-  const [mapTargetLocation, setMapTargetLocation] = useState<{
-    lat: number;
-    lng: number;
-    invaderId: string;
-  } | null>(null);
 
   const handleTabChange = useCallback((tab: NavTab) => {
     // If achievements tab is selected but user doesn't have context, redirect to feed
@@ -62,17 +52,11 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
       setActiveTab('feed');
       return;
     }
-    // If map tab is selected but user doesn't have experimental access, redirect to feed
-    if (tab === 'map' && !hasExperimentalAccess) {
-      setActiveTab('feed');
-      return;
-    }
     setActiveTab(tab);
-  }, [hasUserContext, hasExperimentalAccess]);
+  }, [hasUserContext]);
 
 
   // If user is on achievements/progress tab but loses context, redirect to feed
-  // If user is on map tab but doesn't have experimental access, redirect to feed
   useEffect(() => {
     if (activeTab === 'achievements' && !hasUserContext) {
       setActiveTab('feed');
@@ -80,10 +64,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
     if (activeTab === 'progress' && !hasUserContext) {
       setActiveTab('feed');
     }
-    if (activeTab === 'map' && !hasExperimentalAccess) {
-      setActiveTab('feed');
-    }
-  }, [activeTab, hasUserContext, hasExperimentalAccess]);
+  }, [activeTab, hasUserContext]);
 
   const keyboardShortcuts = useMemo(() => ({
     onHome: () => setActiveTab('feed'),
@@ -136,8 +117,6 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
         return <Progress userProgress={userProgress} />;
       case 'achievements':
         return <Achievements userProgress={userProgress} />;
-      case 'map':
-        return <InvaderMap targetLocation={mapTargetLocation} onLocationTargeted={() => setMapTargetLocation(null)} />;
       default:
         return <Feed initialFlashes={initialFlashes} />;
     }
@@ -145,7 +124,7 @@ export default function AppInitializer({ initialFlashes }: AppInitializerProps) 
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-black">
-      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} showProgress={hasUserContext} currentUserFid={farcasterFid} hasExperimentalAccess={hasExperimentalAccess} />
+      <RetroNav activeTab={activeTab} onTabChange={handleTabChange} showAchievements={hasUserContext} showProgress={hasUserContext} currentUserFid={farcasterFid} />
       
       {/* Only show the banner if:
           1. We have a farcasterFid (user is authenticated)

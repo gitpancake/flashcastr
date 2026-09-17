@@ -1,7 +1,7 @@
 "use client";
 
 
-export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'map' | 'progress';
+export type NavTab = 'feed' | 'global' | 'leaderboard' | 'achievements' | 'progress';
 
 interface RetroNavProps {
   activeTab: NavTab;
@@ -10,10 +10,9 @@ interface RetroNavProps {
   showProgress?: boolean;
   className?: string;
   currentUserFid?: number;
-  hasExperimentalAccess?: boolean;
 }
 
-export function RetroNav({ activeTab, onTabChange, showAchievements = true, showProgress = true, className = "", hasExperimentalAccess = false }: RetroNavProps) {
+export function RetroNav({ activeTab, onTabChange, showAchievements = true, showProgress = true, className = "" }: RetroNavProps) {
 
   const baseTabs = [
     { id: 'feed' as NavTab, label: 'FEED', icon: '>', key: 'F' },
@@ -26,14 +25,9 @@ export function RetroNav({ activeTab, onTabChange, showAchievements = true, show
     ? [...baseTabs, { id: 'progress' as NavTab, label: 'PROGRESS', icon: '↑', key: 'P' }]
     : baseTabs;
 
-  // Add map tab for experimental users (admin or experimental users)
-  const tabsWithMap = hasExperimentalAccess
-    ? [...tabsWithProgress, { id: 'map' as NavTab, label: 'MAP', icon: '◉', key: 'M' }]
-    : tabsWithProgress;
-
   const tabs = showAchievements
-    ? [...tabsWithMap, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
-    : tabsWithMap;
+    ? [...tabsWithProgress, { id: 'achievements' as NavTab, label: 'ACHIEVE', icon: '+', key: 'A' }]
+    : tabsWithProgress;
 
   return (
     <div className={`w-full bg-black border-b-2 border-green-400 ${className}`}>
