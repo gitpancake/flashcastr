@@ -10,6 +10,7 @@ export interface GlobalFlash {
   flash_id: number;
   timestamp: number | null;
   ipfs_cid?: string;
+  image_url: string | null;
 }
 
 export interface GlobalFlashResponse {
@@ -31,6 +32,7 @@ interface GlobalFlashApiResponse {
   text: string;
   timestamp: string;
   flash_count?: string;
+  image_url?: string | null;
 }
 
 interface UnifiedFlashApiResponse {
@@ -44,6 +46,7 @@ interface UnifiedFlashApiResponse {
   flash_count: string | null;
   farcaster_user: FarcasterUser | null;
   identification: FlashIdentificationInfo | null;
+  image_url: string | null;
 }
 const FLASH_CORE_FIELDS = `
   flash_id
@@ -54,6 +57,7 @@ const FLASH_CORE_FIELDS = `
   text
   timestamp
   flash_count
+  image_url
 `;
 
 function mapGlobalFlashDto(item: GlobalFlashApiResponse): GlobalFlash {
@@ -65,6 +69,7 @@ function mapGlobalFlashDto(item: GlobalFlashApiResponse): GlobalFlash {
     ipfs_cid: item.ipfs_cid,
     text: item.text,
     timestamp: parseTimestamp(item.timestamp),
+    image_url: item.image_url ?? null,
   };
 }
 
@@ -203,6 +208,7 @@ export interface UnifiedFlash {
   flash_count: string | null;
   farcaster_user: FarcasterUser | null;
   identification: FlashIdentificationInfo | null;
+  image_url: string | null;
 }
 
 const UNIFIED_EXTRA_FIELDS = `
@@ -233,6 +239,7 @@ function mapUnifiedFlashDto(item: UnifiedFlashApiResponse): UnifiedFlash {
     flash_count: item.flash_count,
     farcaster_user: item.farcaster_user,
     identification: item.identification,
+    image_url: item.image_url,
   };
 }
 

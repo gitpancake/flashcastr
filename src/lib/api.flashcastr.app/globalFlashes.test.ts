@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GlobalFlashesApi } from "./globalFlashes";
+import { GlobalFlashesApi, UnifiedFlashesApi } from "./globalFlashes";
 
 function withMockedPost(instance: object, post: ReturnType<typeof vi.fn>) {
   Object.assign(instance, { api: { post } });
@@ -16,7 +16,7 @@ describe("GlobalFlashesApi.getGlobalFlashes", () => {
       data: {
         data: {
           globalFlashes: [
-            { flash_id: "42", city: "Paris", player: "alice", img: "img.png", ipfs_cid: "cid", text: "hi", timestamp: "1700000000", flash_count: "3" },
+            { flash_id: "42", city: "Paris", player: "alice", img: "img.png", ipfs_cid: "cid", text: "hi", timestamp: "1700000000", flash_count: "3", image_url: "https://api.flashcastr.app/i/42" },
           ],
         },
       },
@@ -26,8 +26,27 @@ describe("GlobalFlashesApi.getGlobalFlashes", () => {
     const result = await api.getGlobalFlashes(1, 40, null);
 
     expect(result.items).toEqual([
-      { flash_id: 42, city: "Paris", player: "alice", img: "img.png", ipfs_cid: "cid", text: "hi", timestamp: 1700000000 },
+      { flash_id: 42, city: "Paris", player: "alice", img: "img.png", ipfs_cid: "cid", text: "hi", timestamp: 1700000000, image_url: "https://api.flashcastr.app/i/42" },
     ]);
+    expect(result.items[0].image_url).toBe("https://api.flashcastr.app/i/42");
+  });
+
+  it("maps a null image_url in the API response to null on the item", async () => {
+    const api = new GlobalFlashesApi();
+    const post = vi.fn().mockResolvedValue({
+      data: {
+        data: {
+          globalFlashes: [
+            { flash_id: "42", city: "Paris", player: "alice", img: "img.png", ipfs_cid: "cid", text: "hi", timestamp: "1700000000", flash_count: "3", image_url: null },
+          ],
+        },
+      },
+    });
+    withMockedPost(api, post);
+
+    const result = await api.getGlobalFlashes(1, 40, null);
+
+    expect(result.items[0].image_url).toBe(null);
   });
 
   it("rethrows when the GraphQL query errors, so react-query sees isError", async () => {
@@ -61,5 +80,39 @@ describe("GlobalFlashesApi.getGlobalCities", () => {
 
     expect(result).toEqual([]);
     consoleError.mockRestore();
+  });
+});
+
+describe("UnifiedFlashesApi.getUnifiedFlash", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_FLASHCASTR_API_URL = "https://api.flashcastr.test";
+  });
+
+  it("passes image_url through from the API response", async () => {
+    const api = new UnifiedFlashesApi();
+    const post = vi.fn().mockResolvedValue({
+      data: {
+        data: {
+          unifiedFlash: {
+            flash_id: "42",
+            city: "Paris",
+            player: "alice",
+            img: "img.png",
+            ipfs_cid: "cid",
+            text: "hi",
+            timestamp: "1700000000",
+            flash_count: "3",
+            image_url: "https://api.flashcastr.app/i/42",
+            farcaster_user: null,
+            identification: null,
+          },
+        },
+      },
+    });
+    withMockedPost(api, post);
+
+    const result = await api.getUnifiedFlash(42);
+
+    expect(result?.image_url).toBe("https://api.flashcastr.app/i/42");
   });
 });

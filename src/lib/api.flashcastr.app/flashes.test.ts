@@ -21,6 +21,25 @@ describe("FlashesApi.getProgress", () => {
   });
 });
 
+describe("FlashesApi.getFlashById", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_FLASHCASTR_API_URL = "https://api.flashcastr.test";
+  });
+
+  it("requests image_url in the GraphQL query", async () => {
+    const flashesApi = new FlashesApi();
+    const post = vi.fn().mockResolvedValue({
+      data: { data: { flash: null } },
+    });
+    Object.assign(flashesApi, { api: { post } });
+
+    await flashesApi.getFlashById(42);
+
+    const [, { query }] = post.mock.calls[0];
+    expect(query).toContain("image_url");
+  });
+});
+
 describe("FlashesApi.saveFlashIdentification", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_FLASHCASTR_API_URL = "https://api.flashcastr.test";

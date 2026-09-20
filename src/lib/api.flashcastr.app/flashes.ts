@@ -13,6 +13,7 @@ export interface FlashData {
   timestamp: number;
   img: string;
   ipfs_cid?: string;
+  image_url: string | null;
 }
 
 export interface FlashResponse {
@@ -55,6 +56,7 @@ const FLASH_NESTED_FIELDS = `
   timestamp
   img
   ipfs_cid
+  image_url
 `;
 
 export class FlashesApi extends BaseApi {
