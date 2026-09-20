@@ -36,7 +36,7 @@ src/
     api.flashcastr.app/   # API client classes (BaseApi, GlobalFlashesApi, FlashesApi, UsersApi)
     help/                 # Utilities: formatTimeAgo, getImageUrl, addCommasToNumber
     neynar/               # Farcaster/Neynar SDK integration
-    constants.ts          # FETCH limits, IPFS gateway, feature flags
+    constants.ts          # FETCH limits, feature flags
     badges.ts, favorites.ts, share.ts
   styles/                 # Global CSS
 ```
@@ -53,8 +53,8 @@ src/
 | `src/components/molecule/Progress.tsx` | User progress heatmap + streak tracking |
 | `src/components/organism/AppInitializer.tsx` | Main view router (Feed/Global/Leaderboard) |
 | `src/lib/help/formatTimeAgo.ts` | Time display: "JUST NOW", "5M AGO", "3 HR AGO", "YESTERDAY", "7 DAYS AGO" |
-| `src/lib/help/getImageUrl.ts` | IPFS CID → Pinata gateway URL |
-| `src/lib/constants.ts` | FETCH.LIMIT=20, IPFS gateway, ADMIN_FID |
+| `src/lib/help/getImageUrl.ts` | Pass-through of the API's `image_url` field |
+| `src/lib/constants.ts` | FETCH.LIMIT=20, ADMIN_FID |
 
 ## Commands
 
@@ -71,7 +71,6 @@ npm run deploy:vercel # Deploy to Vercel
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NEXT_PUBLIC_FLASHCASTR_API_URL` | Yes | Backend GraphQL API URL (e.g., `https://api.flashcastr.app`) |
-| `NEXT_PUBLIC_IPFS_GATEWAY` | No | IPFS gateway (default: Pinata `fuchsia-rich-lungfish-648.mypinata.cloud/ipfs`) |
 | `NEYNAR_API_KEY` | Yes | Neynar API key for Farcaster |
 | `NEYNAR_CLIENT_ID` | Yes | Neynar client ID |
 | `NEXTAUTH_URL` | Yes | NextAuth base URL |

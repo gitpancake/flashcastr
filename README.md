@@ -1,16 +1,15 @@
 # Flashcastr 👾
 
-A decentralized Farcaster Frame application for broadcasting and viewing Space Invaders flash photos, featuring IPFS storage via Pinata and real-time global feed.
+A Farcaster Frame application for broadcasting and viewing Space Invaders flash photos, with a real-time global feed.
 
 ![Flashcastr](https://img.shields.io/badge/Built%20with-Next.js-000000?style=for-the-badge&logo=next.js) 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![IPFS](https://img.shields.io/badge/IPFS-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white)
 
 ## ✨ Features
 
 - **Global Flash Feed**: Browse Space Invaders flash photos from players worldwide
 - **Personal Feed**: View your own flash history with Farcaster integration
-- **IPFS Storage**: Decentralized image storage via Pinata for reliability
+- **API-Hosted Images**: Flash images resolved via the Flashcastr API's `image_url` field
 - **City Filtering**: Filter flashes by location with trending cities
 - **Real-time Updates**: Live feed updates with infinite scroll
 - **Farcaster Integration**: Seamless authentication and social features
@@ -30,8 +29,8 @@ A decentralized Farcaster Frame application for broadcasting and viewing Space I
 - **viem + wagmi** - Web3/wallet integration
 
 ### Image Storage
-- **IPFS**: Decentralized storage via Pinata gateway (`fuchsia-rich-lungfish-648.mypinata.cloud`)
-- **Fully Decentralized**: All images stored on IPFS for censorship resistance and permanence
+- **Flashcastr API**: Resolves each flash's `image_url` server-side (Backblaze B2 for migrated flashes, a
+  legacy origin fallback for older ones, `null` when neither is available)
 
 ### APIs
 - **Flashcastr API**: All flash data, user management, and global feed
@@ -100,20 +99,20 @@ src/
 
 ## 🖼️ Image Storage System
 
-Flashcastr uses decentralized IPFS storage for all images:
+Flash images are resolved server-side by the Flashcastr API, not constructed by the client:
 
-### IPFS Decentralized Storage
-- All images are stored on IPFS for permanence and censorship resistance
-- Retrieved via Pinata gateway for optimal performance and reliability
-- URLs: `https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs/{cid}`
+### API-Resolved Images
+- Migrated flashes resolve to a stable Flashcastr API URL that redirects to a short-lived signed Backblaze
+  B2 URL
+- Older, unmigrated flashes fall back to a legacy origin URL
+- Flashes with neither resolve to `null`, and the client renders a placeholder instead of a broken image
 
 ### Image URL Resolution
-The `getImageUrl()` utility handles IPFS URL construction:
+The `getImageUrl()` utility is a pass-through of the API's `image_url` field:
 
 ```typescript
-// Returns IPFS URL from ipfs_cid
 const imageUrl = getImageUrl(flash);
-// Returns: https://gateway.../ipfs/{cid}
+// Returns flash.image_url, or "" if the API has no resolvable image for this flash
 ```
 
 ## 🔌 API Integration
@@ -127,8 +126,9 @@ interface FlashData {
   player: string;
   city: string;
   timestamp: number;
-  img: string;           // Legacy field for backwards compatibility
-  ipfs_cid?: string;     // IPFS content identifier (primary)
+  img: string;             // Legacy field for backwards compatibility
+  ipfs_cid?: string;       // IPFS content identifier (legacy)
+  image_url: string | null; // Resolved image URL from the API
 }
 ```
 
@@ -141,7 +141,8 @@ interface GlobalFlash {
   text: string;
   timestamp: number;
   img: string;
-  ipfs_cid?: string;  // New IPFS content identifier
+  ipfs_cid?: string;         // Legacy IPFS content identifier
+  image_url: string | null;  // Resolved image URL from the API
 }
 ```
 
@@ -219,12 +220,6 @@ All required environment variables are documented in `.env.example`. Copy it to 
 | `FLASHCASTR_API_KEY` | API key for Flashcastr backend | Contact team for access |
 | `NEXT_PUBLIC_FLASHCASTR_API_URL` | Flashcastr API endpoint | `http://localhost:4000` (dev) |
 
-### Image Storage (Required)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_IPFS_GATEWAY` | IPFS gateway for decentralized storage via Pinata | `https://...mypinata.cloud/ipfs/` |
-
 ### Frame Configuration (Required)
 
 | Variable | Description | Default |
@@ -266,7 +261,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Neynar** - Farcaster protocol integration
 - **Space Invaders Community** - Game and flash photo inspiration
-- **IPFS/Pinata** - Decentralized storage infrastructure
 - **Vercel** - Hosting and deployment platform
 
 ## 📞 Support

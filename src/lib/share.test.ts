@@ -9,6 +9,7 @@ const flash: GlobalFlash = {
   player: "spacecadet",
   flash_id: 42,
   timestamp: 1700000000,
+  image_url: "https://api.flashcastr.app/i/42",
 };
 
 const currentUrl = "https://flashcastr.app/flash/42";

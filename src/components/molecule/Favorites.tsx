@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import toast from "react-hot-toast";
+import { FadeInImage } from "~/components/atom/FadeInImage";
 import { getFavorites, removeFromFavorites, type FavoriteFlash } from "~/lib/favorites";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { getImageUrl } from "~/lib/help/getImageUrl";
@@ -193,7 +193,7 @@ export function Favorites() {
           className="aspect-square overflow-hidden cursor-pointer relative"
           onClick={item.onImageClick}
         >
-          <Image
+          <FadeInImage
             src={item.imageSrc}
             alt={`Flash ${item.flashId}`}
             fill

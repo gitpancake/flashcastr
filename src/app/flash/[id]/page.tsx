@@ -1,17 +1,10 @@
 import { notFound } from "next/navigation";
 import { fromUnixTime } from "date-fns";
 import type { Metadata } from "next";
-import { unifiedFlashesApi, UnifiedFlash } from "~/lib/api.flashcastr.app/globalFlashes";
+import { unifiedFlashesApi } from "~/lib/api.flashcastr.app/globalFlashes";
 import formatTimeAgo from "~/lib/help/formatTimeAgo";
-import { IPFS } from "~/lib/constants";
+import { getImageUrl } from "~/lib/help/getImageUrl";
 import FlashPageClient from "./FlashPageClient";
-
-function getFlashImageUrl(flash: UnifiedFlash): string {
-  if (!flash.ipfs_cid?.trim()) {
-    return '';
-  }
-  return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -33,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       ? flash.identification.matched_flash_name
       : null;
 
-    const imageUrl = getFlashImageUrl(flash);
+    const imageUrl = getImageUrl(flash);
     const title = flashName
       ? `${flashName} by ${playerName} | Flashcastr`
       : `Flash #${flash.flash_id} by ${playerName} | Flashcastr`;
@@ -70,14 +63,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       openGraph: {
         title,
         description,
-        images: [
-          {
-            url: imageUrl,
-            width: 800,
-            height: 800,
-            alt: flashName ? `${flashName} by ${playerName}` : `Flash #${flash.flash_id} by ${playerName}`,
-          }
-        ],
+        ...(imageUrl
+          ? {
+              images: [
+                {
+                  url: imageUrl,
+                  width: 800,
+                  height: 800,
+                  alt: flashName ? `${flashName} by ${playerName}` : `Flash #${flash.flash_id} by ${playerName}`,
+                }
+              ],
+            }
+          : {}),
         url,
         siteName: "Flashcastr",
         type: "article",
@@ -87,16 +84,20 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         card: "summary_large_image",
         title,
         description,
-        images: [imageUrl],
+        ...(imageUrl ? { images: [imageUrl] } : {}),
         creator: "@flashcastr",
         site: "@flashcastr",
       },
       alternates: {
         canonical: url,
       },
-      other: {
-        "fc:frame": JSON.stringify(framePreviewMetadata),
-      },
+      ...(imageUrl
+        ? {
+            other: {
+              "fc:frame": JSON.stringify(framePreviewMetadata),
+            },
+          }
+        : {}),
     };
   } catch (error) {
     console.error('Error generating metadata for flash:', error);
@@ -128,6 +129,7 @@ export default async function FlashPage({ params }: { params: Promise<{ id: stri
       player: flash.player || '',
       img: flash.img || '',
       ipfs_cid: flash.ipfs_cid || undefined,
+      image_url: flash.image_url,
       text: flash.text || '',
       timestamp: flash.timestamp ?? 0,
       farcaster_username: flash.farcaster_user?.username || undefined,

@@ -8,6 +8,7 @@ export interface FavoriteFlash {
   timestamp: number;
   img?: string;
   ipfs_cid?: string;
+  image_url?: string | null;
   text?: string;
   addedAt: number;
 }

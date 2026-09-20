@@ -8,12 +8,6 @@ export const FETCH = {
   LIMIT: 20,
 };
 
-// S3 storage removed - using IPFS only
-
-export const IPFS = {
-  GATEWAY: process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://fuchsia-rich-lungfish-648.mypinata.cloud/ipfs",
-};
-
 export const FEATURES = {
   // Map tab access via environment variable (NEXT_PUBLIC_ prefix for client-side access)
   ADMIN_FID: process.env.NEXT_PUBLIC_ADMIN_FID ? parseInt(process.env.NEXT_PUBLIC_ADMIN_FID) : null,
