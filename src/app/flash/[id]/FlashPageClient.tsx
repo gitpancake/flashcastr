@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { IPFS } from "~/lib/constants";
+import { getImageUrl } from "~/lib/help/getImageUrl";
+import { FadeInImage } from "~/components/atom/FadeInImage";
 import { useKeyboardShortcuts } from "~/hooks/useKeyboardShortcuts";
 import { flashesApi } from "~/lib/api.flashcastr.app/flashes";
 
@@ -28,6 +29,7 @@ interface FlashData {
   player: string;
   img: string;
   ipfs_cid?: string | null;
+  image_url?: string | null;
   text: string;
   timestamp: number;
   farcaster_username?: string;
@@ -40,13 +42,6 @@ interface FlashData {
 interface FlashPageClientProps {
   flash: FlashData;
   timeAgo: string;
-}
-
-function getFlashImageUrl(flash: FlashData): string {
-  if (!flash.ipfs_cid?.trim()) {
-    return '';
-  }
-  return `${IPFS.GATEWAY}${flash.ipfs_cid}`;
 }
 
 export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps) {
@@ -127,8 +122,8 @@ export default function FlashPageClient({ flash, timeAgo }: FlashPageClientProps
       <div className="bg-black border-2 border-green-400 overflow-hidden relative">
         {/* Flash Image */}
         <div className="aspect-square overflow-hidden relative">
-          <Image
-            src={getFlashImageUrl(flash)}
+          <FadeInImage
+            src={getImageUrl(flash)}
             alt={`Flash ${flash.flash_id}`}
             fill
             className="object-cover"
